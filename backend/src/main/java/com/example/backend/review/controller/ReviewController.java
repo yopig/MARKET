@@ -1,10 +1,13 @@
 package com.example.backend.review.controller;
 
+import com.example.backend.board.dto.BoardListDto;
 import com.example.backend.review.dto.ReviewFormDto;
 import com.example.backend.review.dto.ReviewListDto;
 import com.example.backend.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,5 +68,23 @@ public class ReviewController {
     public ResponseEntity<List<ReviewListDto>> getLatestReviews() {
         List<ReviewListDto> latestReviews = reviewService.getLatestReviews();
         return ResponseEntity.ok(latestReviews);
+    }
+
+    @GetMapping("/latest3")
+    public ResponseEntity<List<ReviewListDto>> getLatest3Reviews() {
+        List<ReviewListDto> latest3 = reviewService.getLatest3Reviews();
+        return ResponseEntity.ok(latest3);
+    }
+
+    @GetMapping("/myReview")
+    public ResponseEntity<List<ReviewListDto>> getMyReviews(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = authentication.getName(); // 로그인 사용자 이메일
+        List<ReviewListDto> myReviews = reviewService.findReviewsByEmail(email);
+
+        return ResponseEntity.ok(myReviews);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.backend.review.service;
 
+import com.example.backend.board.dto.BoardListDto;
 import com.example.backend.member.entity.Member;
 import com.example.backend.member.entity.MemberFile;
 import com.example.backend.member.entity.MemberFileId;
@@ -13,6 +14,7 @@ import com.example.backend.review.repository.ReviewFileRepository;
 import com.example.backend.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -262,6 +264,74 @@ public class ReviewService {
                             .rating(review.getRating())
                             .insertedAt(review.getInsertedAt())
                             .profileImageUrl(profileImageUrl) // ✅ 여기에 셋팅
+                            .files(fileUrls)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<ReviewListDto> getLatest3Reviews() {
+        return reviewRepository.findTop3ByOrderByInsertedAtDesc()
+                .stream()
+                .map(review -> {
+                    // 리뷰 첨부 이미지들
+                    List<String> fileUrls = review.getFiles().stream()
+                            .map(f -> imagePrefix + "prj3/review/" + review.getId() + "/" + f.getId().getName())
+                            .collect(Collectors.toList());
+
+                    // 작성자 프로필 이미지 (여러 개가 있을 수 있다면 첫 번째 것만 사용)
+                    List<MemberFile> memberFiles = review.getMemberEmail().getFiles();
+
+                    String profileImageUrl = null;
+                    if (memberFiles != null && !memberFiles.isEmpty()) {
+                        MemberFile profileFile = memberFiles.get(0);
+                        profileImageUrl = imagePrefix + "prj3/member/" + review.getMemberEmail().getId() + "/" + profileFile.getId().getName();
+                    }
+
+                    return ReviewListDto.builder()
+                            .id(review.getId())
+                            .facilityName(review.getFacilityName())
+                            .memberEmail(review.getMemberEmail().getEmail())
+                            .memberEmailNickName(review.getMemberEmail().getNickName())
+                            .review(review.getReview())
+                            .rating(review.getRating())
+                            .insertedAt(review.getInsertedAt())
+                            .profileImageUrl(profileImageUrl)
+                            .files(fileUrls)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    public List<ReviewListDto> findReviewsByEmail(String email) {
+        // Member 객체의 email 필드와 비교하도록 리포지토리 메서드 이름에 _Email 붙이기
+        return reviewRepository.findAllByMemberEmail_Email(email)
+                .stream()
+                .map(review -> {
+                    // 리뷰 첨부 이미지들
+                    List<String> fileUrls = review.getFiles().stream()
+                            .map(f -> imagePrefix + "prj3/review/" + review.getId() + "/" + f.getId().getName())
+                            .collect(Collectors.toList());
+
+                    // 작성자 프로필 이미지 (여러 개가 있을 수 있다면 첫 번째 것만 사용)
+                    List<MemberFile> memberFiles = review.getMemberEmail().getFiles();
+
+                    String profileImageUrl = null;
+                    if (memberFiles != null && !memberFiles.isEmpty()) {
+                        MemberFile profileFile = memberFiles.get(0);
+                        profileImageUrl = imagePrefix + "prj3/member/" + review.getMemberEmail().getId() + "/" + profileFile.getId().getName();
+                    }
+
+                    return ReviewListDto.builder()
+                            .id(review.getId())
+                            .facilityName(review.getFacilityName())
+                            .memberEmail(review.getMemberEmail().getEmail())
+                            .memberEmailNickName(review.getMemberEmail().getNickName())
+                            .review(review.getReview())
+                            .rating(review.getRating())
+                            .insertedAt(review.getInsertedAt())
+                            .profileImageUrl(profileImageUrl)
                             .files(fileUrls)
                             .build();
                 })

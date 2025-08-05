@@ -27,7 +27,7 @@ public class SupportController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<List<SupportResponseDto>> getAllSupports() {
         try {
             List<SupportResponseDto> list = supportService.getAllSupports();

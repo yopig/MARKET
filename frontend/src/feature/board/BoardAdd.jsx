@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   Col,
+  Form,
   FormControl,
   FormGroup,
   ListGroup,
@@ -187,22 +188,6 @@ export function BoardAdd() {
                 disabled={isProcessing}
               />
             </FormGroup>
-
-            {/* private 체크박스 */}
-            <Form.Group
-              controlId="formPrivate"
-              className="mb-3"
-            >
-              <Form.Check
-                type="checkbox"
-                label="비공개 게시물"
-                checked={isPrivate}
-                onChange={(e) => setIsPrivate(e.target.checked)}
-                disabled={isProcessing}
-              />
-            </Form.Group>
-
-            {/* 작성자 표시 */}
             <Row className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
               <Col xs={6}>
                 <div>

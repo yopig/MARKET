@@ -74,7 +74,7 @@ export function Chatbot() {
   return (
     <div style={{ padding: "2rem", width: "90%", maxWidth: "1200px", margin: "0 auto" }}>
 
-    <h2 className="mb-4">펫토피아 챗봇</h2>
+      <h2 className="mb-4">펫토피아 챗봇</h2>
 
       <div
         style={{

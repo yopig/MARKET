@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Button, Card, Col, Image, Row, Spinner } from "react-bootstrap";
+import {
+  Button,
+  Card,
+  Col,
+  Image,
+  Row,
+  Spinner,
+  Pagination,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { ReviewLikeContainer } from "../like/ReviewLikeContainer";
 
@@ -8,8 +16,16 @@ export function ReviewListMini() {
   const [reviews, setReviews] = useState(null);
   const [expandedIds, setExpandedIds] = useState([]);
   const [clampedIds, setClampedIds] = useState([]);
-  const reviewRefs = useRef({});
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // 신고 관련 상태들
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportingReviewId, setReportingReviewId] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const reviewsPerPage = 5;
+  const reviewRefs = useRef({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +42,10 @@ export function ReviewListMini() {
       const el = reviewRefs.current[r.id];
       if (!el) return;
       const isClamped = el.scrollHeight > el.clientHeight + 1;
-      if (isClamped) {
-        newClampedIds.push(r.id);
-      }
+      if (isClamped) newClampedIds.push(r.id);
     });
     setClampedIds(newClampedIds);
-  }, [reviews]);
+  }, [reviews, currentPage]);
 
   if (!reviews) {
     return (
@@ -62,20 +76,64 @@ export function ReviewListMini() {
 
   const toggleExpand = (id) => {
     setExpandedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
+  };
+
+  // 신고 모달 열기
+  const openReportModal = (reviewId) => {
+    setReportingReviewId(reviewId);
+    setReportReason("");
+    setReportModalOpen(true);
+  };
+
+  // 신고 모달 닫기
+  const closeReportModal = () => {
+    setReportModalOpen(false);
+    setReportingReviewId(null);
+    setReportReason("");
+  };
+
+  // 신고 제출
+  const submitReport = async () => {
+    if (!reportReason.trim()) {
+      alert("신고 사유를 입력해주세요.");
+      return;
+    }
+    setReportLoading(true);
+    try {
+      await fetch("/api/review/report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reviewId: reportingReviewId,
+          reason: reportReason.trim(),
+        }),
+      });
+      alert("신고가 접수되었습니다.");
+      closeReportModal();
+    } catch (error) {
+      alert("신고 실패: " + error.message);
+    } finally {
+      setReportLoading(false);
+    }
   };
 
   const defaultProfileImage = "/user.png";
 
+  // 페이징 계산
+  const indexOfLast = currentPage * reviewsPerPage;
+  const indexOfFirst = indexOfLast - reviewsPerPage;
+  const currentReviews = reviews.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+
   return (
     <Row className="justify-content-center mt-4">
       <Col xs={12} md={10} lg={8} style={{ maxWidth: "900px" }}>
-        <h3 className="mb-4 fw-bold text-center" style={{ color: "#8B4513" }}>
-          최신 리뷰
-        </h3>
         <div className="d-flex flex-column gap-3">
-          {reviews.map((r) => {
+          {currentReviews.map((r) => {
             const isExpanded = expandedIds.includes(r.id);
             const imageFiles = r.files?.filter(isImageFile) || [];
             const firstImage = imageFiles[0] || null;
@@ -87,7 +145,6 @@ export function ReviewListMini() {
                 className="shadow-sm border-0 p-3"
                 style={{ backgroundColor: "#fdfaf4" }}
               >
-                {/* 상단: 시설명 + 별점 + 평점 숫자 */}
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <div
                     className="fw-semibold hover-underline-on-hover"
@@ -98,19 +155,21 @@ export function ReviewListMini() {
                   </div>
                   <div
                     className="small"
-                    style={{ fontWeight: "bold", display: "flex", alignItems: "center" }}
+                    style={{
+                      fontWeight: "bold",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
                   >
                     <span style={{ color: "#f0ad4e", fontSize: "1.1rem" }}>
                       {"★".repeat(r.rating)}
                     </span>
-                    <span style={{ color: "#212529", marginLeft: "6px", fontSize: "1rem" }}>
+                    <span className="ms-2 text-dark fw-semibold">
                       {r.rating}
                     </span>
                   </div>
                 </div>
                 <hr className="mt-1 border-gray-300" />
-
-                {/* 리뷰 본문과 이미지 */}
                 <Row className="align-items-start">
                   <Col xs={12} md={hasImages ? 8 : 12}>
                     <div
@@ -127,7 +186,10 @@ export function ReviewListMini() {
                           size="sm"
                           onClick={() => toggleExpand(r.id)}
                           className="p-0 text-secondary hover-underline-on-hover"
-                          style={{ textDecoration: "none", fontSize: "0.85rem" }}
+                          style={{
+                            textDecoration: "none",
+                            fontSize: "0.85rem",
+                          }}
                         >
                           {isExpanded ? "간략히 보기" : "더보기"}
                         </Button>
@@ -142,7 +204,7 @@ export function ReviewListMini() {
                     >
                       <Image
                         src={firstImage}
-                        alt={`리뷰 이미지`}
+                        alt="리뷰 이미지"
                         className="shadow rounded"
                         style={{
                           width: "100px",
@@ -154,29 +216,154 @@ export function ReviewListMini() {
                   )}
                 </Row>
 
-                {/* 좋아요 버튼 */}
                 <div className="mt-3 d-flex align-items-center gap-2">
                   <ReviewLikeContainer reviewId={r.id} />
+                  {/* 신고 버튼 */}
+                  <button
+                    onClick={() => openReportModal(r.id)}
+                    title="리뷰 신고하기"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      margin: 0,
+                      cursor: "pointer",
+                      fontSize: "1.2rem",
+                      lineHeight: 1,
+                      color: "#dc3545",
+                      userSelect: "none",
+                    }}
+                  >
+                    🚨
+                  </button>
                 </div>
 
-                {/* 작성자 & 날짜 */}
-                <div className="text-muted mt-3" style={{ fontSize: "0.8rem" }}>
+                <div
+                  className="text-muted mt-3"
+                  style={{ fontSize: "0.8rem" }}
+                >
                   <Image
                     roundedCircle
                     className="me-2"
                     src={r.profileImageUrl || defaultProfileImage}
                     alt={`${r.memberEmailNickName ?? "익명"} 프로필`}
-                    style={{ width: "23px", height: "23px", objectFit: "cover" }}
+                    style={{
+                      width: "23px",
+                      height: "23px",
+                      objectFit: "cover",
+                    }}
                   />
-                  {r.memberEmailNickName ?? "익명 사용자"} · {r.insertedAt?.split("T")[0]}
+                  {r.memberEmailNickName ?? "익명 사용자"} ·{" "}
+                  {r.insertedAt?.split("T")[0]}
                 </div>
               </Card>
             );
           })}
         </div>
+
+        {/* 페이징 컨트롤 */}
+        {totalPages > 1 && (
+          <Pagination className="justify-content-center mt-4">
+            <Pagination.Prev
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            />
+            {[...Array(totalPages)].map((_, idx) => (
+              <Pagination.Item
+                key={idx + 1}
+                active={idx + 1 === currentPage}
+                onClick={() => setCurrentPage(idx + 1)}
+              >
+                {idx + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+            />
+          </Pagination>
+        )}
       </Col>
 
-      {/* line-clamp 스타일 */}
+      {/* 신고 모달 */}
+      {reportModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={closeReportModal}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "1.5rem",
+              borderRadius: "8px",
+              width: "90%",
+              maxWidth: "400px",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>리뷰 신고하기</h3>
+            <textarea
+              rows={5}
+              placeholder="신고 사유를 작성해주세요."
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              style={{ width: "100%", marginTop: "0.5rem", resize: "vertical" }}
+            />
+            <div
+              style={{
+                marginTop: "1rem",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "0.5rem",
+              }}
+            >
+              <button
+                onClick={closeReportModal}
+                disabled={reportLoading}
+                style={{
+                  padding: "0.4rem 1rem",
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={submitReport}
+                disabled={reportLoading}
+                style={{
+                  padding: "0.4rem 1rem",
+                  backgroundColor: "#ffc107",
+                  color: "#212529",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                {reportLoading ? "신고중..." : "신고하기"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .line-clamp {
           display: -webkit-box;

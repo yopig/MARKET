@@ -15,7 +15,7 @@ import {
 import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router";
-import { FaRegComments, FaRegImages, FaThumbsUp } from "react-icons/fa";
+import { FaRegComments, FaRegImages } from "react-icons/fa"; // 좋아요 아이콘 삭제
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 
 export function BoardList() {
@@ -70,7 +70,6 @@ export function BoardList() {
     navigate("/board/add");
   }
 
-
   const pageNumbers = [];
   if (pageInfo) {
     for (let i = pageInfo.leftPageNumber; i <= pageInfo.rightPageNumber; i++) {
@@ -116,9 +115,7 @@ export function BoardList() {
             <thead>
             <tr style={{ fontSize: "0.85rem", color: "#6c757d" }}>
               <th style={{ width: "45px" }}>#</th>
-              <th style={{ width: "45px" }}>
-                <FaThumbsUp size={14} className="text-secondary" />
-              </th>
+              {/* 좋아요 열 삭제 */}
               <th style={{ width: "100%" }}>제목</th>
               <th style={{ width: "35%" }}>작성자</th>
               <th style={{ width: "50%" }}>작성일시</th>
@@ -132,9 +129,7 @@ export function BoardList() {
                 onClick={() => handleTableRowClick(board.id)}
               >
                 <td className="text-muted">{board.id}</td>
-                <td className="text-muted" style={{ fontSize: "0.85em" }}>
-                  {board.countLike}
-                </td>
+                {/* 좋아요 컬럼 삭제 */}
                 <td>
                   <div className="d-flex gap-2 align-items-center">
                       <span
@@ -157,7 +152,6 @@ export function BoardList() {
                         </div>
                       </Badge>
                     )}
-
 
                     {board.countFile > 0 && (
                       <Badge bg="warning" text="dark">

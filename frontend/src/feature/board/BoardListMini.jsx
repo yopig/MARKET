@@ -2,7 +2,7 @@ import { Alert, Badge, Spinner, Table } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router";
-import { FaRegComments, FaRegImages, FaThumbsUp } from "react-icons/fa";
+import { FaRegImages } from "react-icons/fa";
 
 export function BoardListMini() {
   const [boardList, setBoardList] = useState([]);
@@ -49,14 +49,11 @@ export function BoardListMini() {
       responsive
       size="sm"
       className="align-middle text-secondary"
-      style={{ fontSize: "1.2rem", tableLayout: "fixed" }} // 글씨 크기 더 키움
+      style={{ fontSize: "1rem", tableLayout: "fixed" }} // 글씨 크기 1rem으로 조정
     >
       <thead>
-      <tr className="text-muted" style={{ height: "45px" }}>
+      <tr className="text-muted" style={{ height: "40px", fontSize: "0.9rem" }}>
         <th style={{ width: "50px" }}>#</th>
-        <th style={{ width: "50px" }}>
-          <FaThumbsUp size={18} />
-        </th>
         <th>제목</th>
         <th style={{ width: "100px" }}>작성자</th>
         <th style={{ width: "120px" }}>작성일</th>
@@ -67,37 +64,37 @@ export function BoardListMini() {
         <tr
           key={board.id}
           onClick={() => navigate(`/board/${board.id}`)}
-          style={{ cursor: "pointer", height: "55px" }} // 행 높이도 더 키움
+          style={{ cursor: "pointer", height: "50px" }} // 행 높이 약간 줄임
         >
-          <td className="text-muted">{board.id}</td>
-          <td className="text-muted">{board.countLike}</td>
+          <td className="text-muted" style={{ fontSize: "0.9rem" }}>{board.id}</td>
           <td
             className="text-dark"
             style={{
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              fontSize: "0.95rem",
             }}
           >
             <div
               className="d-flex gap-2 align-items-center"
               style={{ overflow: "hidden" }}
             >
-            <span
-              style={{
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                display: "inline-block",
-                maxWidth: "100%",
-              }}
-            >
-              {board.title}
-            </span>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    display: "inline-block",
+                    maxWidth: "100%",
+                  }}
+                >
+                  {board.title}
+                </span>
 
               {board.countFile > 0 && (
-                <Badge bg="warning" text="white">
-                  <div className="d-flex gap-1">
+                <Badge bg="warning" text="white" style={{ fontSize: "0.75rem" }}>
+                  <div className="d-flex gap-1 align-items-center">
                     <FaRegImages />
                     <span>{board.countFile}</span>
                   </div>
@@ -105,10 +102,10 @@ export function BoardListMini() {
               )}
             </div>
           </td>
-          <td className="text-truncate text-muted" title={board.nickName}>
+          <td className="text-truncate text-muted" title={board.nickName} style={{ fontSize: "0.9rem" }}>
             {board.nickName}
           </td>
-          <td className="text-muted">{board.timesAgo}</td>
+          <td className="text-muted" style={{ fontSize: "0.9rem" }}>{board.timesAgo}</td>
         </tr>
       ))}
       </tbody>

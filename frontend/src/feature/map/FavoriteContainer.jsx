@@ -1,9 +1,8 @@
-import { FaRegThumbsUp, FaThumbsUp } from "react-icons/fa";
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { OverlayTrigger, Spinner, Tooltip, Button } from "react-bootstrap";
+import { OverlayTrigger, Spinner, Tooltip } from "react-bootstrap";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
-import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 
 export function FavoriteContainer({ facilityName }) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -22,12 +21,13 @@ export function FavoriteContainer({ facilityName }) {
   }
 
   useEffect(() => {
+    if (!user) return; // 🔒 비로그인 시 실행 안 함
     setIsProcessing(true);
     fetchLikeInfo().finally(() => setIsProcessing(false));
-  }, [facilityName]);
+  }, [facilityName, user]);
 
   function handleFavoriteClick() {
-    if (isProcessing) return;
+    if (isProcessing || !user) return;
 
     setIsProcessing(true);
     axios
@@ -39,21 +39,10 @@ export function FavoriteContainer({ facilityName }) {
       .finally(() => setIsProcessing(false));
   }
 
-  if (!favoriteInfo) {
-    return (
-      <div
-        className="d-flex align-items-center justify-content-center"
-        style={{ height: "2rem" }}
-      >
-        <Spinner animation="border" size="sm" />
-      </div>
-    );
-  }
-
   const heartStyle = {
-    fontSize: "2rem", // Adjust size as needed
-    cursor: "pointer",
-    color: favoriteInfo.isFavorite ? "red" : "#ccc", // Match button colors
+    fontSize: "2rem",
+    cursor: user ? "pointer" : "not-allowed",
+    color: favoriteInfo?.isFavorite ? "red" : "#ccc",
   };
 
   return (
@@ -64,7 +53,7 @@ export function FavoriteContainer({ facilityName }) {
           <Tooltip id="tooltip-login">로그인 하세요</Tooltip>
         ) : (
           <Tooltip id="tooltip-like">
-            {favoriteInfo.isFavorite ? "찜 취소" : "찜"}
+            {favoriteInfo?.isFavorite ? "찜 취소" : "찜"}
           </Tooltip>
         )
       }
@@ -73,15 +62,18 @@ export function FavoriteContainer({ facilityName }) {
         onClick={user && !isProcessing ? handleFavoriteClick : undefined}
         style={{ display: "flex", alignItems: "center" }}
       >
-        {isProcessing ? (
-          <Spinner animation="border" size="sm" />
-        ) : favoriteInfo.isFavorite ? (
-          <MdFavorite style={heartStyle} />
+        {user ? (
+          isProcessing ? (
+            <Spinner animation="border" size="sm" />
+          ) : favoriteInfo?.isFavorite ? (
+            <MdFavorite style={heartStyle} />
+          ) : (
+            <MdFavoriteBorder style={heartStyle} />
+          )
         ) : (
           <MdFavoriteBorder style={heartStyle} />
         )}
       </div>
-      {/*</Button>*/}
     </OverlayTrigger>
   );
 }

@@ -51,8 +51,4 @@ public class PetFacility {
     private String description; // 기본 정보_장소설명 (DB: description)
     private String additionalPetFee; // 애견 동반 추가 요금 (DB: additional_pet_fee)
     private String finalCreationDate; // 최종작성일 (DB: final_creation_date)
-
-    // 여기에 평점과 리뷰 관련 필드 추가 (나중에 구현할 때)
-    // private double averageRating;
-    // private int reviewCount;
 }

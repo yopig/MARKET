@@ -181,12 +181,16 @@ public class MemberService {
                 .map(mf -> imagePrefix + "prj3/member/" + member.getId() + "/" + mf.getId().getName()) // member_file 엔티티의 name 필드 사용
                 .collect(Collectors.toList());
 
+        // 회원 권한 이름 가져오기
+        List<String> authNames = authRepository.findAuthNamesByMemberId(member.getId());
+
         return MemberDto.builder()
                 .email(member.getEmail())
                 .nickName(member.getNickName())
                 .info(member.getInfo())
                 .insertedAt(member.getInsertedAt())
                 .files(fileUrls)
+                .authNames(authNames)
                 .build();
     }
 

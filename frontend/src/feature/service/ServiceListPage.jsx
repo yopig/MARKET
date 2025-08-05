@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext } from "react";
 import { Table, Alert, Spinner } from "react-bootstrap";
-import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx"; // 경로 맞게 수정
+import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 import { Navigate } from "react-router-dom";
+import axios from "axios"; // ✅ 추가
 
 export default function ServiceListPage() {
   const [services, setServices] = useState([]);
@@ -9,22 +10,22 @@ export default function ServiceListPage() {
   const [error, setError] = useState("");
   const { isAdmin } = useContext(AuthenticationContext);
 
-  // 관리자 아니면 접근 제한
   if (!(typeof isAdmin === "function" ? isAdmin() : isAdmin)) {
-    return <Navigate to="/login" replace />; // 로그인 페이지나 권한없음 페이지로 리다이렉트
+    return <Navigate to="/login" replace />;
   }
 
   useEffect(() => {
     async function fetchServices() {
       try {
-        const res = await fetch("/api/support"); // 실제 API 주소 맞게 수정
-        if (!res.ok) {
-          throw new Error("서버 오류로 문의 내역을 불러올 수 없습니다.");
-        }
-        const data = await res.json();
+        const res = await axios.get("/api/support/list"); // ✅ 수정됨
+        const data = res.data; // ✅ 수정됨
         setServices(data);
       } catch (err) {
-        setError(err.message);
+        if (err.response?.status === 401) {
+          setError("로그인이 필요합니다.");
+        } else {
+          setError("서버 오류로 문의 내역을 불러올 수 없습니다.");
+        }
       } finally {
         setLoading(false);
       }
@@ -69,7 +70,9 @@ export default function ServiceListPage() {
             <td>{idx + 1}</td>
             <td>{email}</td>
             <td>{title}</td>
-            <td style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{content}</td>
+            <td style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+              {content}
+            </td>
             <td>{new Date(inserted_at).toLocaleString()}</td>
           </tr>
         ))}

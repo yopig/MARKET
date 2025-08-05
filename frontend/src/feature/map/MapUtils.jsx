@@ -1,14 +1,22 @@
-// src/feature/map/MapUtils.jsx
-
 export const createInfoWindowContent = (
   facility,
   categoryColors,
   reviewData,
 ) => {
-  const categoryColor =
-    categoryColors[facility.category1] ||
-    categoryColors[facility.category2] ||
-    "#6c757d";
+  // ✅ 배지 HTML을 담을 변수를 빈 문자열로 초기화합니다.
+  let badgesHtml = "";
+
+  // ✅ 1. category2에 대한 배지를 생성합니다.
+  if (facility.category2 && categoryColors[facility.category2]) {
+    const category2Color = categoryColors[facility.category2];
+    badgesHtml += `<span class="badge ms-1" style="background-color:${category2Color}; font-size: 8px;">${facility.category2}</span>`;
+  }
+
+  // ✅ 2. category3에 대한 배지를 생성합니다.
+  if (facility.category3 && categoryColors[facility.category3]) {
+    const category3Color = categoryColors[facility.category3];
+    badgesHtml += `<span class="badge ms-1" style="background-color:${category3Color}; font-size: 8px;">${facility.category3}</span>`;
+  }
 
   let reviewHtml = `
     <p class="mb-1 small" style="color: #888;">
@@ -29,9 +37,7 @@ export const createInfoWindowContent = (
       <div class="card-body p-1">
         <h6 class="card-title mb-1" style="font-size: 12px; font-weight: bold;">
           ${facility.name || "이름 없음"}
-          <span class="badge ms-1" style="background-color:${categoryColor}; font-size: 8px;">
-            ${facility.category2 || facility.category1 || ""}
-          </span>
+          ${badgesHtml} 
         </h6>
         
         ${reviewHtml}

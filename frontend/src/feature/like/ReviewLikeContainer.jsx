@@ -9,24 +9,44 @@ export function ReviewLikeContainer({ reviewId }) {
   const [likeInfo, setLikeInfo] = useState(null);
   const { user } = useContext(AuthenticationContext);
 
+  // 인증 헤더 생성 함수
+  const getAuthHeaders = () => {
+    if (!user || !user.accessToken) return {};
+    return {
+      Authorization: `Bearer ${user.accessToken}`,
+    };
+  };
+
+  // 로그인 여부와 관계없이 항상 좋아요 수 조회
   function fetchLikeInfo() {
     return axios
-      .get(`/api/reviewlike/review/${reviewId}`)
-      .then((res) => setLikeInfo(res.data)) // { liked: true/false, likeCount: number }
-      .catch((err) => console.error("리뷰 좋아요 정보 로딩 실패:", err));
+      .get(`/api/reviewlike/review/${reviewId}`, {
+        headers: getAuthHeaders(), // 비로그인 시 빈 객체 전달됨
+      })
+      .then((res) => setLikeInfo(res.data))
+      .catch((err) => {
+        console.error("리뷰 좋아요 정보 로딩 실패:", err);
+        setLikeInfo({ liked: false, likeCount: 0 });
+      });
   }
 
   useEffect(() => {
     setIsProcessing(true);
     fetchLikeInfo().finally(() => setIsProcessing(false));
-  }, [reviewId]);
+  }, [reviewId, user]);
 
   function handleThumbsClick() {
-    if (isProcessing) return;
+    if (isProcessing || !user) return;
 
     setIsProcessing(true);
     axios
-      .put("/api/reviewlike", { reviewId })
+      .put(
+        "/api/reviewlike",
+        { reviewId },
+        {
+          headers: getAuthHeaders(),
+        }
+      )
       .then(() => fetchLikeInfo())
       .catch((err) => console.error("리뷰 좋아요 처리 실패:", err))
       .finally(() => setIsProcessing(false));

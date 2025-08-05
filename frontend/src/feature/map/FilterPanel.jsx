@@ -1,13 +1,11 @@
-// src/feature/map/FilterPanel.js
-import React, { useState } from "react";
-import { toast } from "react-toastify";
-import axios from "axios";
+import React, { useContext } from "react"; // 👈 useContext 추가
+import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx"; // 👈 로그인 정보 경로 (프로젝트에 맞게 확인)
 
 const CheckboxGroup = ({
   title,
   options,
   selectedSet,
-  setFunction, // 👈 부모로부터 받은 상태 변경 함수
+  setFunction,
   categoryColors,
 }) => {
   return (
@@ -69,16 +67,18 @@ const FilterPanel = ({
   setFacilityType,
   categoryColors,
   onSearch,
-  onLoadFavorites, // 찜 목록 불러오기 함수
+  onLoadFavorites,
 }) => {
+  // 👈 로그인 정보를 가져옵니다.
+  const { user } = useContext(AuthenticationContext);
+
   return (
     <div
-      className="w-100 h-100 d-flex flex-column"
+      className="h-100 d-flex flex-column bg-white rounded shadow-sm p-3"
       style={{ fontSize: "12px" }}
     >
-      <h6 className="text-dark mb-2 flex-shrink-0">🐾 필터</h6>
-
       <div className="flex-grow-1 overflow-auto" style={{ minHeight: 0 }}>
+        {/* 지역, 시군구 등 다른 필터 UI는 여기에 그대로 위치 */}
         <div className="mb-2">
           <label className="form-label small fw-bold mb-1">📍 지역</label>
           <select
@@ -116,7 +116,7 @@ const FilterPanel = ({
           title="🏪 카테고리"
           options={categories2}
           selectedSet={selectedCategories2}
-          setFunction={setSelectedCategories2} // ✅ 수정된 CheckboxGroup에 상태변경 함수 전달
+          setFunction={setSelectedCategories2}
           categoryColors={categoryColors}
         />
 
@@ -124,7 +124,7 @@ const FilterPanel = ({
           title="🐕 반려동물 크기"
           options={petSizes}
           selectedSet={selectedPetSizes}
-          setFunction={setSelectedPetSizes} // ✅ 수정된 CheckboxGroup에 상태변경 함수 전달
+          setFunction={setSelectedPetSizes}
         />
 
         <div className="mb-2">
@@ -195,20 +195,27 @@ const FilterPanel = ({
         <button
           className="btn btn-danger w-100 btn-sm"
           onClick={onLoadFavorites}
+          disabled={!user} // 👈 user가 없으면(비로그인 상태) 버튼 비활성화
           style={{ fontSize: "12px" }}
         >
-          ❤ 저장 목록
+          즐겨찾기
         </button>
+        {/* 👈 비로그인 사용자에게 안내 메시지 표시 */}
+        {!user && (
+          <div className="form-text text-center" style={{ fontSize: "9px" }}>
+            로그인 후 이용 가능합니다.
+          </div>
+        )}
       </div>
 
       {/* 검색 버튼 */}
-      <div className="flex-shrink-0 mt-2">
+      <div className="flex-shrink-0 mt-1">
         <button
           className="btn btn-primary w-100 btn-sm"
           onClick={onSearch}
           style={{ fontSize: "12px" }}
         >
-          🔍 검색하기
+          검색하기
         </button>
       </div>
     </div>

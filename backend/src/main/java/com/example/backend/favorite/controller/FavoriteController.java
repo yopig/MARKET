@@ -2,7 +2,6 @@ package com.example.backend.favorite.controller;
 
 import com.example.backend.favorite.dto.FavoriteDto;
 import com.example.backend.favorite.dto.FavoriteForm;
-import com.example.backend.favorite.entity.Favorite;
 import com.example.backend.favorite.service.FavoriteService;
 import com.example.backend.petFacility.dto.FavoriteFacilityDto;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.List;
 public class FavoriteController {
     private final FavoriteService favoriteService;
 
-    // 프론트에서 facilityName으로 보내는데 db는 name임
     @PutMapping
     public void favorite(@RequestBody FavoriteForm favoriteForm, Authentication authentication) {
         favoriteService.update(favoriteForm, authentication);
@@ -28,8 +26,10 @@ public class FavoriteController {
         return favoriteService.get(facilityName, authentication);
     }
 
+    // ✨ 최종 수정된 부분
     @GetMapping("/mine")
     public List<FavoriteFacilityDto> getMine(Authentication authentication) {
+        // 서비스 클래스에 실제로 존재하는 getMyFavorite(authentication) 메소드를 호출합니다.
         return favoriteService.getMyFavorite(authentication);
     }
 }

@@ -247,7 +247,6 @@ export function BoardDetail() {
                   </>
                 )}
               </div>
-              <LikeContainer boardId={board.id} />
             </div>
           </Card.Body>
         </Card>

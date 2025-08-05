@@ -20,6 +20,7 @@ import { ReviewEdit } from "./feature/map/ReviewEdit.jsx";
 import { ReviewListMini } from "./feature/board/ReviewListMini.jsx";
 import ServicePage from "./feature/service/ServicePage.jsx";
 import ServiceListPage from "./feature/service/ServiceListPage.jsx";  // 추가: 문의내역 리스트 페이지
+import { MyReview } from "./feature/review/MyReview.jsx";
 
 function App() {
   return (
@@ -42,10 +43,11 @@ function App() {
             <Route path="/KakaoMap" element={<FullFilterKakaoMap />} />
             <Route path="/facility/:name/review/add" element={<ReviewAdd />} />
             <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/review/my" element={<MyReview/>} />
             <Route path="/review/edit/:id" element={<ReviewEdit />} />
             <Route path="/review/latest" element={<ReviewListMini />} />
-            <Route path="/service" element={<ServicePage />} />
-            <Route path="/service/list" element={<ServiceListPage />} /> {/* 관리자 전용 문의내역 리스트 */}
+            <Route path="/support" element={<ServicePage />} />
+            <Route path="/support/list" element={<ServiceListPage />} /> {/* 관리자 전용 문의내역 리스트 */}
           </Route>
         </Routes>
       </BrowserRouter>

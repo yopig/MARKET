@@ -11,4 +11,5 @@ public class BoardAddForm {
     private String title;
     private String content;
     private List<MultipartFile> files;
+    private Boolean isPrivate;
 }

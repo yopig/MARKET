@@ -75,38 +75,37 @@ public class FavoriteService {
         return favoriteDto;
     }
 
+    // in FavoriteService.java
+
     public List<FavoriteFacilityDto> getMyFavorite(Authentication authentication) {
         if (authentication == null) {
             throw new RuntimeException("로그인 하세요");
         }
-        // 사용자 이메일 가져와서
         String email = authentication.getName();
-        // 사용자 있는지 확인
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자 없음"));
 
-        // 그 사용자의 저장 목록이 가져오기
         List<Favorite> favoriteList = favoriteRepository.findByMember(member);
 
-        // 없으면
         if (favoriteList.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 있으면 각 시설들의 정보(FFD)들을 가져와서 Map으로 보냄 -> 여러개 표시하기 위해서.
+        // PetFacility 엔티티의 필드를 FavoriteFacilityDto로 매핑합니다.
         return favoriteList.stream()
                 .map(fav -> {
-                    PetFacility facility = fav.getFacility(); // Favorite에서 연관된 시설 가져오기
+                    PetFacility facility = fav.getFacility(); // 연관된 시설 엔티티 가져오기
+
+                    // ✅ 수정된 부분: 엔티티의 주소 필드를 DTO에 직접 매핑
                     return FavoriteFacilityDto.builder()
                             .facilityId(facility.getId())
                             .name(facility.getName())
                             .latitude(facility.getLatitude())
                             .longitude(facility.getLongitude())
                             .category2(facility.getCategory2())
-                            .sidoName(facility.getSidoName())
-                            .sigunguName(facility.getSigunguName())
-                            .roadName(facility.getRoadName())
-                            .bunji(facility.getBunji())
+                            .category3(facility.getCategory3())
+                            .roadAddress(facility.getRoadAddress())   // DB에 저장된 도로명 주소를 그대로 사용
+                            .jibunAddress(facility.getJibunAddress()) // DB에 저장된 지번 주소를 그대로 사용
                             .phoneNumber(facility.getPhoneNumber())
                             .holiday(facility.getHoliday())
                             .operatingHours(facility.getOperatingHours())
@@ -114,6 +113,8 @@ public class FavoriteService {
                             .petFriendlyInfo(facility.getPetFriendlyInfo())
                             .indoorFacility(facility.getIndoorFacility())
                             .outdoorFacility(facility.getOutdoorFacility())
+                            .allowedPetSize(facility.getAllowedPetSize())
+                            .petRestrictions(facility.getPetRestrictions())
                             .build();
                 })
                 .collect(Collectors.toList());

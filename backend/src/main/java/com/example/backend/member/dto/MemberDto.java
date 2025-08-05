@@ -15,4 +15,6 @@ public class MemberDto {
     private LocalDateTime insertedAt;
 
     private List<String> files;
+
+    private List<String> authNames;
 }

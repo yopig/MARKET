@@ -76,8 +76,11 @@ public class MemberController {
         if (!authentication.getName().equals(memberForm.getEmail())) {
             return ResponseEntity.status(403).build();
         }
-//        MemberForm form = new MemberForm();
-//        form.setFiles(profileFiles); // 새로 추가된 파일
+
+        // null 체크 후 빈 리스트로 초기화
+        if (deleteProfileFileNames == null) {
+            deleteProfileFileNames = List.of(); // 빈 리스트 할당 (불변 리스트)
+        }
 
         try {
             memberService.update(memberForm, profileFiles, deleteProfileFileNames);
