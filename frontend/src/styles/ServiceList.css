@@ -1,0 +1,54 @@
+/* ServiceList.css */
+
+.service-list-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.service-list-table thead {
+    background-color: #f8f9fa;
+}
+
+.service-list-table th {
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    background-color: #fdf7f7;
+    color: #000000;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.service-list-table td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.service-list-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.service-list-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+.service-list-table .service-email-cell {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.service-list-table .content-cell {
+    max-width: 400px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.text-hover:hover {
+    transition: none;
+    box-shadow: none;
+}

@@ -13,12 +13,20 @@ import com.example.backend.member.repository.MemberFileRepository;
 import com.example.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -28,8 +36,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -47,6 +60,13 @@ public class MemberService {
     private final BoardRepository boardRepository;
     private final BoardLikeRepository boardLikeRepository;
     private final S3Client s3Client;
+
+    // 외부 로그인 사용자 탈퇴시 임시코드를 위해
+    private final Map<String, String> withdrawalCodes = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final PasswordEncoder passwordEncoder;
+
+    private final RestTemplate restTemplate = new RestTemplate(); // API 호출을 위해 추가
 
     @Value("${image.prefix}")
     private String imagePrefix;
@@ -82,9 +102,6 @@ public class MemberService {
 
     public void add(MemberForm memberForm) {
         this.validate(memberForm);
-        // TODO 구글 로그인(패스워스 없을 때)
-//        if (memberForm.getPassword().isBlank()) {
-//        }
 
         Member member = new Member();
         member.setEmail(memberForm.getEmail().trim());
@@ -170,7 +187,7 @@ public class MemberService {
     }
 
     public List<MemberListInfo> list() {
-        return memberRepository.findAllBy();
+        return memberRepository.findAllByOrderByInsertedAtDesc();
     }
 
     public MemberDto get(String email) {
@@ -185,21 +202,53 @@ public class MemberService {
         List<String> authNames = authRepository.findAuthNamesByMemberId(member.getId());
 
         return MemberDto.builder()
+                .id(member.getId())
                 .email(member.getEmail())
                 .nickName(member.getNickName())
                 .info(member.getInfo())
                 .insertedAt(member.getInsertedAt())
+                .provider(member.getProvider())
                 .files(fileUrls)
                 .authNames(authNames)
                 .build();
+    }
+
+    // 임시 탈퇴 코드 생성
+    // -> 모달 열릴 때 실행되도록(유효성 때문에, 페이지 새로고침하면 바뀌기때문, db 만드는 거 별로라)
+    public String generateWithdrawalCode(String email) {
+        // 이미 생성된 거 있으명 삭제
+        withdrawalCodes.remove(email);
+
+        // 임시 코드 생성
+        String tempCode = UUID.randomUUID().toString().substring(0, 8);
+        withdrawalCodes.put(email, tempCode);
+
+        // 2분 후 코드 삭제 예약
+        scheduler.schedule(() -> withdrawalCodes.remove(email), 2, TimeUnit.MINUTES);
+
+        return tempCode;
     }
 
     public void delete(MemberForm memberForm) {
         Member member = memberRepository.findByEmail(memberForm.getEmail())
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
 
-        if (!bCryptPasswordEncoder.matches(memberForm.getPassword(), member.getPassword())) {
-            throw new RuntimeException("암호가 일치하지 않습니다.");
+        // 카카오 회원인지 확인
+        if ("kakao".equals(member.getProvider())) {
+            String withdrawalCode = memberForm.getPassword();
+            String storedCode = withdrawalCodes.get(memberForm.getEmail());
+            System.out.println(storedCode);
+            System.out.println(memberForm.getPassword());
+
+            if (storedCode == null || !storedCode.equals(withdrawalCode)) {
+                throw new RuntimeException("유효하지 않거나 만료된 코드입니다.");
+            }
+            withdrawalCodes.remove(memberForm.getEmail()); // 사용된 코드 삭제
+        } else {
+            // 일반 회원 탈퇴 로직
+            if (!passwordEncoder.matches(memberForm.getPassword(), member.getPassword())) {
+                throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+            }
         }
 
         // 댓글 삭제
@@ -224,49 +273,63 @@ public class MemberService {
 
     // 회원 정보 수정
     public void update(MemberForm memberForm,
-                       List<MultipartFile> profileFiles, // 새로 업로드할 파일들
-                       List<String> deleteProfileFileNames) { // 삭제할 기존 파일 이름들
+                       List<MultipartFile> profileFiles,
+                       List<String> deleteProfileFileNames) {
 
         Member member = memberRepository.findByEmail(memberForm.getEmail())
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
 
-        // 비밀번호 확인 (프론트에서 `password` 필드로 현재 비밀번호를 보냈을 경우)
-        // password 필드가 비어있지 않다면(즉, 모달을 통해 입력받았다면) 검증
-        if (memberForm.getPassword() != null && !memberForm.getPassword().isBlank() &&
-                !bCryptPasswordEncoder.matches(memberForm.getPassword(), member.getPassword())) {
-            throw new RuntimeException("암호가 일치하지 않습니다.");
+        // 카카오 회원인지 확인
+        if ("kakao".equals(member.getProvider())) {
+            String withdrawalCode = memberForm.getPassword();
+            String storedCode = withdrawalCodes.get(memberForm.getEmail());
+            System.out.println(storedCode);
+            System.out.println(memberForm.getPassword());
+
+            if (storedCode == null || !storedCode.equals(withdrawalCode)) {
+                throw new RuntimeException("유효하지 않거나 만료된 코드입니다.");
+            }
+            withdrawalCodes.remove(memberForm.getEmail()); // 사용된 코드 삭제
+        } else {
+            // 일반 회원 비밀번호 변경 관련 처리
+            String rawPassword = memberForm.getPassword();
+            if (rawPassword != null && !rawPassword.trim().isEmpty()) {
+                // 현재 비밀번호 일치 여부 확인
+                if (!bCryptPasswordEncoder.matches(rawPassword, member.getPassword())) {
+                    throw new RuntimeException("암호가 일치하지 않습니다.");
+                }
+                // 비밀번호 변경
+                member.setPassword(bCryptPasswordEncoder.encode(rawPassword.trim()));
+            }
         }
 
-        // 텍스트 정보 업데이트 (닉네임, 자기소개)
+        // 닉네임 및 자기소개 수정
         member.setNickName(memberForm.getNickName().trim());
         member.setInfo(memberForm.getInfo());
-        memberRepository.save(member); // 변경된 회원 정보 저장
+
+        memberRepository.save(member);
 
         // 1. 삭제할 프로필 파일 처리
         if (deleteProfileFileNames != null && !deleteProfileFileNames.isEmpty()) {
-            deleteProfileFiles(member, deleteProfileFileNames); // 분리된 삭제 헬퍼 메서드 호출
+            deleteProfileFiles(member, deleteProfileFileNames);
         }
 
-        // 2. 새로운 프로필 파일 처리
+        // 2. 새 프로필 파일 저장
         if (profileFiles != null && !profileFiles.isEmpty()) {
-            // 프로필 이미지는 단 하나만 허용되는 경우,
-            // 새 파일이 들어오면 기존에 남아있는 모든 프로필 이미지를 삭제하고 새로운 이미지를 저장
-            // deleteProfileFileNames에 이미 추가된 것 외에, 남아있는 기존 프로필 이미지가 있다면 추가 삭제
             List<String> currentImageFileNames = member.getFiles().stream()
                     .filter(mf -> mf.getId().getName().matches(".*\\.(jpg|jpeg|png|gif|webp)$"))
                     .map(mf -> mf.getId().getName())
                     .collect(Collectors.toList());
 
-            // deleteProfileFileNames에 이미 있는 파일은 중복 삭제 방지
             List<String> filesToActuallyDelete = currentImageFileNames.stream()
                     .filter(fileName -> !deleteProfileFileNames.contains(fileName))
                     .collect(Collectors.toList());
 
             if (!filesToActuallyDelete.isEmpty()) {
-                deleteProfileFiles(member, filesToActuallyDelete); // 추가 삭제할 파일이 있다면 삭제 헬퍼 메서드 호출
+                deleteProfileFiles(member, filesToActuallyDelete);
             }
 
-            saveNewProfileFiles(member, profileFiles); // 분리된 저장 헬퍼 메서드 호출
+            saveNewProfileFiles(member, profileFiles);
         }
     }
 
@@ -337,7 +400,6 @@ public class MemberService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-
     public void changePassword(ChangePasswordForm form) {
         Member member = memberRepository.findByEmail(form.getEmail())
                 .orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
@@ -352,4 +414,174 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    // -------------------카카오 로그인------------------------------
+    // application.yml 또는 properties에 설정한 값을 주입받습니다.
+    @Value("${kakao.client.id}")
+    private String KAKAO_CLIENT_ID;
+
+    @Value("${kakao.redirect.uri}")
+    private String KAKAO_REDIRECT_URI;
+
+    // ... 기존 MemberService 코드 ...
+
+    public String processKakaoLogin(String code) {
+        // 1. 인가 코드로 액세스 토큰 받기
+        String accessToken = getAccessToken(code);
+
+        // 2. 액세스 토큰으로 사용자 정보 받기
+        KakaoUserInfoResponse userInfo = getUserInfo(accessToken);
+
+        // 3. 사용자 정보로 회원가입 또는 로그인 처리
+        Member member = registerOrLoginUser(userInfo);
+
+        // 4. 우리 서비스의 JWT 토큰 발급
+        List<String> authList = authRepository.findAuthNamesByMemberId(member.getId());
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 365)) // 유효 기간
+                .subject(member.getEmail())
+                .claim("scp", String.join(" ", authList))
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    private String getAccessToken(String code) {
+        // 요청 URL
+        String tokenUrl = "https://kauth.kakao.com/oauth/token";
+
+        // HTTP 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // HTTP 바디 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", KAKAO_CLIENT_ID);
+        params.add("redirect_uri", KAKAO_REDIRECT_URI);
+        params.add("code", code);
+        // client_secret을 사용하는 경우 params.add("client_secret", KAKAO_CLIENT_SECRET); 추가
+
+        // HTTP 요청 엔티티 생성
+        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
+
+        // POST 요청 보내기
+        ResponseEntity<Map> response = restTemplate.exchange(
+                tokenUrl,
+                HttpMethod.POST,
+                kakaoTokenRequest,
+                Map.class
+        );
+
+        // 응답에서 액세스 토큰 추출
+        return (String) response.getBody().get("access_token");
+    }
+
+    private KakaoUserInfoResponse getUserInfo(String accessToken) {
+        // 요청 URL
+        String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
+
+        // HTTP 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // HTTP 요청 엔티티 생성
+        HttpEntity<MultiValueMap<String, String>> kakaoProfileRequest = new HttpEntity<>(headers);
+
+        // POST 요청 보내기
+        ResponseEntity<KakaoUserInfoResponse> response = restTemplate.exchange(
+                userInfoUrl,
+                HttpMethod.POST,
+                kakaoProfileRequest,
+                KakaoUserInfoResponse.class // 응답을 DTO로 바로 매핑
+        );
+
+        return response.getBody();
+    }
+
+    private Member registerOrLoginUser(KakaoUserInfoResponse userInfo) {
+        Long kakaoId = userInfo.getId();
+
+        if (kakaoId == null) {
+            throw new RuntimeException("카카오 사용자 ID를 가져올 수 없습니다.");
+        }
+
+        Optional<Member> optionalMember = memberRepository.findByKakaoId(kakaoId);
+        if (optionalMember.isPresent()) {
+            return optionalMember.get();
+        }
+
+        // --- 신규 회원 가입 로직 ---
+        String baseNickname = "사용자" + kakaoId;
+        String email = kakaoId + "@kakao.social";
+
+        Map<String, Object> kakaoAccount = userInfo.getKakao_account();
+        if (kakaoAccount != null) {
+            Map<String, String> profile = (Map<String, String>) kakaoAccount.get("profile");
+            if (profile != null && profile.get("nickname") != null) {
+                baseNickname = profile.get("nickname");
+            }
+
+            String kakaoEmail = (String) kakaoAccount.get("email");
+            if (kakaoEmail != null && !kakaoEmail.isEmpty()) {
+                email = kakaoEmail;
+            }
+        }
+
+        if (("사용자" + kakaoId).equals(baseNickname) && userInfo.getProperties() != null) {
+            Map<String, Object> properties = userInfo.getProperties();
+            String propertiesNickname = (String) properties.get("nickname");
+            if (propertiesNickname != null && !propertiesNickname.isEmpty()) {
+                baseNickname = propertiesNickname;
+            }
+        }
+
+        // 🔥 닉네임 중복 해결 로직
+        String uniqueNickname = generateUniqueNickname(baseNickname);
+
+        Optional<Member> existingEmailMember = memberRepository.findByEmail(email);
+        Member member;
+
+        if (existingEmailMember.isPresent()) {
+            member = existingEmailMember.get();
+            member.setKakaoId(kakaoId);
+            member.setProvider("kakao");
+            member.setProviderId(String.valueOf(kakaoId));
+        } else {
+            member = Member.builder()
+                    .email(email)
+                    .nickName(uniqueNickname)  // 중복되지 않는 닉네임 사용
+                    .password(bCryptPasswordEncoder.encode(UUID.randomUUID().toString()))
+                    .kakaoId(kakaoId)
+                    .provider("kakao")
+                    .providerId(String.valueOf(kakaoId))
+                    .role(Member.Role.USER)
+                    .build();
+        }
+
+        return memberRepository.save(member);
+    }
+
+    // 🔥 중복되지 않는 닉네임을 생성하는 헬퍼 메서드 추가
+    private String generateUniqueNickname(String baseNickname) {
+        String nickname = baseNickname;
+        int counter = 1;
+
+        // 닉네임이 중복될 때까지 숫자를 붙여서 시도
+        while (memberRepository.findByNickName(nickname).isPresent()) {
+            nickname = baseNickname + "_" + counter;
+            counter++;
+
+            // 무한 루프 방지 (최대 1000번 시도)
+            if (counter > 1000) {
+                nickname = baseNickname + "_" + UUID.randomUUID().toString().substring(0, 8);
+                break;
+            }
+        }
+
+        return nickname;
+    }
 }

@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface BoardRepository extends JpaRepository<Board, Integer> {
 
     @Query(value = """
@@ -46,4 +48,7 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
     @Transactional
     @Query("DELETE FROM Board b WHERE b.author = :author")
     void deleteByAuthor(Member author);
+
+    @Query("SELECT DISTINCT b FROM Board b JOIN FETCH b.files f ORDER BY b.insertedAt DESC")
+    List<Board> findBoardsWithFilesOrderByInsertedAtDesc();
 }

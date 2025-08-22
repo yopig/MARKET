@@ -1,0 +1,63 @@
+/* ========================================
+   네브바 디자인
+   ======================================== */
+.navbar {
+    background-color: #f6ece6 !important;
+    border-bottom: 3px solid #2C2D31FF;
+    padding: 0 !important;
+    min-height: 72px;
+    overflow: visible;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.navbar-nav .nav-link {
+    text-decoration: none;
+    font-family: var(--font-family), serif;
+    color: var(--dark-text, #333);
+    font-weight: 600;
+    padding: 8px 12px !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* 네비바 기본 */
+.navbar-collapse {
+    transition: all 0.3s ease-in-out !important;
+}
+
+.navbar {
+    transition: all 0.3s ease-in-out !important;
+}
+
+.navbar-collapse.collapsing {
+    transition: height 0.3s ease-in-out !important;
+}
+
+/* 로고 및 브랜드 텍스트 호버 */
+.navbar-brand:hover span, .navbar-brand:hover .logo-image {
+    cursor: pointer;
+}
+
+/* NavLink 호버 */
+.nav-link:hover {
+    color: #d9534f !important;
+    transition: color 0.2s;
+}
+
+/* 드롭다운 */
+.dropdown-menu {
+    position: absolute !important;
+    z-index: 1050 !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    transform: none !important;
+    border: none !important;
+}
+
+.nav-dropdown-container {
+    position: relative;
+    z-index: 1051;
+}

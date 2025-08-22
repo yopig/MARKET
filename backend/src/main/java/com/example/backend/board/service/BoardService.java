@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -283,5 +284,27 @@ public class BoardService {
     // 최신 3개 게시글 조회
     public List<BoardListDto> getLatestThree() {
         return boardRepository.findAllBy("", PageRequest.of(0, 3)).getContent();
+    }
+
+    public List<Map<String, Object>> getLatestThreeWithFirstImage() {
+        // 이미지가 있는 게시글들을 최신순으로 정렬해서 가져온 후, 3개만 선택
+        List<Board> allBoardsWithFiles = boardRepository.findBoardsWithFilesOrderByInsertedAtDesc();
+
+        return allBoardsWithFiles.stream()
+                .limit(3) // 이미지가 있는 것 중 최신 3개만
+                .map(board -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", board.getId());
+                    map.put("title", board.getTitle());
+                    map.put("insertedAt", board.getInsertedAt());
+
+                    String firstImageUrl = board.getFiles().stream()
+                            .findFirst()
+                            .map(f -> imagePrefix + "prj3/board/" + board.getId() + "/" + f.getId().getName())
+                            .orElse(null);
+
+                    map.put("firstImageUrl", firstImageUrl);
+                    return map;
+                }).collect(Collectors.toList());
     }
 }

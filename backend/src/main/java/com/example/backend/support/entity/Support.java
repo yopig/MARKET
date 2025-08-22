@@ -1,5 +1,6 @@
 package com.example.backend.support.entity;
 
+import com.example.backend.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,4 +36,7 @@ public class Support {
             insertedAt = Instant.now();
         }
     }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "email", referencedColumnName = "email", insertable = false, updatable = false)
+    private Member member;
 }

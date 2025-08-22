@@ -1,0 +1,74 @@
+name: 앱 빌드 후 ec2에 복사
+
+on:
+  push:
+    tags:
+      - 'version*'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      # FRONTEND BUILD
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.FRONTEND_ENV }}" >> ./frontend/.env
+          echo "${{ secrets.FRONTEND_ENV_PRODUCTION }}" >> ./frontend/.env.production
+
+      - name: install and build frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: copy frontend dist to backend static folder
+        run: |
+          mkdir -p backend/src/main/resources/static
+          cp -r frontend/dist/* backend/src/main/resources/static/
+
+      # create secret files
+      - name: create secret folder and files
+        run: |
+          mkdir -p backend/src/main/resources/secret
+
+          echo "${{secrets.CUSTOM_PROPERTIES}}" > backend/src/main/resources/secret/custom.properties
+          echo "${{secrets.PRIVATE_PEM}}" > backend/src/main/resources/secret/private.pem
+          echo "${{secrets.PUBLIC_PEM}}" > backend/src/main/resources/secret/public.pem
+
+      # BACKEND BUILD
+      - name: build spring boot app
+        working-directory: ./backend
+        run: |
+          chmod +x gradlew
+          ./gradlew bootJar
+
+      # deploy to ec2
+      - name: save ssh key file
+        run: |
+          echo "${{secrets.KEY250717_PEM}}" > key.pem
+          chmod 600 key.pem
+
+      - name: upload jar to ec2
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}} "mkdir -p /home/${{secrets.EC2_USER}}/app"
+          scp -i key.pem -o StrictHostKeyChecking=no backend/build/libs/*.jar ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}}:/home/${{secrets.EC2_USER}}/app/prj3.jar
+
+      - name: connect ec2 and run jar with docker
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}} << 'EOF'
+            docker stop prj3 || true
+            docker rm prj3 || true
+
+            docker run -d -p 8080:8080 --restart always --name prj3 -v /home/${{secrets.EC2_USER}}/app:/app openjdk:21 java -jar /app/prj3.jar
+
+            docker image prune -f
+          EOF
+
+
+
+
+            

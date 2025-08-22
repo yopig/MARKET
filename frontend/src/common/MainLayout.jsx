@@ -1,94 +1,114 @@
 import { Outlet } from "react-router";
 import { AppNavBar } from "./AppNavBar.jsx";
-import { Card, Container, Button } from "react-bootstrap";
 import { AppFooter } from "./AppFooter.jsx";
 import { ChatButton } from "./ChatButton.jsx";
-import { useContext } from "react";
-import { AuthenticationContext } from "./AuthenticationContextProvider.jsx";
-import { useNavigate } from "react-router";
 
-export function MainLayout() {
-  const { isAdmin } = useContext(AuthenticationContext);
-  const navigate = useNavigate();
-
+// 간단한 광고 자리 컴포넌트
+function AdSpace({ width = 250, height = 400, position }) {
   return (
     <div
-      className="min-vh-100"
+      className="ad-space"
       style={{
-        backgroundColor: "#033C33", // 초록색 배경
-        position: "relative", // 플로팅 버튼 절대 위치 기준
+        width: `${width}px`,
+        height: `${height}px`,
+        backgroundColor: "#f6ece6",
+        border: "2px dashed #2C2D31FF",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "0px",
+        marginBottom: "20px",
+        boxShadow: "5px 5px 0px 0px #2C2D31FF",
       }}
     >
-      {/* 고정 네비바 - 카드와 연결되어 보이도록 스타일링 */}
       <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "1000px", // 카드와 같은 최대 너비
-          zIndex: 1030,
-          padding: "0 20px", // 좌우 여백
-        }}
+        style={{ textAlign: "center", color: "#2C2D31FF", fontSize: "12px" }}
       >
-        <div
-          style={{
-            borderRadius: "0 0 12px 12px", // 하단만 둥글게
-            overflow: "visible", // 드롭다운이 보이도록 변경
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // 네비바에 그림자 추가
-          }}
-        >
+        <div style={{ fontSize: "16px" }}>📺</div>
+        <div>광고</div>
+        <div>
+          {width}×{height}
+        </div>
+        <div style={{ fontSize: "10px" }}>{position}</div>
+      </div>
+    </div>
+  );
+}
+
+export function MainLayout() {
+  return (
+    <div style={{ position: "relative", minHeight: "100vh" }}>
+      {/* 기존 main-layout 그대로 유지 - 절대 건드리지 않음 */}
+      <div className="main-layout">
+        <div className="main-container">
+          {/* 기본 네비게이션 바 - 카드 상단에 위치 */}
           <AppNavBar />
+
+          {/* 메인 콘텐츠와 푸터를 flex로 감싸기 */}
+          <div className="main-content-wrapper">
+            {/* 메인 콘텐츠 영역 */}
+            <div className="content-area">
+              <Outlet />
+            </div>
+
+            {/* 푸터 - 항상 맨 아래 */}
+            <div className="footer-area p-0 mx-0">
+              <AppFooter />
+            </div>
+          </div>
+
+          {/* 플로팅 채팅 버튼 - 우측 하단 고정 */}
+          <div className="chat-button-container">
+            <ChatButton />
+          </div>
         </div>
       </div>
 
-      {/* 네비바 높이만큼 상단 여백 추가 */}
-      <div style={{ padding: "100px 0 20px 0" }}>
-        {/* 전체를 감싸는 카드 */}
-        <Container className="h-100">
-          <Card
-            className="shadow-lg mx-auto"
-            style={{
-              maxWidth: "1000px", // 카드 최대 너비
-              minHeight: "calc(100vh - 140px)", // 화면 높이에서 패딩과 네비바 높이 제외
-              borderRadius: "12px 12px 12px 12px", // 상단도 둥글게 (네비바와 시각적으로 분리)
-              marginTop: "0", // 네비바와 카드 사이 간격 제거
-              overflow: "hidden",
-              position: "relative", // 플로팅 버튼 절대 위치 기준
-              border: "none", // 기본 테두리 제거
-            }}
-          >
-            {/* 카드 내부 레이아웃 */}
-            <div className="d-flex flex-column h-100">
-              {/* 메인 콘텐츠 영역 - 상단 패딩 추가로 네비바와 겹치지 않게 */}
-              <div className="flex-grow-1 p-4" style={{ paddingTop: "2rem" }}>
-                <Outlet />
-              </div>
-
-              {/* 푸터 - 카드 하단 */}
-              <AppFooter />
-            </div>
-
-            {/* 플로팅 채팅 버튼 - 카드 내부 우하단 */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "20px",
-                right: "20px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "10px",
-              }}
-            >
-              {/* 관리자 회원목록 버튼 - isAdmin 체크 */}
-
-              <ChatButton />
-            </div>
-          </Card>
-        </Container>
+      {/* 왼쪽 광고 - 절대 위치로 메인 컨테이너 바깥에 배치 */}
+      <div
+        className="left-ad-area"
+        style={{
+          position: "fixed",
+          left: "20px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 5,
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+        }}
+      >
+        <AdSpace width={200} height={650} position="왼쪽" />
+        {/*<AdSpace width={200} height={200} position="왼쪽2" />*/}
       </div>
+
+      {/* 오른쪽 광고 - 절대 위치로 메인 컨테이너 바깥에 배치 */}
+      <div
+        className="right-ad-area"
+        style={{
+          position: "fixed",
+          right: "20px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 5,
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+        }}
+      >
+        <AdSpace width={200} height={650} position="오른쪽" />
+        {/*<AdSpace width={200} height={200} position="오른쪽2" />*/}
+      </div>
+
+      {/* 반응형: 작은 화면에서 광고 숨기기 */}
+      <style>{`
+        @media (max-width: 1875px) {
+          .left-ad-area,
+          .right-ad-area {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

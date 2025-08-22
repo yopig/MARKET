@@ -1,19 +1,10 @@
-import {
-  Button,
-  Col,
-  FormControl,
-  FormGroup,
-  FormLabel,
-  FormText,
-  ListGroup,
-  Row,
-  Spinner,
-} from "react-bootstrap";
+import { Button, Form, FormText, Spinner } from "react-bootstrap";
 import { useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { FaFileAlt, FaTrashAlt, FaPlus } from "react-icons/fa";
+import { FaCheckCircle, FaPaw, FaPlus } from "react-icons/fa";
+import "../../styles/MemberAdd.css";
 
 export function MemberAdd() {
   // 입력값 상태 정의
@@ -27,7 +18,7 @@ export function MemberAdd() {
   const navigate = useNavigate();
 
   // 숨겨진 파일 인풋을 참조하기 위한 useRef
-  const fileInputRef = useRef(null); // 추가: useRef 훅
+  const fileInputRef = useRef(null);
 
   // 정규식 (백엔드와 동일한 조건)
   const emailRegex = /^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$/;
@@ -52,18 +43,16 @@ export function MemberAdd() {
 
   // 파일 첨부 시 처리하는 함수 (프로필 사진은 하나만)
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0]; // 선택된 파일 중 첫 번째만 가져옵니다.
+    const selectedFile = e.target.files[0];
     if (selectedFile) {
-      // 새로운 파일을 받으면 기존 파일들을 대체
       setFiles([
         {
           file: selectedFile,
-          previewUrl: URL.createObjectURL(selectedFile), // 이미지 미리보기 URL 생성
+          previewUrl: URL.createObjectURL(selectedFile),
         },
       ]);
     } else {
-      // 파일 선택이 취소된 경우
-      setFiles([]); // 파일 목록 초기화
+      setFiles([]);
     }
   };
 
@@ -81,13 +70,10 @@ export function MemberAdd() {
     formData.append("nickName", nickName);
     formData.append("info", info);
 
-    // files 배열에 프로필 이미지가 있다면 첫 번째 파일만 추가
     if (files.length > 0) {
       formData.append("files", files[0].file);
     }
-    // files.forEach((fileObj) => formData.append("files", fileObj.file));
 
-    // 걍 방식 차이인가?
     axios
       .post("/api/member/add", formData, {
         headers: { "Content-type": "multipart/form-data" },
@@ -114,146 +100,179 @@ export function MemberAdd() {
   const currentProfilePreview = files.length > 0 ? files[0].previewUrl : null;
 
   return (
-    <Row className="justify-content-center">
-      <Col xs={12} md={8} lg={6}>
-        <h2 className="mb-4">회원 가입</h2>
-
-        {/* 프로필 사진 업로드 섹션 */}
-        <FormGroup className="mb-4">
-          <FormLabel className="d-block text-center mb-3">
-            프로필 사진
-          </FormLabel>
-          <div className="d-flex justify-content-center">
-            {/* 프로필 이미지 미리보기 또는 아이콘 */}
-            <div
-              className="profile-upload-area shadow rounded-circle d-flex justify-content-center align-items-center"
-              onClick={handleProfileClick}
-              style={{
-                width: "150px", // 원하는 크기
-                height: "150px", // 원하는 크기
-                border: "2px solid #ddd",
-                cursor: "pointer",
-                overflow: "hidden", // 이미지가 영역을 벗어나지 않도록
-                backgroundColor: currentProfilePreview
-                  ? "transparent"
-                  : "#f8f9fa", // 배경색
-              }}
-            >
-              {currentProfilePreview ? (
-                <img
-                  src={currentProfilePreview}
-                  alt="프로필 미리보기"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <FaPlus size={40} color="#6c757d" /> // 이미지가 없을 때 + 아이콘
-              )}
+    <div className="signup-page-wrapper">
+      <div className="signup-container-v2">
+        {/* 2단 레이아웃 그리드 */}
+        <div className="signup-grid">
+          {/* 왼쪽: 환영 패널 */}
+          <div className="signup-welcome-panel">
+            <div className="welcome-content">
+              <h1 className="welcome-logo">🐾 PETOPIA</h1>
+              <h2>
+                펫토피아의
+                <br />
+                가족이 되세요!
+              </h2>
+              <p>
+                반려동물과 함께하는 특별한 순간들을 공유하고, 전국의
+                펫플레이스를 탐험해보세요.
+              </p>
+              <ul className="welcome-benefits">
+                <li>
+                  <FaPaw size={18} />
+                  <span>전국의 펫플레이스 정보 탐색</span>
+                </li>
+                <li>
+                  <FaPaw size={18} />
+                  <span>나만의 장소 리뷰 및 공유</span>
+                </li>
+                <li>
+                  <FaPaw size={18} />
+                  <span>다른 반려인들과의 소통</span>
+                </li>
+                <li>
+                  <FaPaw size={18} />
+                  <span>반려동물 케어 정보 교환</span>
+                </li>
+              </ul>
             </div>
-
-            {/* 실제 파일 선택 input (숨김) */}
-            <FormControl
-              type="file"
-              ref={fileInputRef} // useRef로 참조
-              onChange={handleFileChange}
-              style={{ display: "none" }} // 숨김
-              accept="image/*" // 이미지 파일만 선택하도록 제한
-              disabled={isProcessing}
-            />
           </div>
-        </FormGroup>
 
-        <hr />
-        {/* 프로필 사진 섹션과 다른 폼 필드 구분 */}
+          {/* 오른쪽: 가입 폼 패널 */}
+          <div className="signup-form-panel">
+            <Form>
+              <Form.Group className="mb-4 text-center">
+                <div
+                  className="profile-uploader-neo"
+                  onClick={handleProfileClick}
+                >
+                  {currentProfilePreview ? (
+                    <img
+                      src={currentProfilePreview}
+                      alt="프로필 미리보기"
+                      className="profile-preview-img"
+                    />
+                  ) : (
+                    <FaPlus size={30} color="#999" />
+                  )}
+                </div>
+                <p className="form-label-neo mb-3 mt-3">프로필 사진 (선택)</p>
+                <Form.Control
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  disabled={isProcessing}
+                />
+              </Form.Group>
 
-        {/* 이메일 */}
-        <FormGroup className="mb-3" controlId="email1">
-          <FormLabel>이메일</FormLabel>
-          <FormControl
-            type="text"
-            value={email}
-            maxLength={255}
-            placeholder="예: user@example.com"
-            onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
-          />
-          {email && !isEmailValid && (
-            <FormText className="text-danger">
-              이메일 형식이 올바르지 않습니다.
-            </FormText>
-          )}
-        </FormGroup>
+              <Form.Group className="mb-3">
+                <Form.Label className="form-label-neo">이메일</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value.replace(/\s/g, ""))}
+                  className="form-input-neo"
+                  placeholder="user@example.com"
+                />
+                {email && !isEmailValid && (
+                  <FormText className="text-danger fw-bold">
+                    이메일 형식이 올바르지 않습니다.
+                  </FormText>
+                )}
+              </Form.Group>
 
-        {/* 비밀번호 */}
-        <FormGroup className="mb-3" controlId="password1">
-          <FormLabel>비밀번호</FormLabel>
-          <FormControl
-            type="password"
-            value={password}
-            maxLength={255}
-            placeholder="8자 이상, 영문 대/소문자, 숫자, 특수문자 포함"
-            onChange={(e) => setPassword(e.target.value.replace(/\s/g, ""))}
-          />
-          {password && !isPasswordValid && (
-            <FormText className="text-danger">
-              비밀번호는 8자 이상, 영문 대소문자, 숫자, 특수문자를 포함해야
-              합니다.
-            </FormText>
-          )}
-        </FormGroup>
+              <Form.Group className="mb-3">
+                <Form.Label className="form-label-neo">비밀번호</Form.Label>
+                <Form.Control
+                  type="password"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value.replace(/\s/g, ""))
+                  }
+                  className="form-input-neo"
+                  placeholder="8자 이상, 대/소문자, 숫자, 특수문자 포함"
+                />
+                {password && !isPasswordValid && (
+                  <FormText className="text-danger fw-bold">
+                    비밀번호는 8자 이상, 영문 대소문자, 숫자, 특수문자를
+                    포함해야 합니다.
+                  </FormText>
+                )}
+              </Form.Group>
 
-        {/* 비밀번호 확인 */}
-        <FormGroup className="mb-3" controlId="password2">
-          <FormLabel>비밀번호 확인</FormLabel>
-          <FormControl
-            type="password"
-            value={password2}
-            maxLength={255}
-            placeholder="비밀번호를 다시 입력하세요"
-            onChange={(e) => setPassword2(e.target.value.replace(/\s/g, ""))}
-          />
-          {password2 && !isPasswordMatch && (
-            <FormText className="text-danger">
-              비밀번호가 일치하지 않습니다.
-            </FormText>
-          )}
-        </FormGroup>
+              <Form.Group className="mb-3">
+                <Form.Label className="form-label-neo">
+                  비밀번호 확인
+                </Form.Label>
+                <Form.Control
+                  type="password"
+                  value={password2}
+                  onChange={(e) =>
+                    setPassword2(e.target.value.replace(/\s/g, ""))
+                  }
+                  className="form-input-neo"
+                  placeholder="비밀번호를 다시 한번 입력해주세요"
+                />
+                {password2 && !isPasswordMatch && (
+                  <FormText className="text-danger fw-bold">
+                    비밀번호가 일치하지 않습니다.
+                  </FormText>
+                )}
+              </Form.Group>
 
-        <hr />
-        {/* 닉네임 */}
-        <FormGroup className="mb-3" controlId="nickName1">
-          <FormLabel>별명</FormLabel>
-          <FormControl
-            value={nickName}
-            maxLength={20}
-            placeholder="2~20자, 한글/영문/숫자만 사용 가능"
-            onChange={(e) => setNickName(e.target.value.replace(/\s/g, ""))}
-          />
-          {nickName && !isNickNameValid && (
-            <FormText className="text-danger">
-              별명은 2~20자, 한글/영문/숫자만 사용할 수 있습니다.
-            </FormText>
-          )}
-        </FormGroup>
+              <Form.Group className="mb-4">
+                <Form.Label className="form-label-neo">별명</Form.Label>
+                <Form.Control
+                  value={nickName}
+                  onChange={(e) =>
+                    setNickName(e.target.value.replace(/\s/g, ""))
+                  }
+                  className="form-input-neo"
+                  placeholder="2~20자, 한글/영문/숫자"
+                />
+                {nickName && !isNickNameValid && (
+                  <FormText className="text-danger fw-bold">
+                    별명은 2~20자, 한글/영문/숫자만 사용할 수 있습니다.
+                  </FormText>
+                )}
+              </Form.Group>
 
-        {/* 자기 소개 */}
-        <FormGroup className="mb-3" controlId="info1">
-          <FormLabel>자기 소개</FormLabel>
-          <FormControl
-            as="textarea"
-            rows={3}
-            value={info}
-            maxLength={3000}
-            placeholder="자기 소개를 입력하세요. 1000자 이내. (선택)"
-            onChange={(e) => setInfo(e.target.value)}
-          />
-        </FormGroup>
+              <Form.Group className="mb-4">
+                <Form.Label className="form-label-neo">자기소개</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={info}
+                  maxLength={1000}
+                  placeholder="자기소개를 입력하세요. 1000자 이내 (선택)"
+                  onChange={(e) => setInfo(e.target.value)}
+                  className="form-input-neo"
+                  style={{ resize: "none" }}
+                />
+                <div
+                  className="text-end text-muted mt-1"
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  {info.length} / 1000
+                </div>
+              </Form.Group>
 
-        {/* 가입 버튼 */}
-        <div className="mb-3">
-          <Button onClick={handleSaveClick} disabled={disabled}>
-            {isProcessing && <Spinner size="sm" />}가입
-          </Button>
+              <div className="mt-4">
+                <Button
+                  onClick={handleSaveClick}
+                  disabled={disabled}
+                  className="btn-neo btn-primary-neo w-100"
+                >
+                  {isProcessing && <Spinner size="sm" className="me-2" />}
+                  가입하기
+                </Button>
+              </div>
+            </Form>
+          </div>
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   );
 }

@@ -85,4 +85,9 @@ public class BoardController {
     public List<BoardListDto> getLatestThree() {
         return boardService.getLatestThree();
     }
+
+    @GetMapping("/latest3")
+    public List<Map<String, Object>> getLatestThreeBoards() {
+        return boardService.getLatestThreeWithFirstImage();
+    }
 }

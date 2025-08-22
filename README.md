@@ -1,133 +1,268 @@
 # 🐾 Pet-topia: 우리 동네 반려동물 정보 플랫폼 🐾
 
+**🌐 Live Demo: http://13.124.132.168:8080/**
+
 ---
 
 ## 💡 프로젝트 소개
 
-우리 동네 반려동물을 위한 모든 정보를 한곳에서! `Pet-topia`는 반려동물 보호자와 예비 보호자들을 위한 올인원 정보 제공 서비스입니다. 유기동물 입양 정보부터 반려동물 동반 시설, 병원, 미용실, 펫시터 등 다양한 정보를 손쉽게 찾아보고 공유할 수 있는 커뮤니티 플랫폼을 목표로 합니다.
+우리 동네 반려동물을 위한 모든 정보를 한곳에서! `Pet-topia`는 반려동물 보호자와 예비 보호자들을 위한 올인원 정보 제공 서비스입니다. 반려동물 동반 시설, 커뮤니티, AI 챗봇 상담 등 다양한 기능을 통해 반려동물과 함께하는 삶을 더욱 풍요롭게 만들어갑니다.
 
-* **서비스 주요 기능:**
-    * **유기동물 입양 정보:** 보호소별 유기동물 정보 조회 및 입양 신청 지원
-    * **반려동물 동반 시설 정보:** 카페, 식당, 숙소 등 반려동물 동반 가능 시설 검색 및 정보 제공
-    * **반려동물 전문 서비스:** 병원, 미용실, 펫시터 등 주변 서비스 업체 검색 및 예약 기능 (예정)
-    * **커뮤니티:** 정보 공유, Q&A, 자랑하기 등 보호자 간 소통 공간
+### 🎯 주요 기능
+
+* **🗺️ 반려동물 동반 시설 검색**
+  - 카카오맵 기반 지역별/카테고리별 시설 검색
+  - 카페, 식당, 펜션, 병원, 문화시설 등 다양한 카테고리
+  - 실시간 위치 기반 검색 및 필터링
+
+* **💬 커뮤니티**
+  - 반려동물 관련 정보 공유 게시판
+  - 사진/동영상 업로드 및 공유
+  - 댓글 및 좋아요 기능
+
+* **🤖 AI 챗봇 상담**
+  - Claude AI 기반 반려동물 전문 상담
+  - 건강, 훈련, 관리 등 다양한 질문 해결
+
+* **👤 회원 시스템**
+  - 일반 회원가입/로그인
+  - 카카오 소셜 로그인 지원
+  - 개인 프로필 및 즐겨찾기 관리
+
+* **📅 일정 관리**
+  - 구글 캘린더 연동
+  - 반려동물 관련 일정 관리
 
 ---
 
 ## 🚀 기술 스택
 
-이 프로젝트는 자바 풀스택 개발을 기반으로 안정적이고 확장 가능한 서비스를 구축합니다.
-
 ### Backend
 * **Java 21**
 * **Spring Boot 3.x**
-    * Spring Data JPA
-    * Spring Security
-    * Spring Web
-    * Lombok
+  - Spring Data JPA
+  - Spring Security (JWT 인증)
+  - Spring Web
+  - Lombok
 * **MariaDB (AWS RDS)**
+* **AWS S3** (파일 저장)
 * **Gradle** (빌드 도구)
 
 ### Frontend
-* **React.js**
+* **React 19.1.0**
+* **Vite 5.2.0** (빌드 툴)
 * **JavaScript (ES6+)**
-* **HTML5 / CSS3**
-* **Axios** (API 통신)
-* **NPM / Yarn** (패키지 매니저)
+* **Bootstrap 5.3.7** + **React Bootstrap 2.10.10**
+* **React Router 7.7.0** (라우팅)
+* **Axios 1.10.0** (API 통신)
+* **React Toastify 11.0.5** (알림)
+* **Lucide React 0.539.0** (아이콘)
 
-### Deployment & Tools
+### External APIs
+* **카카오맵 API** (지도 및 장소 검색)
+* **카카오 로그인 API** (소셜 로그인)
+* **구글 캘린더 API** (일정 관리)
+* **Claude AI API** (챗봇 상담)
+
+### Infrastructure & Tools
 * **AWS EC2** (애플리케이션 배포)
-* **AWS RDS** (데이터베이스)
-* **Git / GitHub** (버전 관리 및 협업)
-* **IntelliJ IDEA** (개발 환경)
-* **DBeaver / MySQL Workbench** (DB 관리 툴)
-* **Postman** (API 테스트)
+* **AWS RDS** (MariaDB 데이터베이스)
+* **AWS S3** (이미지/파일 저장소)
+* **GitHub Actions** (CI/CD 파이프라인)
+* **Docker** (컨테이너화)
 
 ---
 
-## 🛠️ 개발 환경 설정
+## 🌐 배포 정보
 
-프로젝트를 로컬에서 실행하기 위한 개발 환경 설정 가이드입니다.
+### Production Environment
+* **서버:** AWS EC2 (t2.micro)
+* **데이터베이스:** AWS RDS MariaDB
+* **파일 저장소:** AWS S3
+* **도메인:** http://13.124.132.168:8080/
 
-1.  **Java Development Kit (JDK) 17 설치:**
-    * [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) 또는 [Adoptium Temurin](https://adoptium.net/temurin/releases/) 등 선호하는 JDK 17 버전을 설치합니다.
-    * `JAVA_HOME` 환경 변수를 설정합니다.
-2.  **Node.js 및 NPM/Yarn 설치:**
-    * [Node.js 공식 웹사이트](https://nodejs.org/en/download/)에서 LTS 버전을 설치합니다. NPM은 Node.js 설치 시 자동으로 포함됩니다.
-    * (선택 사항) Yarn을 사용하려면 `npm install -g yarn` 명령어로 설치합니다.
-3.  **IntelliJ IDEA 설치 및 설정:**
-    * [IntelliJ IDEA Community 또는 Ultimate 버전](https://www.jetbrains.com/idea/download/)을 설치합니다.
-    * `Lombok Plugin`을 설치합니다.
-    * Gradle 프로젝트로 Import 합니다.
-4.  **데이터베이스 설정 (MariaDB):**
-    * **AWS RDS MariaDB 인스턴스 정보:**
-        * **엔드포인트:** `your-rds-endpoint.ap-northeast-2.rds.amazonaws.com` (예시)
-        * **포트:** `3306`
-        * **데이터베이스명:** `pet-topia-db` (또는 팀에서 정한 이름)
-        * **애플리케이션 사용자명:** `pet_app_user` (예시)
-        * **애플리케이션 비밀번호:** `your_app_password` (예시)
-    * DBeaver 등 DB 클라이언트를 이용하여 위 정보로 RDS에 접속한 후, `pet-topia-db` 스키마(데이터베이스)를 생성하고 `pet_app_user`에게 해당 스키마에 대한 권한을 부여합니다.
-    * **`application.properties` (또는 `application.yml`) 설정:**
-        ```properties
-        spring.datasource.url=jdbc:mariadb://[your-rds-endpoint.ap-northeast-2.rds.amazonaws.com:3306/pet-topia-db?useSSL=false](https://your-rds-endpoint.ap-northeast-2.rds.amazonaws.com:3306/pet-topia-db?useSSL=false)
-        spring.datasource.username=pet_app_user
-        spring.datasource.password=your_app_password
-        spring.jpa.hibernate.ddl-auto=update # 개발 단계에서만 사용, 운영 시에는 none 또는 validate
-        spring.jpa.show-sql=true
-        spring.jpa.properties.hibernate.format_sql=true
-        ```
-        **주의:** 민감한 정보(비밀번호)는 실제 배포 시 환경 변수나 AWS Secrets Manager를 사용해야 합니다.
-5.  **백엔드 (Spring Boot) 실행:**
-    * IntelliJ IDEA에서 `PetTopiaApplication.java` 파일을 열고 Run 버튼을 클릭합니다.
-    * 또는 프로젝트 루트에서 터미널을 열고 `./gradlew bootRun` 명령어를 실행합니다.
-6.  **프론트엔드 (React) 실행:**
-    * 프로젝트의 `frontend` (또는 `client`, `web`) 디렉토리로 이동합니다.
-    * 터미널에서 `npm install` 또는 `yarn install`을 실행하여 의존성을 설치합니다.
-    * `npm start` 또는 `yarn start` 명령어를 실행합니다. (기본적으로 `http://localhost:3000`에서 실행됩니다.)
+### API Documentation
+* **Swagger UI:** http://13.124.132.168:8080/swagger-ui/index.html
 
 ---
 
-## 👥 팀원
+## 🛠️ 로컬 개발 환경 설정
 
-저희 `Pet-topia` 프로젝트는 다음 팀원들과 함께합니다.
+### 필수 요구사항
+* **Java 21** 이상
+* **Node.js 18** 이상 
+* **npm** 또는 **yarn**
+* **MariaDB** (로컬 개발 시) 또는 **AWS RDS** 접근 권한
 
-* **팀장:** 최지원
-* **팀원:** 신유민
-* **팀원:** 전석윤
-
----
-
-## 📝 커밋 컨벤션
-
-Git 커밋 메시지는 다음 컨벤션을 따릅니다.
-
-* **feat:** 새로운 기능 추가
-* **fix:** 버그 수정
-* **docs:** 문서 수정 (README, 주석 등)
-* **style:** 코드 스타일, 포맷 변경 (코드 로직 변경 없음)
-* **refactor:** 코드 리팩토링 (기능 변경 없음)
-* **test:** 테스트 코드 추가 또는 수정
-* **build:** 빌드 관련 파일 수정 (gradle, dependency 등)
-* **ci:** CI/CD 설정 변경
-* **chore:** 기타 변경 사항 (설정 파일, 라이브러리 설치 등)
-* **design:** UI/UX 디자인 변경
-
-**예시:**
-
-```
-feat: 유기동물 입양 정보 조회 기능 추가
-fix: 로그인 시 비밀번호 오류 수정
-docs: README.md 개발 환경 설정 업데이트
+### 1. 프로젝트 클론
+```bash
+git clone https://github.com/JIWON719CHOI/pet-topia.git
+cd pet-topia
 ```
 
+### 2. 백엔드 설정
+```bash
+# backend 디렉토리로 이동
+cd backend
+
+# src/main/resources/secret/custom.properties 파일 생성 후 API 키 입력:
+spring.datasource.password=your_mariadb_password
+aws.access.key=your_aws_access_key
+aws.secret.key=your_aws_secret_key
+aws.s3.bucket.name=your_s3_bucket_name
+image.prefix=https://your_s3_bucket.s3.ap-northeast-2.amazonaws.com/
+kakao.app.key=your_kakao_app_key
+google.calendar.key=your_google_calendar_api_key
+claude.api.key=your_claude_api_key
+
+# Gradle 빌드 및 실행
+./gradlew clean build
+./gradlew bootRun
+```
+
+### 3. 프론트엔드 설정
+```bash
+# frontend 디렉토리로 이동
+cd frontend
+
+# 의존성 설치
+npm install
+
+# 환경변수 설정 (.env 파일 생성)
+VITE_KAKAO_APP_KEY=your_kakao_app_key
+
+# 개발 서버 실행
+npm run dev
+```
+
+### 4. 접속 확인
+* **프론트엔드:** http://localhost:5173
+* **백엔드 API:** http://localhost:8080
+* **Swagger UI:** http://localhost:8080/swagger-ui/index.html
+
 ---
 
-## 🌐 관련 링크
+## 📁 프로젝트 구조
 
-* **GitHub Repository:** `https://github.com/your-github-org/pet-topia` (이 주소는 실제 프로젝트 저장소 URL로 변경해주세요)
-* **GitHub Wiki:** `https://github.com/your-github-org/pet-topia/wiki` (프로젝트 문서 및 상세 가이드)
-* **API 문서:** (Swagger/Spring REST Docs 등을 사용한다면 해당 링크)
-* **프로젝트 관리 툴:** (Jira, Notion, Trello 등 사용한다면 해당 링크)
+```
+pet-topia/
+├── backend/                 # Spring Boot 백엔드
+│   ├── src/main/java/
+│   ├── src/main/resources/
+│   └── build.gradle
+├── frontend/                # React 프론트엔드
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.js
+├── .github/workflows/       # GitHub Actions CI/CD
+└── README.md
+```
 
 ---
 
+## 🚀 배포 프로세스
+
+### 자동 배포 (GitHub Actions)
+1. `main` 브랜치에 코드 push
+2. GitHub Actions 워크플로우 자동 실행
+3. 백엔드 빌드 및 테스트
+4. 프론트엔드 빌드
+5. AWS EC2로 자동 배포
+
+### 수동 배포
+```bash
+# 백엔드 빌드
+./gradlew build
+
+# 프론트엔드 빌드
+npm run build
+
+# JAR 파일을 EC2로 전송 및 실행
+```
+
+---
+
+## 👥 팀 구성
+
+| 역할 | 이름 | GitHub |
+|------|------|--------|
+| **팀장** | 최지원 | [@JIWON719CHOI](https://github.com/JIWON719CHOI) |
+| **팀원** | 신유민 | [@YourGitHub](https://github.com/YourGitHub) |
+| **팀원** | 전석윤 | [@YourGitHub](https://github.com/YourGitHub) |
+
+---
+
+## 📝 주요 기능 상세
+
+### 🗺️ 시설 검색 시스템
+- **실시간 지도 연동:** 카카오맵 API를 통한 시각적 위치 확인
+- **다양한 필터링:** 지역, 카테고리, 반려동물 종류별 검색
+- **상세 정보 제공:** 시설별 상세 정보, 리뷰, 평점
+
+### 💬 커뮤니티 플랫폼
+- **멀티미디어 지원:** 이미지, 동영상 업로드 (AWS S3 저장)
+- **실시간 상호작용:** 댓글, 좋아요, 대댓글 기능
+- **반응형 디자인:** 모바일/데스크톱 최적화
+
+### 🤖 AI 챗봇 서비스
+- **전문 상담:** Claude AI 기반 반려동물 전문 상담
+- **실시간 응답:** 빠르고 정확한 답변 제공
+- **사용자 친화적 UI:** 직관적인 채팅 인터페이스
+
+## 📋 주요 라이브러리 및 의존성
+
+### Frontend Dependencies
+```json
+{
+  "react": "^19.1.0",
+  "react-dom": "^19.1.0",
+  "react-router-dom": "^7.7.0",
+  "axios": "^1.10.0",
+  "bootstrap": "^5.3.7",
+  "react-bootstrap": "^2.10.10",
+  "react-toastify": "^11.0.5",
+  "jwt-decode": "^4.0.0",
+  "@react-google-maps/api": "^2.20.7",
+  "lucide-react": "^0.539.0",
+  "react-icons": "^5.5.0"
+}
+```
+
+### Backend Dependencies
+- **Spring Boot 3.x**
+- **Spring Data JPA**
+- **Spring Security 6.x**
+- **MariaDB Connector**
+- **AWS SDK for Java**
+- **JWT Support**
+
+### 보안
+- **JWT 토큰 기반 인증**
+- **Spring Security 적용**
+- **CORS 정책 설정**
+- **API 키 환경변수 관리**
+
+### 성능
+- **Spring Boot 최적화**
+- **React 컴포넌트 최적화**
+- **이미지 최적화 및 CDN 활용**
+- **데이터베이스 인덱싱**
+
+### 사용자 경험
+- **반응형 웹 디자인**
+- **직관적인 UI/UX**
+- **빠른 로딩 속도**
+- **접근성 고려**
+
+---
+
+## 📞 문의 및 지원
+
+프로젝트 관련 문의사항이나 버그 리포트는 [Issues](https://github.com/JIWON719CHOI/pet-topia/issues)를 통해 제보해주세요.
+
+---
+
+## 📄 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.

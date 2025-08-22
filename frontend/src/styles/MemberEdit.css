@@ -1,0 +1,238 @@
+/* =======================================================
+   MemberEdit.css - MemberDetail과 디자인 통일
+   ======================================================= */
+
+.member-edit-container {
+    font-family: sans-serif; /* 기존 웹사이트 폰트 사용 (가정) */
+    --petopia-yellow-light: #F6ECE6; /* 밝은 옐로우 (배경 및 카드) */
+    --petopia-yellow-dark: #F9A825; /* 진한 옐로우 (포인트) */
+    --petopia-red: #E53935; /* 펫토피아 레드 (포인트) */
+    --petopia-gray-light: #F5F5F5; /* 밝은 회색 (배경) */
+    --petopia-gray-dark: #757575; /* 어두운 회색 (글자) */
+    --brutal-black: #212121; /* 텍스트 및 테두리 (기존 brutal 컬러 유지) */
+    --brutal-border: 2px solid var(--brutal-black); /* 테두리 두께 조정 */
+    --brutal-shadow-hover: 5px 5px 0px 0px var(--brutal-black);
+    --brutal-shadow: 4px 4px 0px 0px var(--brutal-black);
+    --kakao-yellow: #FEE500;
+    --kakao-brown: #3A1D1D;
+
+    --color-bg: #f6ece6;
+    --color-primary: #0d6efd; /* 저장 버튼 */
+    --color-info: #0dcaf0; /* 비밀번호 변경 버튼 */
+    --color-secondary: #6c757d; /* 취소 버튼 */
+    --color-danger: #dc3545;
+
+    --gap-sm: 8px;
+    --gap-md: 16px;
+    --gap-lg: 24px;
+}
+
+/* 왼쪽 컬럼 */
+.member-edit-column {
+    background-color: var(--color-bg);
+    border-right: var(--brutal-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+    padding: 20px; /* 내부 패딩 추가 */
+}
+
+/* --- 각 정보 섹션을 감싸는 카드 --- */
+.info-card {
+    background: white;
+    border: var(--brutal-border);
+    box-shadow: var(--brutal-shadow);
+    padding: var(--gap-lg);
+    margin-bottom: var(--gap-md); /* 카드 간 간격 */
+}
+
+/* 헤더 */
+.member-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--gap-lg);
+}
+
+.member-title {
+    color: var(--brutal-black);
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* 역할 배지 */
+.role-badge {
+    padding: 6px 12px;
+    border: var(--brutal-border);
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-left: auto;
+}
+
+.role-badge.admin {
+    background-color: var(--color-danger);
+    color: white;
+}
+
+.role-badge.kakao {
+    background-color: var(--kakao-yellow);
+    color: var(--kakao-brown);
+    border-color: var(--kakao-brown);
+}
+
+.role-badge.user {
+    background-color: var(--color-secondary);
+    color: white;
+}
+
+/* --- 프로필 업로드 영역 --- */
+.profile-upload-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.profile-upload-area {
+    width: 100%;
+    height: 100%;
+    border: var(--brutal-border);
+    box-shadow: var(--brutal-shadow);
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden; /* 이미지가 밖으로 나가지 않도록 */
+}
+
+.profile-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-remove-profile {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 0 !important;
+    border: var(--brutal-border) !important;
+    background-color: var(--color-danger) !important;
+    color: white !important;
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1;
+    padding: 0;
+    box-shadow: var(--brutal-shadow) !important;
+    z-index: 10;
+}
+
+/* 정보 필드 */
+.info-label {
+    font-weight: bold;
+    color: var(--brutal-black);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.form-control-brutal {
+    background-color: #f8f9fa !important;
+    border: 2px solid var(--brutal-black) !important;
+    border-radius: 0 !important;
+    padding: 12px !important;
+    font-weight: 500;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.form-control-brutal:disabled {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+}
+
+.form-control-brutal.textarea {
+    min-height: 80px;
+    resize: none;
+}
+
+/* --- 버튼 스타일 --- */
+.action-buttons-wrapper {
+    display: flex;
+    gap: var(--gap-sm);
+    margin-top: 20px;
+}
+
+.btn-brutal {
+    flex: 1;
+    border-radius: 0 !important;
+    font-weight: 700 !important;
+    padding: 10px 16px !important;
+    border-width: 2px !important;
+    box-shadow: var(--brutal-shadow) !important;
+    transition: all 0.2s ease !important;
+    background-color: white !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-brutal:hover {
+    transform: translate(-3px, -3px) !important;
+    box-shadow: var(--brutal-shadow-hover) !important;
+}
+
+.btn-brutal:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px 0px var(--brutal-black) !important;
+}
+
+.btn-brutal:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    box-shadow: none !important;
+}
+
+.btn-brutal.btn-save {
+    border-color: var(--color-primary) !important;
+    color: var(--color-primary) !important;
+}
+
+.btn-brutal.btn-save:hover {
+    background-color: var(--color-primary) !important;
+    color: white !important;
+}
+
+.btn-brutal.btn-password {
+    border-color: var(--color-info) !important;
+    color: var(--color-info) !important;
+}
+
+.btn-brutal.btn-password:hover {
+    background-color: var(--color-info) !important;
+    color: white !important;
+}
+
+.btn-brutal.btn-cancel {
+    border-color: var(--color-secondary) !important;
+    color: var(--color-secondary) !important;
+}
+
+.btn-brutal.btn-cancel:hover {
+    background-color: var(--color-secondary) !important;
+    color: white !important;
+}
+
+/* 모달 스타일 */
+.modal-brutal .modal-content {
+    border: var(--brutal-border) !important;
+    box-shadow: 8px 8px 0px 0px var(--brutal-black) !important;
+    border-radius: 0 !important;
+}
+
+.modal-brutal .modal-header {
+    background-color: var(--color-bg);
+    border-bottom: var(--brutal-border) !important;
+}

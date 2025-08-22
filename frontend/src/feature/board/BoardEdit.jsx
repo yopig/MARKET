@@ -8,7 +8,6 @@ import {
   Modal,
   Row,
   Spinner,
-  FormCheck, // ✅ FormCheck 임포트 추가
 } from "react-bootstrap";
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
@@ -30,7 +29,7 @@ export function BoardEdit() {
     files: [],
     authorNickName: "",
     id: null,
-    isPrivate: false, // ✅ isPrivate 필드 초기값 추가
+    // isPrivate 삭제
   });
 
   const [searchParams] = useSearchParams();
@@ -58,11 +57,7 @@ export function BoardEdit() {
       .get(`/api/board/${id}`)
       .then((res) => {
         setBoard(res.data);
-        // ✅ 불러온 데이터에서 isPrivate 값을 초기 상태에 설정
-        setBoard((prevBoard) => ({
-          ...prevBoard,
-          isPrivate: res.data.isPrivate || false, // isPrivate 값이 없으면 기본값 false
-        }));
+        // isPrivate 관련 삭제
       })
       .catch(() => {
         toast("해당 게시물이 존재하지 않습니다.", { type: "warning" });
@@ -90,10 +85,10 @@ export function BoardEdit() {
     const formData = new FormData();
     formData.append("title", board.title ?? "");
     formData.append("content", board.content ?? "");
-    formData.append("isPrivate", board.isPrivate); // ✅ isPrivate 값 추가
+    // isPrivate 관련 제거
     deleteFileNames.forEach((name) => formData.append("deleteFileNames", name));
     newFiles.forEach((file) => formData.append("files", file));
-    formData.append("id", board.id); // ✅ id 값도 함께 전송 (컨트롤러 @ModelAttribute용)
+    formData.append("id", board.id); // 컨트롤러 @ModelAttribute용
 
     axios
       .put(`/api/board/${id}`, formData, {
@@ -105,7 +100,7 @@ export function BoardEdit() {
           type: "success",
         };
         toast(message.text, { type: message.type });
-        navigate(`/board/${board.id}`); // 수정 후 상세 보기 페이지로 이동
+        navigate(`/board/${board.id}`); // 수정 후 상세 보기 페이지 이동
       })
       .catch((err) => {
         const message = err.response?.data?.message || {
@@ -183,7 +178,6 @@ export function BoardEdit() {
                             key={idx}
                             className="d-flex justify-content-between align-items-center"
                           >
-                            {/* 미리보기 이미지 왼쪽에 배치 */}
                             {fileName.match(/\.(jpg|jpeg|png|gif)$/i) && (
                               <img
                                 src={file}
@@ -192,12 +186,10 @@ export function BoardEdit() {
                                   width: "50px",
                                   height: "50px",
                                   objectFit: "cover",
-                                  marginRight: "10px", // 이미지와 파일명 간의 간격 조정
+                                  marginRight: "10px",
                                 }}
                               />
                             )}
-
-                            {/* 파일명과 삭제 버튼 오른쪽에 배치 */}
                             <div className="d-flex justify-content-between align-items-center w-100">
                               <span className="text-truncate d-flex align-items-center gap-2">
                                 <FaFileAlt /> {fileName}
@@ -239,7 +231,6 @@ export function BoardEdit() {
                           key={idx}
                           className="d-flex justify-content-between align-items-center"
                         >
-                          {/* 미리보기 이미지 왼쪽에 배치 */}
                           {file.name.match(/\.(jpg|jpeg|png|gif)$/i) && (
                             <img
                               src={URL.createObjectURL(file)}
@@ -248,12 +239,10 @@ export function BoardEdit() {
                                 width: "50px",
                                 height: "50px",
                                 objectFit: "cover",
-                                marginRight: "10px", // 이미지와 파일명 간의 간격 조정
+                                marginRight: "10px",
                               }}
                             />
                           )}
-
-                          {/* 파일명과 삭제 버튼 오른쪽에 배치 */}
                           <div className="d-flex justify-content-between align-items-center w-100">
                             <span className="text-truncate d-flex align-items-center gap-2">
                               <FaFileAlt /> {file.name}
@@ -263,7 +252,7 @@ export function BoardEdit() {
                               size="sm"
                               onClick={() =>
                                 setNewFiles((prev) =>
-                                  prev.filter((_, i) => i !== idx),
+                                  prev.filter((_, i) => i !== idx)
                                 )
                               }
                             >
@@ -281,10 +270,7 @@ export function BoardEdit() {
                     type="file"
                     multiple
                     onChange={(e) =>
-                      setNewFiles((prev) => [
-                        ...prev,
-                        ...Array.from(e.target.files),
-                      ])
+                      setNewFiles((prev) => [...prev, ...Array.from(e.target.files)])
                     }
                   />
                 </FormGroup>
@@ -305,22 +291,6 @@ export function BoardEdit() {
                   </Col>
                 </Row>
 
-                {/* 공개/비공개 체크박스 추가 */}
-                <FormGroup className="mb-3">
-                  <FormCheck
-                    type="checkbox"
-                    id="isPrivateCheck"
-                    label="비공개로 설정 (나와 친구만 볼 수 있음)"
-                    checked={board.isPrivate} // board.isPrivate 상태에 바인딩
-                    onChange={(e) =>
-                      setBoard((prev) => ({
-                        ...prev,
-                        isPrivate: e.target.checked,
-                      }))
-                    }
-                    disabled={isProcessing}
-                  />
-                </FormGroup>
                 <br />
                 <div className="d-flex justify-content-end gap-2">
                   <Button

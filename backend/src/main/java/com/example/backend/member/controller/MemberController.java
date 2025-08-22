@@ -162,4 +162,43 @@ public class MemberController {
         );
     }
 
+    // 카카오 사용자 임시 코드 요청
+    @PostMapping("/withdrawalCode")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> withdrawalCode(@RequestBody MemberForm memberForm, Authentication authentication) {
+        if (authentication.getName().equals(memberForm.getEmail())) {
+            String tempCode = memberService.generateWithdrawalCode(memberForm.getEmail());
+            return ResponseEntity.ok(Map.of("tempCode", tempCode));
+        } else {
+            return ResponseEntity.status(403).build();
+        }
+    }
+
+    //    -----------------------------카카오-----------------------------------------
+    // 프론트엔드(KakaoCallback 컴포넌트)로부터 인증 코드를 받는 엔드포인트
+    @PostMapping("/login/kakao")
+    public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> requestBody) {
+        String code = requestBody.get("code");
+        if (code == null || code.isEmpty()) {
+            return ResponseEntity.badRequest().body("인증 코드가 없습니다.");
+        }
+
+        try {
+            // memberService에서 카카오 로그인 비즈니스 로직을 처리합니다.
+            // 1. 코드를 이용해 카카오로부터 액세스 토큰 받기
+            // 2. 액세스 토큰으로 카카오로부터 사용자 정보 받기
+            // 3. 사용자 정보로 우리 서비스에 회원가입 또는 로그인 처리
+            // 4. 우리 서비스의 JWT 토큰 발급
+            String jwtToken = memberService.processKakaoLogin(code);
+
+            return ResponseEntity.ok().body(Map.of("token", jwtToken));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(
+                    Map.of("message", "카카오 로그인 처리 중 오류가 발생했습니다.")
+            );
+
+        }
+    }
 }

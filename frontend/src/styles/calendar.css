@@ -1,0 +1,480 @@
+/* ============================================
+   달력 스타일
+   ============================================ */
+
+/* 달력 컨테이너 전체 */
+.calendar-container {
+    font-family: 'Poppins', sans-serif;
+    background: white !important;
+    padding: 20px !important;
+}
+
+/* 제목 스타일 */
+.calendar-container h2 {
+    color: #2C2D31FF !important;
+    font-weight: 900 !important;
+    font-size: 48px !important;
+    margin-bottom: 10px !important;
+}
+
+/* 메인 카드 - 테두리와 그림자 */
+.calendar-container .card {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    /*background: white !important;*/
+}
+
+.calendar-container .card-body {
+    padding: 25px !important;
+}
+
+/* 달력 헤더 (년월 표시와 화살표 버튼) */
+.calendar-container h3 {
+    color: #2C2D31FF !important;
+    font-weight: 700 !important;
+    font-size: 1.5rem !important;
+}
+
+.calendar-container .btn-outline-secondary {
+    background: white !important;
+    border: 2px solid #2C2D31FF !important;
+    color: #2C2D31FF !important;
+    border-radius: 0 !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+}
+
+.calendar-container .btn-outline-secondary:hover {
+    background: #f6ece6 !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+}
+
+/* ============================================
+   요일 헤더 스타일 - 가장 중요한 부분!
+   ============================================ */
+.calendar-container .row.g-1 > .col.text-center.fw-bold {
+    background: #f6ece6 !important; /* 베이지 배경 */
+    border-top: 2px solid #2C2D31FF !important; /* 위 테두리 굵게 */
+    border-bottom: 2px solid #2C2D31FF !important; /* 아래 테두리 굵게 */
+    border-left: 1px solid #2C2D31FF !important;
+    border-right: 1px solid #2C2D31FF !important;
+    color: #2C2D31FF !important;
+    padding: 12px 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+}
+
+/* 첫번째 요일(일요일) 스타일 */
+.calendar-container .row.g-1 > .col.text-center.fw-bold.text-danger {
+    color: #D9534F !important; /* 빨간색 */
+    background: #f6ece6 !important;
+    border-top: 2px solid #2C2D31FF !important;
+    border-bottom: 2px solid #2C2D31FF !important;
+    border-left: 1px solid #2C2D31FF !important;
+    border-right: 1px solid #2C2D31FF !important;
+}
+
+/* 마지막 요일(토요일) 스타일 */
+.calendar-container .row.g-1 > .col.text-center.fw-bold.text-primary {
+    color: #6c8bfa !important; /* 파란색 */
+    background: #f6ece6 !important;
+    border-top: 2px solid #2C2D31FF !important;
+    border-bottom: 2px solid #2C2D31FF !important;
+    border-left: 1px solid #2C2D31FF !important;
+    border-right: 1px solid #2C2D31FF !important;
+}
+
+/* ============================================
+   날짜 셀 스타일
+   ============================================ */
+.calendar-container .col.p-2.border.rounded {
+    border: 1px solid #2C2D31FF !important;
+    border-radius: 0 !important; /* 직각 모서리 */
+    background: white !important;
+    min-height: 100px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.calendar-container .col.p-2.border.rounded:hover {
+    background: #f6ece6 !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+}
+
+/* 주말/공휴일 배경색 */
+.calendar-container .bg-danger-subtle {
+    background: #ffebee !important;
+}
+
+.calendar-container .bg-info-subtle {
+    background: #e3f2fd !important;
+}
+
+.calendar-container .bg-primary-subtle {
+    background: #f0f4ff !important;
+}
+
+/* 날짜 숫자 스타일 */
+.calendar-container .col.p-2.border.rounded .fw-bold {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 5px !important;
+}
+
+/* 배지(리뷰/공휴일 표시) 스타일 */
+.calendar-container .badge.text-bg-danger {
+    background: #D9534F !important;
+    border: 1px solid #2C2D31FF !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 0 !important;
+    font-size: 0.65rem !important;
+    padding: 3px 5px !important;
+    margin-bottom: 2px !important;
+    display: inline-block !important;
+}
+
+.calendar-container .badge.text-bg-primary {
+    background: #6c8bfa !important;
+    border: 1px solid #2C2D31FF !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 0 !important;
+    font-size: 0.65rem !important;
+    padding: 3px 5px !important;
+    margin-bottom: 2px !important;
+    display: inline-block !important;
+}
+
+/* +more 텍스트 */
+.calendar-container .small.text-primary {
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================
+   통계 카드 스타일
+   ============================================ */
+.calendar-container .card.h-100 {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+    margin-top: 20px !important;
+}
+
+.calendar-container .card.h-100:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF !important;
+}
+
+/* ============================================
+   반응형 디자인
+   ============================================ */
+@media (max-width: 768px) {
+    .calendar-container h2 {
+        font-size: 32px !important;
+    }
+
+    .calendar-container .col.p-2.border.rounded {
+        min-height: 80px !important;
+        padding: 8px !important;
+    }
+
+    .calendar-container .row.g-1 > .col.text-center.fw-bold {
+        padding: 8px 4px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* ============================================
+   calendar.css에 추가할 CSS (Bootstrap과 충돌 방지)
+   ============================================ */
+
+/* 달력 전체 래퍼 - cal- 접두사로 Bootstrap과 구분 */
+.cal-wrapper {
+    width: 100%;
+    background: white;
+    border: 3px solid #2C2D31FF;
+    display: block;
+    box-sizing: border-box;
+    box-shadow: 5px 5px 1px 1px #212529;
+
+}
+
+/* 요일 헤더 행 */
+.cal-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #f6ece6;
+    border-bottom: 2px solid #2C2D31FF;
+}
+
+/* 요일 헤더 셀 */
+.cal-header-cell {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #2C2D31FF;
+    border-right: 1px solid #2C2D31FF;
+    box-sizing: border-box;
+}
+
+.cal-header-cell:last-child {
+    border-right: none;
+}
+
+.cal-header-sunday {
+    color: #D9534F !important;
+}
+
+.cal-header-saturday {
+    color: #6c8bfa !important;
+}
+
+/* 날짜 그리드 본체 */
+.cal-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(100px, auto);
+}
+
+/* 날짜 셀 공통 */
+.cal-cell {
+    border-right: 1px solid #2C2D31FF;
+    border-bottom: 1px solid #2C2D31FF;
+    padding: 8px;
+    position: relative;
+    box-sizing: border-box;
+    min-height: 100px;
+}
+
+/* 7번째 열(토요일)은 오른쪽 테두리 제거 */
+.cal-cell:nth-child(7n) {
+    border-right: none;
+}
+
+/* 마지막 줄 아래 테두리 제거 */
+.cal-body .cal-cell:nth-last-child(-n+7) {
+    border-bottom: none;
+}
+
+/* 빈 셀 */
+.cal-empty {
+    background: #fafafa;
+}
+
+/* 날짜가 있는 셀 */
+.cal-date {
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cal-date:hover {
+    background: #f6ece6 !important;
+    position: relative;
+    z-index: 10;
+    box-shadow: inset 0 0 0 2px #2C2D31FF;
+}
+
+/* 날짜 숫자 */
+.cal-day-number {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+    color: #2C2D31FF;
+}
+
+.cal-sunday .cal-day-number {
+    color: #D9534F;
+}
+
+.cal-saturday .cal-day-number {
+    color: #6c8bfa;
+}
+
+/* 공휴일 배경 */
+.cal-holiday {
+    background: #ffebee !important;
+}
+
+/* 리뷰가 있는 날 배경 */
+.cal-has-reviews:not(.cal-holiday) {
+    background: #f0f4ff !important;
+}
+
+/* 배지 스타일 */
+.cal-badge-holiday {
+    background: #D9534F;
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    margin: 2px 0;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #2C2D31FF;
+}
+
+.cal-badge-review {
+    background: #6c8bfa;
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    margin: 2px 0;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #2C2D31FF;
+}
+
+.cal-more-text {
+    font-size: 0.7rem;
+    color: #6c8bfa;
+    text-align: center;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .cal-body {
+        grid-auto-rows: minmax(80px, auto);
+    }
+
+    .cal-cell {
+        min-height: 80px;
+        padding: 4px;
+    }
+
+    .cal-header-cell {
+        padding: 8px 4px;
+        font-size: 0.8rem;
+    }
+
+    .cal-day-number {
+        font-size: 0.9rem;
+    }
+
+    .cal-badge-holiday,
+    .cal-badge-review {
+        font-size: 0.6rem;
+        padding: 1px 2px;
+    }
+}
+
+/* ========================================
+   달력 컴포넌트 - 모달
+   ======================================== */
+
+/* 모달 */
+.calendar-container .modal-content {
+    border: 3px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    box-shadow: 8px 8px 0px 0px #2C2D31FF !important;
+}
+
+.calendar-container .modal-header {
+    background: #f6ece6 !important;
+    border-bottom: 3px solid #2C2D31FF !important;
+}
+
+.calendar-container .modal-title {
+    color: #2C2D31FF !important;
+    font-weight: 700 !important;
+}
+
+.calendar-container .modal-body .card {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+}
+
+.calendar-container .modal-body .card-title {
+    color: #2C2D31FF !important;
+    font-weight: 600 !important;
+}
+
+.calendar-container .modal-body .card-text {
+    color: #6c757d !important;
+}
+
+.calendar-container .modal-footer .btn-secondary {
+    background: #6c757d !important;
+    border: 2px solid #2C2D31FF !important;
+    color: white !important;
+    border-radius: 0 !important;
+    font-weight: 600 !important;
+}
+
+.calendar-container .modal-footer .btn-secondary:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+}
+
+/* 별점 */
+.calendar-container .text-warning {
+    color: #ffc107 !important;
+}
+
+/* 알림 */
+.calendar-container .alert {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+}
+
+.calendar-container .alert-warning {
+    background: #fff3cd !important;
+    color: #856404 !important;
+}
+
+.calendar-container .alert-danger-subtle {
+    background: #ffebee !important;
+    border-color: #D9534F !important;
+    color: #d32f2f !important;
+}
+
+/* 로딩 스피너 */
+.calendar-container .spinner-border {
+    border: 3px solid #f6ece6 !important;
+    border-top: 3px solid #2C2D31FF !important;
+}
+
+/* 빈 상태 */
+.calendar-container .text-center.p-5.text-muted {
+    background: #f6ece6 !important;
+    border: 2px dashed #2C2D31FF !important;
+    color: #6c757d !important;
+    font-weight: 500 !important;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .member-detail-container .row.h-100.g-0 {
+        flex-direction: column !important;
+    }
+
+    .member-detail-container .col-lg-5 {
+        min-height: auto !important;
+    }
+
+    .calendar-container {
+        padding: 15px !important;
+    }
+
+    .calendar-container .card-body {
+        padding: 15px !important;
+    }
+
+    .calendar-container .col.p-2.border.rounded {
+        min-height: 80px !important;
+    }
+}

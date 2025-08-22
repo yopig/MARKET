@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { MainLayout } from "./common/MainLayout.jsx";
 import { BoardLayout } from "./feature/board/BoardLayout.jsx";
 import { BoardAdd } from "./feature/board/BoardAdd.jsx";
@@ -10,44 +10,63 @@ import { MemberDetail } from "./feature/member/MemberDetail.jsx";
 import { MemberList } from "./feature/member/MemberList.jsx";
 import { MemberEdit } from "./feature/member/MemberEdit.jsx";
 import { MemberLogin } from "./feature/member/MemberLogin.jsx";
-import { MemberLogout } from "./feature/member/MemberLogout.jsx";
 import { AuthenticationContextProvider } from "./common/AuthenticationContextProvider.jsx";
-import { MapDetail } from "./feature/map/MapDetail.jsx";
-import FullFilterKakaoMap from "./feature/map/FullFilterKakaoMap";
-import { ReviewAdd } from "./feature/map/ReviewAdd.jsx";
-import { Chatbot } from "./feature/openai/Chatbot";
-import { ReviewEdit } from "./feature/map/ReviewEdit.jsx";
-import { ReviewListMini } from "./feature/board/ReviewListMini.jsx";
-import ServicePage from "./feature/service/ServicePage.jsx";
-import ServiceListPage from "./feature/service/ServiceListPage.jsx";  // 추가: 문의내역 리스트 페이지
+import { LatestReviewsList } from "./feature/review/LatestReviewsList.jsx";
+import { KakaoCallback } from "./feature/member/KakaoCallback.jsx";
 import { MyReview } from "./feature/review/MyReview.jsx";
+import { MapDetail } from "./feature/map/MapDetail.jsx";
+import { Chatbot } from "./feature/openai/Chatbot";
+import { AdminPage } from "./AdminPage.jsx";
+import { AdminHome } from "./AdminHome.jsx";
+import { About } from "./common/About.jsx";
+import ServicePage from "./feature/service/ServicePage.jsx";
+import ServiceListPage from "./feature/service/ServiceListPage.jsx";
+import ReviewReportList from "./feature/report/ReviewReportList.jsx";
+import FullFilterKakaoMap from "./feature/kakaoMap/FullFilterKakaoMap.jsx";
+import "./styles/styles.css";
+import "./styles/Carousel.css";
+// import "./styles/Review.css"; // 이거 사라짐
+import "./styles/ReviewLike.css";
 
 function App() {
   return (
-    <AuthenticationContextProvider value={{}}>
+    <AuthenticationContextProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<BoardLayout />} />
+
+            <Route path="/about" element={<About />} />
+
             <Route path="/board/add" element={<BoardAdd />} />
             <Route path="/board/list" element={<BoardList />} />
             <Route path="/board/:id" element={<BoardDetail />} />
             <Route path="/board/edit" element={<BoardEdit />} />
+
             <Route path="/signup" element={<MemberAdd />} />
             <Route path="/login" element={<MemberLogin />} />
-            {/* <Route path="/logout" element={<MemberLogout />} /> */}
             <Route path="/member" element={<MemberDetail />} />
-            <Route path="/member/list" element={<MemberList />} />
             <Route path="/member/edit" element={<MemberEdit />} />
-            <Route path="/facility/:name" element={<MapDetail />} />
+
+            <Route path="/review/my/:memberId" element={<MyReview />} />
+            <Route path="/review/latest" element={<LatestReviewsList />} />
+
+            <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+
             <Route path="/KakaoMap" element={<FullFilterKakaoMap />} />
-            <Route path="/facility/:name/review/add" element={<ReviewAdd />} />
+
+            <Route path="/facility/:id" element={<MapDetail />} />
+
             <Route path="/chatbot" element={<Chatbot />} />
-            <Route path="/review/my" element={<MyReview/>} />
-            <Route path="/review/edit/:id" element={<ReviewEdit />} />
-            <Route path="/review/latest" element={<ReviewListMini />} />
+
             <Route path="/support" element={<ServicePage />} />
-            <Route path="/support/list" element={<ServiceListPage />} /> {/* 관리자 전용 문의내역 리스트 */}
+
+            <Route path="/admin" element={<AdminPage />}>
+              <Route index element={<AdminHome />} />
+              <Route path="member/list" element={<MemberList />} />
+              <Route path="support/list" element={<ServiceListPage />} />
+              <Route path="review/report/list" element={<ReviewReportList />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

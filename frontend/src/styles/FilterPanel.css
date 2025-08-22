@@ -1,0 +1,325 @@
+/* ========================================
+   FilterPanel.css - 안쓰이는 것도 있음
+   ======================================== */
+
+.filter-panel-brutal {
+    font-family: 'Poppins', sans-serif;
+    background: #f6ece6 !important;
+    color: #2C2D31FF !important;
+    padding: 20px !important;
+    border-right: 3px solid #2C2D31FF;
+    font-size: 13px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* 필터 그룹 제목 */
+.filter-group-title {
+    color: #2C2D31FF !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 8px !important;
+    display: block;
+}
+
+/* 검색창 */
+.search-section-brutal {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border: 3px solid #2C2D31FF !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+}
+
+.search-input-brutal {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    background: white !important;
+    color: #2C2D31FF !important;
+}
+
+.search-input-brutal:focus {
+    border-color: #D9534F !important;
+    box-shadow: 2px 2px 0px 0px #D9534F !important;
+    outline: none !important;
+}
+
+.search-button-brutal {
+    background: #D9534F !important;
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+    transition: all 0.2s ease !important;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.search-button-brutal:hover {
+    background: #c9302c !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+}
+
+/* 필터 컨테이너 */
+.filter-content-brutal {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    min-height: 0;
+}
+
+.filter-group-brutal {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: white;
+    border: 2px solid #2C2D31FF;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF;
+}
+
+/* Select 드롭다운 */
+.select-brutal {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    background: white !important;
+    color: #2C2D31FF !important;
+    width: 100%;
+}
+
+.select-brutal:focus {
+    border-color: #D9534F !important;
+    box-shadow: 2px 2px 0px 0px #D9534F !important;
+    outline: none !important;
+}
+
+.select-brutal:disabled {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    opacity: 0.6;
+}
+
+.select-error {
+    border-color: #dc3545 !important;
+}
+
+.select-error-message {
+    font-size: 9px;
+    color: #dc3545;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+/* Checkbox 버튼들 */
+.checkbox-container-brutal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.checkbox-btn-brutal {
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    background: white !important;
+    color: #2C2D31FF !important;
+    text-decoration: none !important;
+}
+
+.checkbox-btn-brutal:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+}
+
+.checkbox-btn-brutal.checked {
+    color: white !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+}
+
+/* Radio 버튼들 */
+.radio-group-brutal {
+    display: flex;
+    width: 100%;
+    border: 2px solid #2C2D31FF;
+    overflow: hidden;
+}
+
+.radio-input-brutal {
+    display: none;
+}
+
+.radio-label-brutal {
+    flex: 1;
+    background: white !important;
+    border: none !important;
+    border-right: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    font-size: 10px !important;
+    padding: 6px 4px !important;
+    font-weight: 600 !important;
+    color: #2C2D31FF !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    text-align: center;
+    margin: 0 !important;
+}
+
+.radio-label-brutal:last-child {
+    border-right: none !important;
+}
+
+.radio-label-brutal:hover {
+    background: #f8f9fa !important;
+}
+
+.radio-input-brutal:checked + .radio-label-brutal {
+    background: #D9534F !important;
+    color: white !important;
+}
+
+.radio-input-brutal:disabled + .radio-label-brutal {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+/* 액션 버튼들 */
+.action-buttons-brutal {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+}
+
+.favorites-button-brutal {
+    background: #ffc107 !important;
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    color: #2C2D31FF !important;
+    font-weight: 700 !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+    transition: all 0.2s ease !important;
+    flex: 1;
+}
+
+.favorites-button-brutal:hover:not(:disabled) {
+    background: #e0a800 !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+    color: #2C2D31FF !important;
+}
+
+.favorites-button-brutal:disabled {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    transform: none !important;
+}
+
+.search-main-button-brutal {
+    background: #198754 !important;
+    border: 2px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF !important;
+    transition: all 0.2s ease !important;
+    flex: 1;
+}
+
+.search-main-button-brutal:hover {
+    background: #157347 !important;
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF !important;
+    color: white !important;
+}
+
+/* 비활성화 텍스트 */
+.disabled-text-brutal {
+    font-size: 9px;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* 스크롤바 스타일링 */
+.filter-panel-brutal::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filter-panel-brutal::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 1px solid #2C2D31FF;
+}
+
+.filter-panel-brutal::-webkit-scrollbar-thumb {
+    background: #D9534F;
+    border: 1px solid #2C2D31FF;
+}
+
+.filter-panel-brutal::-webkit-scrollbar-thumb:hover {
+    background: #c9302c;
+}
+
+.filter-content-brutal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-content-brutal::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.filter-content-brutal::-webkit-scrollbar-thumb {
+    background: #D9534F;
+    border: 1px solid #2C2D31FF;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .filter-panel-brutal {
+        padding: 15px !important;
+        font-size: 12px;
+    }
+
+    .search-section-brutal {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+
+    .filter-group-brutal {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    .checkbox-container-brutal {
+        gap: 4px;
+    }
+
+    .checkbox-btn-brutal {
+        font-size: 9px !important;
+        padding: 3px 6px !important;
+    }
+
+    .radio-label-brutal {
+        font-size: 9px !important;
+        padding: 5px 3px !important;
+    }
+}

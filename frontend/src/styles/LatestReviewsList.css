@@ -1,0 +1,401 @@
+/* ========================================
+   LatestReviewsList.css - 안쓰이는 것도 있음
+   ======================================== */
+
+.latest-reviews-container {
+    font-family: 'Poppins', sans-serif;
+    /*background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);*/
+    /*min-height: 100vh;*/
+    /*padding: 50px 0;*/
+}
+
+/* 페이지 헤더 */
+.reviews-header {
+    text-align: center;
+    padding: 40px;
+    background: #F6ECE6;
+    border-bottom: 1px solid #2C2D31FF;
+    /*box-shadow: 4px 4px 0px 0px #2C2D31FF;*/
+    margin: 0 auto 50px;
+    position: relative;
+    overflow: hidden;
+}
+
+.reviews-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #2C2D31FF;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+}
+
+.reviews-subtitle {
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.reviews-count {
+    display: inline-flex;
+    align-items: center;
+    background: #D9534F;
+    color: white;
+    padding: 12px 20px;
+    border: 3px solid #2C2D31FF;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 4px 4px #2C2D31FF;
+}
+
+/* 검색창 */
+.search-section {
+    max-width: 700px;
+    margin: 0 auto 50px;
+    position: relative;
+}
+
+.search-form-brutal {
+    border: 2px solid #2C2D31FF !important;
+    box-shadow: 5px 5px 1px 1px #212529 !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+    width: 55%;
+    margin: 25px auto 0;
+}
+
+.search-form-brutal:focus-within {
+    border-color: #D9534F !important;
+    box-shadow: 5px 5px 1px 1px #D9534F !important;
+    transform: translateY(-2px);
+}
+
+.search-input-brutal {
+    border: none !important;
+    padding: 18px 50px 18px 20px !important;
+    font-size: 1.1rem !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.search-input-brutal::placeholder {
+    color: #adb5bd;
+    font-weight: 400;
+}
+
+.search-section::after {
+    content: '🔍';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+/* 리뷰 그리드 */
+.reviews-grid-container {
+    margin-bottom: 50px;
+}
+
+/* 리뷰 카드 */
+.review-card-brutal {
+    border: 3px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 4px #2C2D31FF;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+    background: white !important;
+    height: 100%;
+    overflow: hidden;
+}
+
+.review-card-brutal:hover {
+    border-color: #D9534F !important;
+    box-shadow: 5px 5px 1px 1px #D9534F !important;
+    transform: translateY(-5px);
+    background: #F6ECE6 !important;
+}
+
+.review-card-brutal:active {
+    transform: translateY(-2px);
+    transition: transform 0.1s ease;
+}
+
+/* 카드 바디 */
+.review-card-body {
+    padding: 16px !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* 시설명 */
+.facility-name-brutal {
+    font-weight: 600 !important;
+    color: #2C2D31FF;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+/* 별점 */
+.rating-brutal {
+    color: #ffc107;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* 리뷰 텍스트 */
+.review-text-brutal {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #495057;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    max-height: 3.5em;
+    cursor: default;
+    user-select: text;
+}
+
+/* 태그 */
+.review-tags-brutal {
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+}
+
+.tag-brutal {
+    background: grey !important;
+    color: white !important;
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 0 !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease;
+}
+
+.tag-more-brutal {
+    background: #D9534F !important;
+    color: white !important;
+    border-color: #D9534F !important;
+}
+
+/* 좋아요 섹션 */
+.like-section-brutal {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid #f1f3f4;
+    width: 100%;
+}
+
+.like-container {
+    display: flex;
+    align-items: center;
+}
+
+.report-container {
+    display: flex;
+    align-items: center;
+}
+
+/* 신고 버튼 */
+.report-button-brutal {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    font-size: 0.7rem !important;
+    border-radius: 0 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid #dc3545 !important;
+    color: #dc3545 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0;
+}
+
+.report-button-brutal:hover {
+    background: #dc3545 !important;
+    color: white !important;
+    transform: scale(1.1);
+    border-color: #dc3545 !important;
+}
+
+.report-button-brutal:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.4;
+}
+
+/* 더보기 버튼 */
+.load-more-section {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.load-more-brutal {
+    border: 3px solid #2C2D31FF !important;
+    border-radius: 0 !important;
+    font-weight: 700 !important;
+    padding: 18px 40px !important;
+    background: white !important;
+    color: #2C2D31FF !important;
+    box-shadow: 4px 4px #2C2D31FF;
+    transition: all 0.3s ease !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 1.1rem !important;
+    letter-spacing: 0.5px;
+}
+
+.load-more-brutal:hover {
+    background: #2C2D31FF !important;
+    color: white !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 4px 4px #2C2D31FF;
+    border-color: #2C2D31FF !important;
+}
+
+.load-more-brutal:active {
+    transform: translateY(-1px) !important;
+}
+
+.load-more-brutal small {
+    display: block;
+    font-size: 0.9rem;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+/* 로딩 */
+.loading-brutal {
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.loading-pet-brutal {
+    display: inline-block;
+    font-size: 3.5rem;
+    animation: bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.loading-text-brutal {
+    margin-top: 25px;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* 빈 상태 */
+.empty-state-brutal {
+    text-align: center;
+    padding: 80px 40px;
+    background: white;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.empty-state-brutal h3 {
+    color: #2C2D31FF;
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 1.6rem;
+}
+
+.empty-state-brutal p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .reviews-grid-container .row {
+        --bs-gutter-x: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .latest-reviews-container {
+        padding: 30px 0;
+    }
+
+    .reviews-header {
+        padding: 30px 25px;
+        margin-bottom: 40px;
+    }
+
+    .reviews-title {
+        font-size: 2.2rem;
+    }
+
+    .reviews-subtitle {
+        font-size: 1rem;
+    }
+
+    .search-input-brutal {
+        padding: 15px 45px 15px 18px !important;
+        font-size: 1rem !important;
+    }
+
+    .reviews-count {
+        display: block;
+        margin: 15px 0 0 0;
+        padding: 10px 16px;
+    }
+
+    .review-card-body {
+        padding: 12px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .reviews-header {
+        padding: 25px 20px;
+    }
+
+    .reviews-title {
+        font-size: 1.9rem;
+    }
+
+    .review-card-body {
+        padding: 10px !important;
+    }
+
+    .search-section {
+        margin-bottom: 30px;
+    }
+}

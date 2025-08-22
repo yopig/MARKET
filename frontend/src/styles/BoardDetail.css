@@ -1,0 +1,180 @@
+/* ========================================
+   게시글 상세 V2 - 페이지 통합 스타일 (최종 정리 버전)
+   ======================================== */
+
+.board-view-wrapper {
+    max-width: 900px; /* 페이지 컨텐츠 최대 너비 */
+    margin: 40px auto; /* 위아래 여백 및 중앙 정렬 */
+    padding: 0 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* 1. 헤더 (제목, 작성자 정보) */
+.board-view-header {
+    background: #f6ece6; /* 연한 베이지 배경 */
+    border: 3px solid #2C2D31FF;
+    padding: 30px;
+    margin-bottom: 40px;
+}
+
+.board-view-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2C2D31FF;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+
+.header-meta {
+    display: flex;
+    flex-wrap: wrap; /* 화면 작아지면 줄바꿈 */
+    align-items: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #555;
+    border-top: 2px solid #2C2D31FF;
+    padding-top: 15px;
+}
+
+.header-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-meta .meta-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0; /* 아이콘 찌그러짐 방지 */
+}
+
+/* 2. 본문 */
+.board-view-body {
+    padding: 0 10px;
+    margin-bottom: 40px;
+}
+
+.board-content {
+    white-space: pre-wrap;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+/* 3. 첨부파일 */
+.board-view-attachments {
+    margin-top: 40px;
+    border: 3px solid #2C2D31FF;
+}
+
+.attachments-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 15px 20px;
+    background-color: #f6ece6;
+    border-bottom: 3px solid #2C2D31FF;
+    margin: 0;
+}
+
+.image-preview-list, .file-list {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 첨부파일/이미지 사이 간격 */
+}
+
+.image-preview-list img {
+    border: 3px solid #2C2D31FF;
+    box-shadow: 5px 5px 0 0 #2C2D31FF;
+    max-width: 100%; /* 이미지가 부모 요소를 넘어가지 않도록 */
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    font-size: 0.9rem;
+    border: 2px dashed #e9ecef;
+}
+
+.file-item span {
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-download {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+    background-color: white;
+    color: #2C2D31FF;
+    box-shadow: 2px 2px 0px 0px #2C2D31FF;
+}
+
+.btn-download:hover:not(:disabled) {
+    background-color: #f6ece6 !important;
+}
+
+/* 4. 푸터 (버튼 영역) */
+.board-view-footer {
+    display: flex;
+    justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
+    padding: 20px 0;
+    margin-bottom: 40px;
+    border-top: 2px solid #ddd;
+}
+
+/* 5. 댓글 섹션 */
+.comment-section-wrapper {
+    margin-top: 40px;
+}
+
+/* 버튼에 텍스트 추가 시 스타일 */
+.btn-neo span {
+    margin-left: 8px;
+}
+
+/* --- 버튼 변형 스타일 (재사용) --- */
+.btn-danger-neo {
+    background-color: #D9534F;
+    color: white;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.btn-danger-neo:hover:not(:disabled) {
+    background-color: #c9302c;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #2C2D31FF;
+}
+
+.btn-info-neo {
+    background-color: #5bc0de;
+    color: white;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.btn-info-neo:hover:not(:disabled) {
+    background-color: #31b0d5;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px #2C2D31FF;
+}
+
+/* --- 공용 모달 스타일 (재사용) --- */
+.modal-neo .modal-content {
+    background-color: white;
+    border: 3px solid #2C2D31FF !important;
+    box-shadow: 8px 8px 0px 0px #2C2D31FF;
+    border-radius: 0;
+}
+
+.modal-neo .modal-header {
+    background: #f6ece6;
+    border-bottom: 3px solid #2C2D31FF !important;
+}
+
+.modal-neo .modal-title {
+    font-weight: 700;
+    color: #2C2D31FF;
+}

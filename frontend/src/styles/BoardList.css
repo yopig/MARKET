@@ -1,0 +1,188 @@
+/* ========================================
+   BoardList.jsx 기존 스타일과 어울리는 레트로 스타일
+   ======================================== */
+
+/* 공지사항 컨테이너 전체 */
+.board-list-container {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* 헤더 영역 - 기존과 동일한 스타일 유지 */
+.board-list-container .p-3.mb-0 {
+    /*background-color: #f6ece6 !important;*/
+    border-bottom: 1px solid #2C2D31FF !important;
+}
+
+/* 공지 작성 버튼 - 기존 스타일과 조화 */
+.board-list-container .btn-warning {
+    background-color: #ffc107 !important;
+    border: 1px solid #2C2D31FF !important;
+    color: #2C2D31FF !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.board-list-container .btn-warning:hover {
+    background-color: #e0a800 !important;
+    border-color: #2C2D31FF !important;
+    color: #2C2D31FF !important;
+}
+
+/* 테이블 스타일 - 기존과 비슷하게 */
+.board-list-container .table {
+    border: 1px solid #2C2D31FF !important;
+    border-top: none !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+}
+
+.board-list-container .table thead th {
+    background-color: #f6ece6 !important;
+    border-bottom: 1px solid #2C2D31FF !important;
+    border-right: 1px solid #dee2e6 !important;
+    color: #2C2D31FF !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+}
+
+.board-list-container .table tbody tr {
+    transition: all 0.15s ease !important;
+}
+
+.board-list-container .table tbody tr:hover {
+    background-color: #f6ece6 !important;
+}
+
+.board-list-container .table tbody td {
+    border-right: 1px solid #f0f0f0 !important;
+    vertical-align: middle !important;
+    font-size: 0.9rem !important;
+}
+
+/* 배지 스타일 - 더 자연스럽게 */
+.board-list-container .badge.bg-danger {
+    background-color: #D9534F !important;
+    border: none !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+}
+
+.board-list-container .badge.bg-light {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+    border: 1px solid #dee2e6 !important;
+    font-weight: 500 !important;
+    font-size: 0.75rem !important;
+}
+
+.board-list-container .badge.bg-secondary {
+    background-color: #6c757d !important;
+    font-weight: 500 !important;
+    font-size: 0.75rem !important;
+}
+
+/* 빈 상태 스타일 */
+.board-list-container .text-center.py-5.border {
+    background-color: #fff !important;
+    border: 1px solid #2C2D31FF !important;
+    border-top: none !important;
+}
+
+/* 하단 영역 스타일 */
+.board-list-container .border.border-top-0.bg-light {
+    background-color: #f6ece6 !important;
+    border: 1px solid #2C2D31FF !important;
+    border-top: none !important;
+}
+
+/* 검색 입력 필드 */
+.board-list-container .form-control {
+    border: 1px solid #2C2D31FF !important;
+    border-right: none !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+}
+
+.board-list-container .form-control:focus {
+    border-color: #2C2D31FF !important;
+    box-shadow: 0 0 0 0.2rem rgba(44, 45, 49, 0.15) !important;
+}
+
+/* 검색 버튼 */
+.board-list-container .btn-outline-secondary {
+    background-color: #fff !important;
+    border: 1px solid #2C2D31FF !important;
+    border-left: none !important;
+    color: #2C2D31FF !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+}
+
+.board-list-container .btn-outline-secondary:hover {
+    background-color: #f6ece6 !important;
+    border-color: #2C2D31FF !important;
+    color: #2C2D31FF !important;
+}
+
+/* 페이지네이션 - 기존과 비슷하게 */
+.board-list-container .pagination {
+    margin-bottom: 0 !important;
+}
+
+.board-list-container .page-link {
+    background-color: #fff !important;
+    border: 1px solid #2C2D31FF !important;
+    color: #2C2D31FF !important;
+    font-weight: 500 !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+}
+
+.board-list-container .page-link:hover {
+    background-color: #f6ece6 !important;
+    border-color: #2C2D31FF !important;
+    color: #2C2D31FF !important;
+}
+
+.board-list-container .page-item.active .page-link {
+    background-color: #2C2D31FF !important;
+    border-color: #2C2D31FF !important;
+    color: white !important;
+}
+
+.board-list-container .page-item.disabled .page-link {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+}
+
+/* 알림 스타일 */
+.board-list-container .alert-danger {
+    background-color: #f8d7da !important;
+    border: 1px solid #f5c6cb !important;
+    color: #721c24 !important;
+    font-weight: 500 !important;
+}
+
+/* 로딩 스피너 */
+.board-list-container .spinner-border {
+    color: #2C2D31FF !important;
+}
+
+/* 프로필 이미지 */
+.board-list-container .rounded-circle {
+    border: 1px solid #dee2e6 !important;
+}
+
+/* 테이블 제목 강조 */
+.board-list-container .fw-semibold {
+    font-weight: 600 !important;
+    color: #2C2D31FF !important;
+}
+
+/* 작은 텍스트 스타일 */
+.board-list-container .text-muted {
+    color: #6c757d !important;
+    font-size: 0.85rem !important;
+}

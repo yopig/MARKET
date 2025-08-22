@@ -6,7 +6,11 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.MultipartConfigElement;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -19,9 +23,12 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -70,23 +77,12 @@ public class AppConfiguration {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/api/member/signup",
-                        "/api/member/login",
-                        "/api/pet_facilities/**",
-                        "/api/board/latest",     // 여기 추가
-                        "/api/board/list",       // 공지사항 목록도 공개한다면 추가
-                        "/api/board/*",
-                        "/api/board/{id}",
-                        "/api/review/latest",// 특정 글 상세도 공개한다면 추가 (패턴 주의)
-                        "/api/chatbot",
-                        "/api/comment/list",
-                        "/api/like/board/**",
-                        "/api/review/list",
-                        "/api/reviewlike/review/**"
-                ).permitAll()
-                .anyRequest().authenticated()
+                        "/api/review/add",
+                        "/api/review/update/**",
+                        "/api/review/delete/**"
+                ).authenticated()
+                .anyRequest().permitAll()
         );
-
         return http.build();
     }
 
@@ -94,7 +90,7 @@ public class AppConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:5174"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // 👈 인증 정보 허용
@@ -120,5 +116,26 @@ public class AppConfiguration {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public MultipartConfigElement multipartConfigElement() {
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        // 파일 사이즈, 요청 사이즈 등 기존 application.properties 설정을 여기에 명시합니다.
+        factory.setMaxFileSize(DataSize.ofMegabytes(10));
+        factory.setMaxRequestSize(DataSize.ofMegabytes(200));
+        return factory.createMultipartConfig();
+    }
+
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
+
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
+        return factory -> factory.addConnectorCustomizers(connector -> {
+            connector.setMaxParameterCount(100000);
+        });
     }
 }

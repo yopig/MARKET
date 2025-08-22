@@ -2,23 +2,11 @@ import { useNavigate, useParams } from "react-router";
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import {
-  Button,
-  Card,
-  Col,
-  Image,
-  ListGroup,
-  ListGroupItem,
-  Modal,
-  OverlayTrigger,
-  Row,
-  Spinner,
-  Tooltip,
-} from "react-bootstrap";
+import { Button, Image, Modal, Spinner } from "react-bootstrap";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 import { CommentContainer } from "../comment/CommentContainer.jsx";
-import { LikeContainer } from "../like/LikeContainer.jsx";
-import { FaDownload, FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaClock, FaDownload, FaEdit, FaTrashAlt } from "react-icons/fa";
+import "../../styles/BoardDetail.css";
 
 export function BoardDetail() {
   const [board, setBoard] = useState(null);
@@ -70,196 +58,112 @@ export function BoardDetail() {
     ? board.insertedAt.substring(0, 16)
     : "";
 
-  // 프로필 사진 없는 사람들
   const defaultProfileImage = "/user.png";
 
   return (
-    <Row className="justify-content-center my-4">
-      <Col xs={12} md={10} lg={8}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h3 className="fw-bold mb-0 text-dark">{board.title}</h3>
-          <small className="text-muted" style={{ fontSize: "0.85rem" }}>
-            #{board.id}
-          </small>
+    // 1. 전체를 감싸는 wrapper로 변경 (카드 스타일 제거)
+    <div className="board-view-wrapper">
+      {/* 2. 제목, 작성자, 날짜 정보를 담는 헤더 섹션 */}
+      <div className="board-view-header">
+        <h1>{board.title}</h1>
+        <div className="header-meta">
+          <div className="meta-item">
+            <Image
+              roundedCircle
+              src={board.profileImageUrl || defaultProfileImage}
+              alt={`${board.authorNickName ?? "익명"} 프로필`}
+              className="meta-icon"
+            />
+            {board.authorNickName}
+          </div>
+          <div className="meta-item">
+            <FaClock className="meta-icon" />
+            {formattedInsertedAt}
+          </div>
+          <div className="meta-item">
+            <span>#{board.id}</span>
+          </div>
         </div>
+      </div>
 
-        <Card className="mb-4 shadow-sm border-0 rounded-3">
-          <Card.Body>
-            <br />
-            <Card.Text
-              className="mb-4 text-secondary"
-              style={{
-                whiteSpace: "pre-wrap",
-                fontSize: "1.05rem",
-                lineHeight: 1.6,
-              }}
+      {/* 3. 본문 내용 */}
+      <div className="board-view-body">
+        <p className="board-content">{board.content}</p>
+      </div>
+
+      {/* 4. 첨부파일 섹션 */}
+      {Array.isArray(board.files) && board.files.length > 0 && (
+        <div className="board-view-attachments">
+          <h3 className="attachments-title">첨부파일</h3>
+          <div className="image-preview-list">
+            {board.files
+              .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
+              .map((file, idx) => (
+                <img key={idx} src={file} alt={`첨부 이미지 ${idx + 1}`} />
+              ))}
+          </div>
+          <div className="file-list">
+            {board.files.map((file, idx) => {
+              const fileName = decodeURIComponent(file.split("/").pop()); // 디코딩해서 혹시 한글이면 안 깨지도록
+              return (
+                <div key={idx} className="file-item">
+                  {/*<span title={fileName}>{fileName}</span>그냥 뺌*/}
+                  <Button
+                    href={file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-neo btn-download"
+                    title={fileName}
+                  >
+                    <FaDownload />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 5. 수정/삭제 버튼 등을 담는 푸터 섹션 */}
+      <div className="board-view-footer">
+        {hasAccess(board.authorEmail) && (
+          <div className="d-flex gap-2">
+            <Button
+              onClick={() => navigate(`/board/edit?id=${board.id}`)}
+              className="btn-neo btn-info-neo"
+              title="수정"
             >
-              {board.content}
-            </Card.Text>
+              <FaEdit />
+              <span>수정</span>
+            </Button>
+            <Button
+              onClick={() => setModalShow(true)}
+              className="btn-neo btn-danger-neo"
+              title="삭제"
+            >
+              <FaTrashAlt />
+              <span>삭제</span>
+            </Button>
+          </div>
+        )}
+      </div>
 
-            {/* 이미지 미리보기 */}
-            {Array.isArray(board.files) &&
-              board.files.some((file) =>
-                /\.(jpg|jpeg|png|gif|webp)$/i.test(file),
-              ) && (
-                <div className="mb-4 d-flex flex-column gap-3">
-                  {board.files
-                    .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-                    .map((file, idx) => (
-                      <img
-                        key={idx}
-                        src={file}
-                        alt={`첨부 이미지 ${idx + 1}`}
-                        className="shadow rounded"
-                        style={{
-                          width: "500px",
-                          height: "500px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ))}
-                </div>
-              )}
-            <br />
-            {/* 첨부 파일 목록 */}
-            {Array.isArray(board.files) && board.files.length > 0 && (
-              <div className="mb-4">
-                <ListGroup variant="flush">
-                  {board.files.map((file, idx) => {
-                    const fileName = file.split("/").pop();
-                    return (
-                      <ListGroupItem
-                        key={idx}
-                        className="d-flex justify-content-between align-items-center px-2 py-1 border-0"
-                        style={{
-                          fontSize: "0.85rem",
-                          color: "#6c757d",
-                          backgroundColor: "transparent",
-                        }}
-                      >
-                        <span
-                          className="text-truncate"
-                          style={{
-                            maxWidth: "85%",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                          title={fileName}
-                        >
-                          {fileName}
-                        </span>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          href={file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="d-flex align-items-center justify-content-center p-1"
-                          style={{ fontSize: "0.8rem" }}
-                        >
-                          <FaDownload />
-                        </Button>
-                      </ListGroupItem>
-                    );
-                  })}
-                </ListGroup>
-              </div>
-            )}
-
-            {/* 작성자 / 작성일시 */}
-            <Row className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
-              <Col xs={6}>
-                <div>
-                  <Image
-                    roundedCircle
-                    className="me-2"
-                    src={board.profileImageUrl || defaultProfileImage}
-                    alt={`${board.authorNickName ?? "익명"} 프로필`}
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                    }}
-                  />
-                  <strong>작성자</strong>
-                  <div>{board.authorNickName}</div>
-                </div>
-              </Col>
-              <Col xs={6} className="text-end">
-                <div>
-                  <strong>작성일시</strong>
-                  <div>{formattedInsertedAt}</div>
-                </div>
-              </Col>
-            </Row>
-
-            {/* 버튼 및 좋아요 */}
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="d-flex">
-                {hasAccess(board.authorEmail) && (
-                  <>
-                    <div style={{ position: "relative" }}>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip id="tooltip-delete">삭제</Tooltip>}
-                        delay={{ show: 250, hide: 400 }}
-                        containerPadding={10}
-                        popperConfig={{
-                          modifiers: [
-                            { name: "preventOverflow", enabled: false },
-                            { name: "flip", enabled: false },
-                          ],
-                        }}
-                      >
-                        <Button
-                          onClick={() => setModalShow(true)}
-                          className="me-2 d-flex align-items-center gap-1"
-                          variant="outline-danger"
-                          title="게시물 삭제"
-                        >
-                          <FaTrashAlt />
-                        </Button>
-                      </OverlayTrigger>
-                    </div>
-                    <div style={{ position: "relative" }}>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip id="tooltip-edit">수정</Tooltip>}
-                        delay={{ show: 250, hide: 400 }}
-                        containerPadding={10}
-                        popperConfig={{
-                          modifiers: [
-                            { name: "preventOverflow", enabled: false },
-                            { name: "flip", enabled: false },
-                          ],
-                        }}
-                      >
-                        <Button
-                          variant="outline-info"
-                          className="d-flex align-items-center gap-1"
-                          onClick={() => navigate(`/board/edit?id=${board.id}`)}
-                          title="게시물 수정"
-                        >
-                          <FaEdit />
-                        </Button>
-                      </OverlayTrigger>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-
+      {/* 댓글 컨테이너 */}
+      <div className="comment-section-wrapper">
         <CommentContainer boardId={board.id} />
-      </Col>
+      </div>
 
-      {/* 모달 */}
-      <Modal show={modalShow} onHide={() => setModalShow(false)} centered>
+      {/* 모달 (기존과 동일, className='modal-neo' 유지) */}
+      <Modal
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+        centered
+        className="modal-neo"
+      >
         <Modal.Header closeButton>
           <Modal.Title>게시물 삭제 확인</Modal.Title>
         </Modal.Header>
-        <Modal.Body>{board.id}번 게시물을 삭제하시겠습니까?</Modal.Body>
+        <Modal.Body>#{board.id} 게시물을 삭제하시겠습니까?</Modal.Body>
         <Modal.Footer>
           <Button
             variant="outline-secondary"
@@ -272,6 +176,6 @@ export function BoardDetail() {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Row>
+    </div>
   );
 }

@@ -1,0 +1,124 @@
+/* ========================================
+   고객 지원 페이지 (ServicePage) V2 - 2단 레이아웃 스타일
+   ======================================== */
+
+.support-page-container {
+    width: 100%;
+    max-width: 1100px; /* 전체 컨텐츠 폭 제한 */
+    margin: 0 auto; /* 중앙 정렬 */
+    padding: 40px 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.support-page-header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 3px solid #2C2D31FF;
+    padding-bottom: 30px;
+}
+
+.support-page-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #2C2D31FF;
+}
+
+.support-page-header p {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-top: 10px;
+}
+
+/* 2단 레이아웃 그리드 */
+.support-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr; /* 왼쪽과 오른쪽 컬럼 비율 1:1.5 */
+    gap: 40px; /* 컬럼 사이 간격 */
+}
+
+/* 왼쪽 정보 패널 */
+.support-info-panel {
+    background-color: #f6ece6; /* 연한 베이지 배경 */
+    border: 3px solid #2C2D31FF;
+    padding: 30px;
+}
+
+.support-info-panel h3 {
+    font-weight: 700;
+    border-bottom: 2px solid #2C2D31FF;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.support-info-panel p {
+    line-height: 1.7;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.contact-details .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #333;
+}
+
+/* 오른쪽 폼 패널 */
+.support-form-panel {
+    border: 3px solid #2C2D31FF;
+    padding: 30px;
+}
+
+/* 반응형: 화면이 992px보다 작아지면 1단으로 변경 */
+@media (max-width: 992px) {
+    .support-grid {
+        grid-template-columns: 1fr; /* 컬럼을 하나로 합침 */
+    }
+}
+
+/* 기존에 추가했던 alert, button, input 스타일은 그대로 유지됩니다.
+   만약 중복된다면 이 코드로 덮어쓰셔도 괜찮습니다. */
+.alert-neo {
+    padding: 15px;
+    border: 3px solid #2C2D31FF;
+    border-radius: 0;
+    font-weight: 600;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.alert-success-neo {
+    background-color: #e4f8f0;
+    color: #0d6b49;
+}
+
+.alert-danger-neo {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.form-input-neo.is-invalid {
+    border-color: #D9534F !important;
+}
+
+.form-input-neo.is-invalid:focus {
+    box-shadow: 4px 4px 0px 0px #D9534F !important;
+}
+
+.btn-warning-neo {
+    background-color: #ffc107;
+    color: #2C2D31FF;
+    box-shadow: 5px 5px 0px 0px #2C2D31FF;
+}
+
+.btn-warning-neo:hover:not(:disabled) {
+    background-color: #e0a800;
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px 0px #2C2D31FF;
+}
+
+.btn-warning-neo:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0px 0px #2C2D31FF;
+}

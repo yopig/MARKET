@@ -1,0 +1,39 @@
+.like-button-base {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+    font-size: 1rem;
+}
+
+.like-button-base:hover {
+    color: #007bff; /* 호버 시 색상 변경 예시 */
+    transform: none; /* 다른 css의 transform 효과를 덮어쓰기 위해 none으로 지정 */
+    box-shadow: none; /* 다른 css의 box-shadow 효과를 덮어쓰기 위해 none으로 지정 */
+}
+
+.like-button-base:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.like-button-liked {
+    color: #ff69b4; /* 핫핑크 색상 */
+}
+
+.like-button-unliked {
+    color: #a9a9a9; /* 다크그레이 색상 */
+}
+
+.like-button-unliked:hover {
+    color: #777777; /* 호버 시 약간 더 진한 회색 */
+    transform: scale(1.1);
+}
+
+.like-button-liked:hover {
+    transform: scale(1.1);
+}

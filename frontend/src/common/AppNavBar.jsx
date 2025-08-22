@@ -1,23 +1,46 @@
-import { Link, NavLink } from "react-router-dom";
-import { Navbar, Nav, Container, Button, NavDropdown } from "react-bootstrap";
-import { useContext, useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Button, Container, Nav, Navbar, Modal } from "react-bootstrap";
 import { AuthenticationContext } from "./AuthenticationContextProvider.jsx";
-import { FaUserCircle } from "react-icons/fa";
-import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
+import { FaUserCircle } from "react-icons/fa";
+import { createPortal } from "react-dom";
+import { MemberLogin } from "../feature/member/MemberLogin.jsx";
+import "../styles/AppNavBar.css";
 
 export function AppNavBar() {
-  const { user, logout } = useContext(AuthenticationContext);
+  const { user, logout, isAdmin } = useContext(AuthenticationContext);
+  const navigate = useNavigate();
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({
     top: 0,
     right: 0,
   });
+  const [expanded, setExpanded] = useState(false);
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const navbarRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
 
-  // 드롭다운 위치 계산
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const handleCloseLoginModal = () => setShowLoginModal(false);
+  const handleShowLoginModal = () => setShowLoginModal(true);
+
+  const handleToggle = () => setExpanded(!expanded);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.innerWidth <= 992 && expanded) {
+      hoverTimeoutRef.current = setTimeout(() => setExpanded(false), 300);
+    }
+  };
+
   const handleDropdownToggle = (event) => {
     if (!showDropdown) {
       const rect = event.currentTarget.getBoundingClientRect();
@@ -29,53 +52,15 @@ export function AppNavBar() {
     setShowDropdown(!showDropdown);
   };
 
-  // 외부 클릭 시 드롭다운 닫기
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-
-    if (showDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showDropdown]);
-
-  // 기본 NavLink 스타일
-  const navLinkStyle = {
-    color: "#555",
-    fontWeight: 500,
-    paddingBottom: "0.5rem",
-    margin: "0 1.2rem",
-    textDecoration: "none",
-    position: "relative",
-    transition: "color 0.3s ease-in-out",
-  };
-
-  // 활성화된 NavLink 스타일
-  const activeLinkStyle = {
-    color: "#FF9D00", // 포인트 색상으로 변경
-    fontWeight: 700,
-    borderBottom: "2px solid #FF9D00", // 하단에 라인 추가
-  };
-
-  // 로그인 시 드롭다운 메뉴에 표시될 타이틀입니다.
   const userDropdownTitle = (
-    <span className="text-white fw-bold">
+    <span className="fw-bold">
       <FaUserCircle size={24} className="me-2" />
       {user?.nickName}
     </span>
   );
 
-  // 커스텀 드롭다운 메뉴 (Portal 사용)
   const CustomDropdown = () => {
     if (!showDropdown) return null;
-
     return createPortal(
       <div
         ref={dropdownRef}
@@ -83,10 +68,9 @@ export function AppNavBar() {
           position: "absolute",
           top: dropdownPosition.top,
           right: dropdownPosition.right,
-          backgroundColor: "white",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          border: "none",
+          backgroundColor: "#f6ece6",
+          border: "3px solid black",
+          boxShadow: "5px 5px 1px 1px black",
           minWidth: "160px",
           zIndex: 9999,
           overflow: "hidden",
@@ -98,13 +82,18 @@ export function AppNavBar() {
           style={{
             display: "block",
             padding: "8px 16px",
-            color: "#333",
+            color: "black",
             textDecoration: "none",
-            borderBottom: "1px solid #eee",
-            transition: "background-color 0.2s",
+            transition: "background-color 0.2s, color 0.2s",
           }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = "#f8f9fa")}
-          onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+          onMouseEnter={(e) => (
+            (e.target.style.backgroundColor = "black"),
+            (e.target.style.color = "white")
+          )}
+          onMouseLeave={(e) => (
+            (e.target.style.backgroundColor = "transparent"),
+            (e.target.style.color = "black")
+          )}
           onClick={() => setShowDropdown(false)}
         >
           마이페이지
@@ -120,14 +109,20 @@ export function AppNavBar() {
             border: "none",
             textAlign: "left",
             cursor: "pointer",
-            transition: "background-color 0.2s",
+            transition: "background-color 0.2s, color 0.2s",
           }}
-          onMouseEnter={(e) => (e.target.style.backgroundColor = "#f8f9fa")}
-          onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+          onMouseEnter={(e) => (
+            (e.target.style.backgroundColor = "black"),
+            (e.target.style.color = "white")
+          )}
+          onMouseLeave={(e) => (
+            (e.target.style.backgroundColor = "transparent"),
+            (e.target.style.color = "red")
+          )}
           onClick={() => {
             logout();
-            navigate("/login");
-            toast("로그아웃되었습니다.");
+            navigate("/");
+            toast.success("로그아웃되었습니다.");
             setShowDropdown(false);
           }}
         >
@@ -138,125 +133,159 @@ export function AppNavBar() {
     );
   };
 
+  const navLinkStyle = {
+    color: "#555",
+    fontFamily: "'Poppins'",
+    fontWeight: 500,
+    paddingBottom: "0.5rem",
+    margin: "0 1.2rem",
+    textDecoration: "none",
+    position: "relative",
+    transition: "color 0.3s ease-in-out",
+  };
+
+  const activeLinkStyle = {
+    color: "#d9534f",
+    fontWeight: 700,
+    borderBottom: "1px solid #d9534f",
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    if (showDropdown)
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
+        setExpanded(false);
+      }
+    };
+    if (expanded) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expanded]);
+
+  useEffect(
+    () => () =>
+      hoverTimeoutRef.current && clearTimeout(hoverTimeoutRef.current),
+    [],
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 992) setExpanded(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
-      <style>
-        {`
-          /* 드롭다운이 다른 요소를 밀어내지 않도록 절대 위치 설정 */
-          .dropdown-menu {
-            position: absolute !important;
-            z-index: 1050 !important; /* 더 높은 z-index로 설정 */
-            top: 100% !important;
-            right: 0 !important;
-            left: auto !important;
-            transform: none !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-            border: none !important;
-          }
-          
-          /* 드롭다운 컨테이너의 위치 설정 */
-          .nav-dropdown-container {
-            position: relative;
-            z-index: 1051; /* 컨테이너도 높은 z-index */
-          }
-          
-          /* 네비바 콜랩스 부드러운 전환 */
-          .navbar-collapse {
-            transition: all 0.3s ease-in-out !important;
-          }
-          
-          /* 네비바 자체에도 부드러운 전환 효과 */
-          .navbar {
-            transition: all 0.3s ease-in-out !important;
-          }
-          
-          /* 콜랩스 내용이 나타날 때 부드러운 애니메이션 */
-          .navbar-collapse.collapsing {
-            transition: height 0.3s ease-in-out !important;
-          }
-        `}
-      </style>
       <Navbar
-        sticky="top"
-        expand="lg"
-        variant="dark"
-        className="px-4 shadow-sm"
-        style={{
-          background: "linear-gradient(90deg, #FFB75E, #FF9900)",
-          minHeight: "80px",
-          borderRadius: "0 0 12px 12px", // 네비바 자체에 borderRadius 적용
-          overflow: "visible", // 네비바에서도 overflow visible 설정
-        }}
+        expand="xl"
+        className="px-4"
+        expanded={expanded}
+        ref={navbarRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        <Container fluid>
+        <Container>
           {/* 로고와 브랜드 이름 */}
           <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
             <span
-              className="ms-2 ms-md-3" // 모바일에서는 ms-2, 중간 화면 이상에서는 ms-3
+              className="ms-2 md-3"
               style={{
-                fontFamily: "'Fredoka One', cursive",
-                fontSize: "clamp(1.2rem, 4vw, 1.8rem)", // 반응형 폰트 크기
-                color: "white",
-                textShadow: "1px 1px 3px rgba(0,0,0,0.2)",
+                fontFamily: "'Poppins'",
+                fontSize: "clamp(1.2rem, 4vw, 1.8rem)",
+                fontWeight: "bolder",
+                color: "black",
               }}
             >
-              PETOPIA
+              PET
+            </span>
+            <div
+              className="logo-image"
+              style={{ width: "50px", height: "50px" }}
+            />
+            <span
+              className="md-3"
+              style={{
+                fontFamily: "'Poppins'",
+                fontSize: "clamp(1.2rem, 4vw, 1.8rem)",
+                fontWeight: "bolder",
+                color: "black",
+              }}
+            >
+              TOPIA
             </span>
           </Navbar.Brand>
 
+          {/* 로그인/사용자 드롭다운 */}
           <div className="d-flex align-items-center order-lg-2">
-            {/* 로그인 상태에 따른 UI (오른쪽) */}
-            <Nav className="me-3">
+            <Nav className="me-1">
               {user ? (
                 <div className="nav-dropdown-container">
-                  <button
-                    className="btn btn-link p-0"
+                  <Button
+                    className="fw-bold"
                     style={{
+                      boxShadow: "none",
+                      padding: "0.375rem 0.75rem",
+                      color: "#D9534F",
+                      backgroundColor: "transparent",
                       border: "none",
-                      background: "transparent",
-                      color: "white",
-                      textDecoration: "none",
+                      fontSize: "clamp(0.9rem, 2.5vw, 1.25rem)",
                     }}
                     onClick={handleDropdownToggle}
                   >
                     {userDropdownTitle}
-                  </button>
+                  </Button>
                   <CustomDropdown />
                 </div>
               ) : (
                 <Button
-                  as={Link}
-                  to="/login"
+                  onClick={handleShowLoginModal}
                   className="fw-bold"
                   style={{
-                    backgroundColor: "#FF9D00",
-                    borderColor: "#FF9D00",
-                    borderRadius: "20px",
+                    boxShadow: "none",
                     padding: "0.5rem 1.5rem",
+                    color: "#D9534F",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    fontSize: "1.25rem",
                   }}
                 >
                   LOGIN
                 </Button>
               )}
             </Nav>
-            <Navbar.Toggle aria-controls="main-nav" />
+            <Navbar.Toggle
+              aria-controls="main-nav"
+              onClick={handleToggle}
+              style={{
+                padding: "0.25rem 0.5rem",
+                fontSize: "1rem",
+              }}
+            />
           </div>
 
-          {/* 네비게이션 메뉴 (중앙) */}
-          {/*<Navbar.Toggle aria-controls="basic-navbar-nav" />*/}
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="mx-auto">
-              <NavLink
-                to="/"
-                style={({ isActive }) =>
-                  isActive
-                    ? { ...navLinkStyle, ...activeLinkStyle }
-                    : navLinkStyle
-                }
-              >
-                HOME
-              </NavLink>
+          {/* 메뉴 */}
+          <Navbar.Collapse id="basic-navbar-nav" className="mt-2">
+            <Nav
+              className="mx-auto mb-4 mt-3"
+              style={{
+                display: "flex",
+                justifyContent: expanded ? "flex-start" : "center",
+                alignItems: expanded ? "flex-start" : "center",
+                flexDirection: expanded ? "column" : "row",
+                gap: "2rem",
+              }}
+            >
               <NavLink
                 to="/kakaoMap"
                 style={({ isActive }) =>
@@ -264,8 +293,9 @@ export function AppNavBar() {
                     ? { ...navLinkStyle, ...activeLinkStyle }
                     : navLinkStyle
                 }
+                onClick={() => setExpanded(false)}
               >
-                MAP
+                지도찾기
               </NavLink>
               <NavLink
                 to="/review/latest"
@@ -274,8 +304,9 @@ export function AppNavBar() {
                     ? { ...navLinkStyle, ...activeLinkStyle }
                     : navLinkStyle
                 }
+                onClick={() => setExpanded(false)}
               >
-                REVIEWS
+                최신리뷰
               </NavLink>
               <NavLink
                 to="/board/list"
@@ -284,8 +315,9 @@ export function AppNavBar() {
                     ? { ...navLinkStyle, ...activeLinkStyle }
                     : navLinkStyle
                 }
+                onClick={() => setExpanded(false)}
               >
-                NEWS
+                공지사항
               </NavLink>
               <NavLink
                 to="/support"
@@ -294,13 +326,76 @@ export function AppNavBar() {
                     ? { ...navLinkStyle, ...activeLinkStyle }
                     : navLinkStyle
                 }
+                onClick={() => setExpanded(false)}
               >
-                SUPPORT
+                CONTACT
               </NavLink>
+              {isAdmin() && (
+                <NavLink
+                  to="/admin"
+                  style={({ isActive }) =>
+                    isActive
+                      ? { ...navLinkStyle, ...activeLinkStyle }
+                      : navLinkStyle
+                  }
+                  onClick={() => setExpanded(false)}
+                >
+                  관리자
+                </NavLink>
+              )}
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
+
+      {/* 로그인 모달 */}
+      <Modal
+        show={showLoginModal}
+        onHide={handleCloseLoginModal}
+        centered
+        className="login-modal-neo"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title
+            className="d-flex align-items-center justify-content-center"
+            style={{ width: "100%", textAlign: "center" }}
+          >
+            <span
+              className="ms-4 md-3"
+              style={{
+                fontFamily: "'Poppins'",
+                fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
+                fontWeight: "bolder",
+                color: "black",
+              }}
+            >
+              PET
+            </span>
+            <div
+              className="logo-image"
+              style={{ width: "70px", height: "70px" }}
+            />
+            <span
+              className="md-3"
+              style={{
+                fontFamily: "'Poppins'",
+                fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
+                fontWeight: "bolder",
+                color: "black",
+              }}
+            >
+              TOPIA
+            </span>
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <MemberLogin
+            onLoginSuccess={handleCloseLoginModal}
+            onNavigateToSignup={handleCloseLoginModal}
+            isModal={true}
+          />
+        </Modal.Body>
+      </Modal>
     </>
   );
 }

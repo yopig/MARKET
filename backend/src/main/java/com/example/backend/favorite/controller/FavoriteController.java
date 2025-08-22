@@ -16,20 +16,21 @@ import java.util.List;
 public class FavoriteController {
     private final FavoriteService favoriteService;
 
+    // 찜 추가/취소
     @PutMapping
     public void favorite(@RequestBody FavoriteForm favoriteForm, Authentication authentication) {
         favoriteService.update(favoriteForm, authentication);
     }
 
-    @GetMapping("/{facilityName}")
-    public FavoriteDto get(@PathVariable("facilityName") String facilityName, Authentication authentication) {
-        return favoriteService.get(facilityName, authentication);
+    // 시설 ID 기준 찜 조회
+    @GetMapping("/id/{facilityId}")
+    public FavoriteDto get(@PathVariable("facilityId") Long facilityId, Authentication authentication) {
+        return favoriteService.getById(facilityId, authentication);
     }
 
-    // ✨ 최종 수정된 부분
+    // 내 찜 목록
     @GetMapping("/mine")
     public List<FavoriteFacilityDto> getMine(Authentication authentication) {
-        // 서비스 클래스에 실제로 존재하는 getMyFavorite(authentication) 메소드를 호출합니다.
         return favoriteService.getMyFavorite(authentication);
     }
 }

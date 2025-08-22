@@ -1,7 +1,7 @@
 import { FaRegThumbsUp, FaThumbsUp } from "react-icons/fa";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { OverlayTrigger, Spinner, Tooltip, Button } from "react-bootstrap";
+import { OverlayTrigger, Spinner, Tooltip } from "react-bootstrap";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 
 export function ReviewLikeContainer({ reviewId }) {
@@ -17,11 +17,11 @@ export function ReviewLikeContainer({ reviewId }) {
     };
   };
 
-  // 로그인 여부와 관계없이 항상 좋아요 수 조회
+  // 좋아요 수 조회
   function fetchLikeInfo() {
     return axios
       .get(`/api/reviewlike/review/${reviewId}`, {
-        headers: getAuthHeaders(), // 비로그인 시 빈 객체 전달됨
+        headers: getAuthHeaders(),
       })
       .then((res) => setLikeInfo(res.data))
       .catch((err) => {
@@ -45,7 +45,7 @@ export function ReviewLikeContainer({ reviewId }) {
         { reviewId },
         {
           headers: getAuthHeaders(),
-        }
+        },
       )
       .then(() => fetchLikeInfo())
       .catch((err) => console.error("리뷰 좋아요 처리 실패:", err))
@@ -63,6 +63,9 @@ export function ReviewLikeContainer({ reviewId }) {
     );
   }
 
+  // CSS 클래스를 조건부로 적용
+  const likeButtonClass = `like-button-base ${likeInfo.liked ? "like-button-liked" : "like-button-unliked"}`;
+
   return (
     <OverlayTrigger
       placement="top"
@@ -76,12 +79,10 @@ export function ReviewLikeContainer({ reviewId }) {
         )
       }
     >
-      <Button
-        variant={likeInfo.liked ? "primary" : "outline-secondary"}
-        size="sm"
+      <button
+        className={likeButtonClass}
         onClick={user && !isProcessing ? handleThumbsClick : undefined}
         disabled={isProcessing || !user}
-        className="d-flex align-items-center gap-1"
       >
         {isProcessing ? (
           <Spinner animation="border" size="sm" />
@@ -91,7 +92,7 @@ export function ReviewLikeContainer({ reviewId }) {
           <FaRegThumbsUp />
         )}
         <span>{likeInfo.likeCount}</span>
-      </Button>
+      </button>
     </OverlayTrigger>
   );
 }

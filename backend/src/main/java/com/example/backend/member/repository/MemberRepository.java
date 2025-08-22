@@ -13,7 +13,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 닉네임 중복 검사용 메서드가 이미 있다면 그대로 사용
     Optional<Member> findByNickName(String nickName);
 
-    List<MemberListInfo> findAllBy();
+    List<MemberListInfo> findAllByOrderByInsertedAtDesc();
 
     // 기본키를 id로 바꿔서 ..
     // 이거 authRepository로 이동.. 왜?
@@ -22,7 +22,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmail(String email);
 
-//    String id(Long id);
+    //    String id(Long id);
 //
 //    Long id(Long id);
+    Optional<Member> findByKakaoId(Long kakaoId);
+
 }

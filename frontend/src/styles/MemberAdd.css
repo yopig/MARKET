@@ -1,0 +1,264 @@
+/* ========================================
+   회원가입 페이지 (MemberAdd) - ServicePage 스타일 적용
+   ======================================== */
+
+.signup-page-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* 전체 컨테이너 */
+.signup-container-v2 {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: var(--pure-white);
+    border: 3px solid #2C2D31FF;
+    box-shadow: 10px 10px 0 0 #2C2D31FF;
+}
+
+/* 페이지 헤더 */
+.signup-page-header {
+    text-align: center;
+    padding: 40px 40px 30px;
+    border-bottom: 3px solid #2C2D31FF;
+    background-color: var(--main-bg);
+}
+
+.signup-page-header h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #2C2D31FF;
+    margin-bottom: 10px;
+}
+
+.signup-page-header p {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* 2단 레이아웃 그리드 */
+.signup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 0; /* gap 제거하고 border로 구분 */
+}
+
+/* 왼쪽 환영 패널 */
+.signup-welcome-panel {
+    padding: 40px;
+    background-color: #f6ece6; /* ServicePage와 동일한 베이지 배경 */
+    border-right: 3px solid #2C2D31FF;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.welcome-content h1.welcome-logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: #D9534F;
+    text-align: center;
+}
+
+.welcome-content h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #2C2D31FF;
+    line-height: 1.3;
+}
+
+.welcome-content > p {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.welcome-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.welcome-benefits li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+.welcome-benefits li svg {
+    color: #D9534F;
+    flex-shrink: 0;
+}
+
+/* 오른쪽 가입 폼 패널 */
+.signup-form-panel {
+    padding: 40px;
+    background-color: var(--pure-white);
+}
+
+/* 프로필 업로더 */
+.profile-uploader-neo {
+    width: 120px;
+    height: 120px;
+    border: 3px solid #2C2D31FF;
+    box-shadow: 5px 5px 0px 0px #2C2D31FF;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+    margin: 0 auto;
+}
+
+.profile-uploader-neo:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px 0px #2C2D31FF;
+}
+
+.profile-uploader-neo .profile-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.form-label-neo {
+    font-weight: 600;
+    color: #2C2D31FF;
+    margin-bottom: 8px;
+}
+
+/* 폼 인풋 스타일 */
+.form-input-neo {
+    border: 3px solid #2C2D31FF;
+    border-radius: 0;
+    padding: 12px 15px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.form-input-neo:focus {
+    border-color: #D9534F;
+    box-shadow: 5px 5px 0px 0px #D9534F;
+    outline: none;
+    transform: translate(-1px, -1px);
+}
+
+/* 에러 상태 */
+.form-input-neo:invalid,
+.form-input-neo.is-invalid {
+    border-color: #dc3545;
+}
+
+.text-danger.fw-bold {
+    color: #dc3545 !important;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+/* 가입하기 버튼 */
+.btn-neo.btn-primary-neo {
+    background-color: #D9534F;
+    color: white;
+    border: 3px solid #2C2D31FF;
+    border-radius: 0;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 5px 5px 0px 0px #2C2D31FF;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-neo.btn-primary-neo:hover:not(:disabled) {
+    background-color: #c9302c;
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0px 0px #2C2D31FF;
+}
+
+.btn-neo.btn-primary-neo:active:not(:disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0px 0px #2C2D31FF;
+}
+
+.btn-neo.btn-primary-neo:disabled {
+    background-color: #6c757d;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 스피너 스타일 */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* 반응형 */
+@media (max-width: 992px) {
+    .signup-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .signup-welcome-panel {
+        border-right: none;
+        border-bottom: 3px solid #2C2D31FF;
+        padding: 30px;
+    }
+
+    .welcome-content h1.welcome-logo {
+        font-size: 1.8rem;
+    }
+
+    .welcome-content h2 {
+        font-size: 2rem;
+    }
+
+    .signup-form-panel {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .signup-page-wrapper {
+        padding: 20px 10px;
+    }
+
+    .signup-page-header {
+        padding: 30px 20px 20px;
+    }
+
+    .signup-page-header h1 {
+        font-size: 2rem;
+    }
+
+    .welcome-content h2 {
+        font-size: 1.6rem;
+    }
+
+    .signup-welcome-panel,
+    .signup-form-panel {
+        padding: 20px;
+    }
+
+    .profile-uploader-neo {
+        width: 100px;
+        height: 100px;
+    }
+}

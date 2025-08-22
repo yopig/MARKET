@@ -1,0 +1,240 @@
+/* ============================================
+   chatbot.css - 간소화된 스타일 (중복 컨테이너 제거)
+   ============================================ */
+
+/* 로딩 인라인 표시 */
+.chatbot-loading-inline {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6c8bfa;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 10;
+}
+
+.chatbot-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f6ece6;
+    border-top: 3px solid #6c8bfa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 메시지 영역 - 심플 버전 */
+.chatbot-messages-simple {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fdfdfd;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: calc(100% - 80px); /* 입력창 높이 제외 */
+}
+
+/* 메시지 버블 */
+.chatbot-message {
+    display: flex;
+    animation: slideIn 0.3s ease;
+}
+
+.chatbot-message.user {
+    justify-content: flex-end;
+}
+
+.chatbot-message.bot {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 70%;
+}
+
+.chatbot-message.user .message-bubble {
+    flex-direction: row-reverse;
+}
+
+.message-text {
+    padding: 12px 16px;
+    border: 2px solid #2C2D31FF;
+    background: white;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.chatbot-message.bot .message-text {
+    background: white;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.chatbot-message.user .message-text {
+    background: #6c8bfa;
+    color: white;
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.bot-emoji, .user-emoji {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 예시 질문 섹션 */
+.example-questions {
+    background: #f6ece6;
+    border: 2px solid #2C2D31FF;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 3px 3px 0px 0px #2C2D31FF;
+}
+
+.example-title {
+    color: #2C2D31FF;
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.example-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.example-button {
+    background: white;
+    border: 2px solid #2C2D31FF;
+    padding: 10px 15px;
+    text-align: left;
+    color: #2C2D31FF;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.example-button:hover:not(:disabled) {
+    background: #ffc107;
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0px 0px #2C2D31FF;
+}
+
+.example-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 입력 영역 - 심플 버전 */
+.chatbot-input-area-simple {
+    display: flex;
+    gap: 0;
+    padding: 15px;
+    background: #f6ece6;
+    border-top: 3px solid #2C2D31FF;
+    position: sticky;
+    bottom: 0;
+}
+
+.chatbot-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 3px solid #2C2D31FF;
+    border-right: none;
+    background: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+}
+
+.chatbot-input:focus {
+    background: #fffef9;
+}
+
+.chatbot-send-btn {
+    padding: 12px 30px;
+    background: #ffc107;
+    border: 3px solid #2C2D31FF;
+    color: #2C2D31FF;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.chatbot-send-btn:hover:not(:disabled) {
+    background: #e0a800;
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+}
+
+.chatbot-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #e9ecef;
+}
+
+/* 스크롤바 스타일 */
+.chatbot-messages-simple::-webkit-scrollbar {
+    width: 12px;
+}
+
+.chatbot-messages-simple::-webkit-scrollbar-track {
+    background: #f6ece6;
+    border-left: 2px solid #2C2D31FF;
+}
+
+.chatbot-messages-simple::-webkit-scrollbar-thumb {
+    background: #2C2D31FF;
+    border: 2px solid #2C2D31FF;
+}
+
+.chatbot-messages-simple::-webkit-scrollbar-thumb:hover {
+    background: #6c8bfa;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .message-bubble {
+        max-width: 85%;
+    }
+
+    .chatbot-send-btn {
+        padding: 12px 20px;
+    }
+
+    .chatbot-messages-simple {
+        padding: 15px;
+    }
+}

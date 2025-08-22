@@ -1,0 +1,68 @@
+/* ========================================
+   BoardLayout.jsx cta 디자인
+   ======================================== */
+.cta-section {
+    background: #f6ece6;
+    padding: 18px;
+    margin-bottom: 0;
+    text-align: center;
+    border-top: 1px solid #2C2D31FF;
+}
+
+.cta-content {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.cta-title {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #343a40;
+}
+
+.cta-description {
+    font-size: 1.0rem;
+    margin-bottom: 25px;
+    color: #6c757d;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cta-button {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button.primary {
+    background-color: #ffc107; /* 노란색 계열 */
+    color: #212529; /* 어두운 글씨색 */
+}
+
+.cta-button.primary:hover {
+    background-color: #e0a800;
+}
+
+.cta-button.secondary {
+    background-color: #ffffff;
+    color: #343a40;
+    border: 1px solid #ced4da;
+}
+
+.cta-button.secondary:hover {
+    background-color: #e9ecef;
+}
+
+.cta-button i {
+    margin-right: 8px;
+}

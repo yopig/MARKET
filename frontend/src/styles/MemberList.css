@@ -1,0 +1,41 @@
+.member-list-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.member-list-table thead {
+    background-color: #f8f9fa;
+}
+
+.member-list-table th {
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    background-color: #fdf7f7;
+    color: #000000;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.member-list-table td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+}
+
+.member-list-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.member-list-table tbody tr:hover td {
+    background-color: #f1f3f5;
+}
+
+.member-list-table .email-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

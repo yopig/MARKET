@@ -1,15 +1,13 @@
 package com.example.backend.review.dto;
 
-import com.example.backend.review.entity.Review;
+import com.example.backend.petFacility.dto.PetFacilitySimpleDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Getter
@@ -17,13 +15,18 @@ import java.util.stream.Collectors;
 @Builder
 public class ReviewListDto {
     private Integer id;
-    private String facilityName;
-    private String memberEmail;            // 작성자 이메일
-    private String memberEmailNickName;    // 작성자 닉네임 ✅ 추가
+    private PetFacilitySimpleDto petFacility;
+    private String memberEmail;
+    private String memberEmailNickName;
     private String review;
     private Integer rating;
     private Instant insertedAt;
-    private List<String> files; // 리뷰 첨부 이미지 여러개
-    private String profileImageUrl; // 프로필 이미지 한개만
+    private List<String> files;
+    private String profileImageUrl;
+    private Long memberId;
+    private List<TagDto> tags;
 
+    private Long likesCount; // ✨ 좋아요 수 필드 추가
+    private Long countMemberReview; // 회원 리뷰 수
+    private Double memberAverageRating; // 회원 평균 평점
 }
