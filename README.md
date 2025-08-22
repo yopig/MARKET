@@ -188,8 +188,8 @@ npm run build
 | 역할 | 이름 | GitHub |
 |------|------|--------|
 | **팀장** | 최지원 | [@JIWON719CHOI](https://github.com/JIWON719CHOI) |
-| **팀원** | 신유민 | [@YourGitHub](https://github.com/YourGitHub) |
-| **팀원** | 전석윤 | [@YourGitHub](https://github.com/YourGitHub) |
+| **팀원** | 신유민 | [@YourGitHub](https://github.com/yumin359) |
+| **팀원** | 전석윤 | [@YourGitHub](https://github.com/yopig) |
 
 ---
 
