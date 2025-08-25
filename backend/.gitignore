@@ -1,4 +1,4 @@
-HELP.md
+cd ~/IdeaProjects/pet-topia/backendHELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

@@ -26,5 +26,6 @@ dist-ssr
 # Frontend API key
 .env
 .env.*
+.env.production
 src/key/
 /src/key/
