@@ -381,20 +381,17 @@ public class MemberService {
             throw new RuntimeException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
 
-        // 권한 목록 조회
-//        List<String> authList = memberRepository.findAuthNamesByMemberEmail(member.getEmail());
-        // 이제 AuthRepository를 통해 권한을 조회합니다.
-        List<String> authList = authRepository.findAuthNamesByMemberId(member.getId()); // member.getId() 전달
-        // 또는
-        // List<String> authNames = authRepository.findAuthNamesByMemberEmail(form.getEmail()); // email 전달
+        // 권한
+        List<String> authList = authRepository.findAuthNamesByMemberId(member.getId());
 
-
+        // ⬇️ 여기서 uid(=member.id) 클레임을 추가합니다.
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 365))
-                .subject(member.getEmail())
-                .claim("scp", String.join(" ", authList))  // 수정된 부분
+                .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * 365)) // 1년
+                .subject(member.getEmail())                 // sub = email
+                .claim("uid", member.getId())               // ✅ 추가: uid = member.id
+                .claim("scp", String.join(" ", authList))   // scope
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
@@ -425,23 +422,19 @@ public class MemberService {
     // ... 기존 MemberService 코드 ...
 
     public String processKakaoLogin(String code) {
-        // 1. 인가 코드로 액세스 토큰 받기
         String accessToken = getAccessToken(code);
-
-        // 2. 액세스 토큰으로 사용자 정보 받기
         KakaoUserInfoResponse userInfo = getUserInfo(accessToken);
-
-        // 3. 사용자 정보로 회원가입 또는 로그인 처리
         Member member = registerOrLoginUser(userInfo);
 
-        // 4. 우리 서비스의 JWT 토큰 발급
         List<String> authList = authRepository.findAuthNamesByMemberId(member.getId());
 
+        // ⬇️ 여기서도 uid를 반드시 넣어줍니다.
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 365)) // 유효 기간
-                .subject(member.getEmail())
+                .expiresAt(Instant.now().plusSeconds(60L * 60 * 24 * 365))
+                .subject(member.getEmail())                // sub = email
+                .claim("uid", member.getId())              // ✅ 추가: uid = member.id
                 .claim("scp", String.join(" ", authList))
                 .build();
 

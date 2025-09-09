@@ -25,7 +25,8 @@ import ReviewReportList from "./feature/report/ReviewReportList.jsx";
 import FullFilterKakaoMap from "./feature/kakaoMap/FullFilterKakaoMap.jsx";
 import "./styles/styles.css";
 import "./styles/Carousel.css";
-// import "./styles/Review.css"; // 이거 사라짐
+import { ChatRoomPage } from "./feature/chat/ChatRoomPage.jsx";
+import { ChatListPage } from "./feature/chat/ChatListPage.jsx";
 import "./styles/ReviewLike.css";
 
 function App() {
@@ -56,7 +57,8 @@ function App() {
             <Route path="/KakaoMap" element={<FullFilterKakaoMap />} />
 
             <Route path="/facility/:id" element={<MapDetail />} />
-
+            <Route path="/chat/rooms" element={<ChatListPage />} />
+            <Route path="/chat/rooms/:roomId" element={<ChatRoomPage />} />
             <Route path="/chatbot" element={<Chatbot />} />
 
             <Route path="/support" element={<ServicePage />} />

@@ -1,225 +1,196 @@
+// src/feature/board/BoardLayout.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Carousel, Col, Row } from "react-bootstrap";
+import {
+  Col,
+  Row,
+  Container,
+  Button,
+  Card,
+} from "react-bootstrap";
 import axios from "axios";
-import { BoardListMini } from "../main/BoardListMini.jsx";
-import { ReviewCarousel } from "../main/ReviewCarousel.jsx";
 import "../../styles/BoardLayout.css";
+import { FaEye } from "react-icons/fa";
 
-const sitelogo1 = "/sitelogo1.png";
-const sitelogo2 = "/sitelogo2.png";
-const sitelogo3 = "/sitelogo3.png";
-const sitelogo4 = "/sitelogo4.png";
+/** 조그나(중고나라)풍 카테고리 샘플 */
+const CATEGORIES = [
+  "디지털/가전",
+  "가구/인테리어",
+  "유아동",
+  "생활/가공식품",
+  "스포츠/레저",
+  "여성의류",
+  "남성의류",
+  "게임/취미",
+  "반려동물용품",
+  "기타",
+];
 
 export function BoardLayout() {
   const navigate = useNavigate();
-  const [slides, setSlides] = useState([]);
-  const [loading, setLoading] = useState(true);
 
+  // 목록 + 카테고리
+  const [boards, setBoards] = useState([]);
+  const [loadingBoards, setLoadingBoards] = useState(true);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [category, setCategory] = useState("");
+
+  // ───────── 목록 로딩 함수 ─────────
+  const fetchBoards = async ({ page = 1, append = false } = {}) => {
+    setLoadingBoards(true);
+    try {
+      const params = {
+        p: page,
+        category: category || undefined,
+      };
+      const { data } = await axios.get("/api/board/list", { params });
+      const list = data?.boardList ?? [];
+      const pageInfo = data?.pageInfo ?? {};
+      setBoards((prev) => (append ? [...prev, ...list] : list));
+
+      const totalPages = pageInfo?.totalPages ?? 1;
+      setHasMore(page < totalPages);
+      setPageNumber(page);
+    } catch {
+      setBoards((prev) => (append ? prev : []));
+      setHasMore(false);
+    } finally {
+      setLoadingBoards(false);
+    }
+  };
+
+  // 최초 로딩
   useEffect(() => {
-    axios
-      .get("/api/board/latest3") // 백엔드 최신 3개 게시글 API
-      .then((res) => {
-        // console.log("원본 데이터:", res.data); // 디버깅용
-
-        // 각 게시글의 firstImageUrl 확인
-        // res.data.forEach((slide, index) => {
-        // console.log(`게시글 ${slide.id} (인덱스 ${index}):`, {
-        //   title: slide.title,
-        //   firstImageUrl: slide.firstImageUrl,
-        //   hasImage: !!slide.firstImageUrl,
-        //   isEmptyString: slide.firstImageUrl === "",
-        //   type: typeof slide.firstImageUrl,
-        // });
-        // });
-
-        // 이미지가 있는 게시글만 필터링
-        const slidesWithImages = res.data.filter((slide) => {
-          const hasValidImage =
-            slide.firstImageUrl &&
-            slide.firstImageUrl.trim() !== "" &&
-            slide.firstImageUrl !== "null" &&
-            slide.firstImageUrl !== "undefined";
-
-          // console.log(`게시글 ${slide.id} 필터링 결과:`, hasValidImage);
-          return hasValidImage;
-        });
-
-        // console.log("필터링된 데이터:", slidesWithImages);
-        setSlides(slidesWithImages);
-        setLoading(false);
-      })
-      .catch(() => {
-        // console.error("최신 게시글 로딩 실패", err);
-        setLoading(false);
-      });
+    fetchBoards({ page: 1, append: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        최신 게시글 로딩 중...
-      </div>
-    );
-  }
-
-  if (slides.length === 0) {
-    return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        이미지가 있는 최신 게시글이 없습니다.
-      </div>
-    );
-  }
+  // 카테고리 변경 시 0.25초 디바운스 후 목록 새로 로드
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchBoards({ page: 1, append: false });
+    }, 250);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
 
   return (
-    <div>
-      {/* 캐러셀 */}
-      <Row className="align-items-center">
-        <Col xs={12} md={12}>
-          <Carousel
-            style={{
-              maxWidth: "auto",
-              margin: "0 auto",
-              borderBottom: "1px solid black",
-            }}
-          >
-            {slides.map(({ id, title, firstImageUrl }, idx) => (
-              <Carousel.Item
-                key={id}
-                onClick={() => navigate(`/board/${id}`)}
-                style={{ cursor: "pointer", position: "relative" }}
-              >
-                <img
-                  className="d-block w-100"
-                  src={firstImageUrl}
-                  alt={`${title} (${idx + 1}번째 슬라이드)`}
-                  loading="lazy"
-                  onError={(e) => {
-                    // 이미지 로드 실패시 기본 이미지로 대체
-                    e.target.src = "/images/default-placeholder.jpg";
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "450px",
-                    objectFit: "cover",
-                    objectPosition: "center center",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "80px",
-                    backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    color: "white",
-                    padding: "10px 15px",
-                    boxSizing: "border-box",
-                    textAlign: "center",
-                    borderRadius: "0 0 8px 8px",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  <h6
-                    style={{
-                      margin: 0,
-                      fontWeight: "bold",
-                      fontSize: "1.25rem",
-                      paddingTop: "4px",
-                    }}
-                  >
-                    {title}
-                  </h6>
-                </div>
-              </Carousel.Item>
-            ))}
-          </Carousel>
-        </Col>
-      </Row>
-
-      {/* 공지사항과 리뷰 */}
-      <div className="container">
-        <Row className="mt-3">
-          <Col md={6} className="mb-3 mb-md-0">
-            <h5 style={{ fontSize: "2rem", fontWeight: "600" }}>공지사항</h5>
-            <BoardListMini />
-          </Col>
-
-          <Col md={6}>
-            <ReviewCarousel />
-          </Col>
-        </Row>
-        <div className="py-3" />
-      </div>
-
-      {/* CTA 섹션 */}
-      <div className="cta-section">
-        <div className="cta-content">
-          <h4 className="cta-title">
-            <i className="bi bi-rocket-takeoff" />
-            지금 바로 시작해보세요!
-          </h4>
-          <p className="cta-description">
-            우리 아이와 함께 할 수 있는 특별한 장소들이 여러분을 기다리고
-            있습니다.
+    <div className="jn-root">
+      {/* ====== 히어로(검색·해시태그 제거) ====== */}
+      <section className="jn-hero">
+        <Container>
+          <h1 className="jn-hero-title">
+            <span className="highlight">중고거래</span> 마켓
+          </h1>
+          <p className="jn-hero-sub">
+            <span className="tagline">가깝고 안전한 동네 거래</span>를 시작하세요
           </p>
-          <div className="d-flex justify-content-evenly">
-            <img
-              src={sitelogo1}
-              alt=""
-              style={{
-                width: "200px",
-                height: "60px",
-                objectFit: "contain",
-              }}
-            />
-            <img
-              src={sitelogo2}
-              alt=""
-              style={{
-                width: "200px",
-                height: "60px",
-                objectFit: "contain",
-              }}
-            />
-            <img
-              src={sitelogo3}
-              alt=""
-              style={{
-                width: "200px",
-                height: "60px",
-                objectFit: "contain",
-              }}
-            />
-            <img
-              src={sitelogo4}
-              alt=""
-              style={{
-                width: "200px",
-                height: "60px",
-                objectFit: "contain",
-              }}
-            />
-          </div>
 
-          {/*<div className="cta-buttons">*/}
-          {/*  <button*/}
-          {/*    className="cta-button primary"*/}
-          {/*    onClick={() => navigate("/map")}*/}
-          {/*  >*/}
-          {/*    <i className="bi bi-geo-alt-fill me-2" />내 주변 찾기*/}
-          {/*  </button>*/}
-          {/*  <button*/}
-          {/*    className="cta-button secondary"*/}
-          {/*    onClick={() => navigate("/register")}*/}
-          {/*  >*/}
-          {/*    <i className="bi bi-person-plus me-2" />*/}
-          {/*    회원가입하기*/}
-          {/*  </button>*/}
-          {/*</div>*/}
-        </div>
-      </div>
+          {/* 카테고리 칩 */}
+          <div className="jn-cats">
+            <button
+              className={`jn-chip ${category === "" ? "active" : ""}`}
+              onClick={() => setCategory("")}
+            >
+              전체
+            </button>
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                className={`jn-chip ${category === c ? "active" : ""}`}
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* ====== 카드 그리드 ====== */}
+      <section className="jn-grid">
+        <Container>
+          {loadingBoards ? (
+            <div className="jn-loading">게시글을 불러오는 중…</div>
+          ) : boards.length === 0 ? (
+            <div className="jn-empty">조건에 맞는 게시글이 없습니다.</div>
+          ) : (
+            <Row className="g-3">
+              {boards.map((b) => {
+                const thumb = b.thumbnailUrl || b.firstImageUrl || null;
+                const price =
+                  typeof b.price === "number"
+                    ? `${b.price.toLocaleString()}원`
+                    : b.price
+                      ? `${b.price}원`
+                      : "가격문의";
+                return (
+                  <Col key={b.id} xs={6} sm={4} md={3} lg={2}>
+                    <Card className="jn-card" onClick={() => navigate(`/board/${b.id}`)}>
+                      <div className="jn-thumb">
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={b.title}
+                            loading="lazy"
+                            onError={(e) => (e.currentTarget.style.display = "none")}
+                          />
+                        ) : (
+                          <div className="jn-thumb-empty">No Image</div>
+                        )}
+                        {b.tradeStatus && (
+                          <span
+                            className={`jn-badge ${
+                              b.tradeStatus === "SOLD_OUT"
+                                ? "sold"
+                                : b.tradeStatus === "RESERVED"
+                                  ? "reserved"
+                                  : "onsale"
+                            }`}
+                          >
+                            {b.tradeStatus === "ON_SALE"
+                              ? "판매중"
+                              : b.tradeStatus === "RESERVED"
+                                ? "예약중"
+                                : "판매완료"}
+                          </span>
+                        )}
+                      </div>
+                      <Card.Body className="jn-card-body">
+                        {b.category && <div className="jn-cat">#{b.category}</div>}
+                        <div className="jn-title" title={b.title}>
+                          {b.title ?? "(제목 없음)"}
+                        </div>
+                        <div className="jn-price">{price}</div>
+                        <div className="jn-meta">
+                          <span className="jn-loc">
+                            {b.regionSido ?? ""} {b.regionSigungu ?? ""}
+                          </span>
+                          <span className="jn-counts">
+                            <FaEye size={12} className="me-1" /> {b.viewCount ?? 0}
+                          </span>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                );
+              })}
+            </Row>
+          )}
+
+          {!loadingBoards && hasMore && (
+            <div className="jn-more">
+              <Button
+                className="jn-more-btn"
+                onClick={() => navigate("/board/list")}
+              >
+                더 많은 물건 보러가기
+              </Button>
+            </div>
+          )}
+        </Container>
+      </section>
     </div>
   );
 }

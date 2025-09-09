@@ -198,32 +198,8 @@ export function AppNavBar() {
         <Container>
           {/* 로고와 브랜드 이름 */}
           <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
-            <span
-              className="ms-2 md-3"
-              style={{
-                fontFamily: "'Poppins'",
-                fontSize: "clamp(1.2rem, 4vw, 1.8rem)",
-                fontWeight: "bolder",
-                color: "black",
-              }}
-            >
-              PET
-            </span>
-            <div
-              className="logo-image"
-              style={{ width: "50px", height: "50px" }}
-            />
-            <span
-              className="md-3"
-              style={{
-                fontFamily: "'Poppins'",
-                fontSize: "clamp(1.2rem, 4vw, 1.8rem)",
-                fontWeight: "bolder",
-                color: "black",
-              }}
-            >
-              TOPIA
-            </span>
+            {/* 인라인 style 제거하고 사이즈 클래스 붙이기 */}
+            <div className="logo-image logo-md" />
           </Navbar.Brand>
 
           {/* 로그인/사용자 드롭다운 */}
@@ -287,7 +263,7 @@ export function AppNavBar() {
               }}
             >
               <NavLink
-                to="/kakaoMap"
+                to="/chat/rooms"
                 style={({ isActive }) =>
                   isActive
                     ? { ...navLinkStyle, ...activeLinkStyle }
@@ -295,18 +271,7 @@ export function AppNavBar() {
                 }
                 onClick={() => setExpanded(false)}
               >
-                지도찾기
-              </NavLink>
-              <NavLink
-                to="/review/latest"
-                style={({ isActive }) =>
-                  isActive
-                    ? { ...navLinkStyle, ...activeLinkStyle }
-                    : navLinkStyle
-                }
-                onClick={() => setExpanded(false)}
-              >
-                최신리뷰
+                채팅
               </NavLink>
               <NavLink
                 to="/board/list"
@@ -317,7 +282,7 @@ export function AppNavBar() {
                 }
                 onClick={() => setExpanded(false)}
               >
-                공지사항
+                중고거래
               </NavLink>
               <NavLink
                 to="/support"
@@ -328,7 +293,7 @@ export function AppNavBar() {
                 }
                 onClick={() => setExpanded(false)}
               >
-                CONTACT
+                문의하기
               </NavLink>
               {isAdmin() && (
                 <NavLink
@@ -369,7 +334,7 @@ export function AppNavBar() {
                 color: "black",
               }}
             >
-              PET
+              안전
             </span>
             <div
               className="logo-image"
@@ -384,7 +349,7 @@ export function AppNavBar() {
                 color: "black",
               }}
             >
-              TOPIA
+              마켓
             </span>
           </Modal.Title>
         </Modal.Header>

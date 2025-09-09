@@ -2,44 +2,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 /* ========================================
-   색상 팔레트 및 재료
+   색상 팔레트 (코랄 제거 · 뉴트럴 톤)
    ======================================== */
 :root {
-    --primary-red: #f86666;
-    --active-red: #fe6262;
-    --dark-text: #2e2e2e;
-    --light-text: #a0a0a0;
-    --main-bg: #f8eee8;
-    --page-bg: #fdfdfd;
-    --border-color: #000000;
-    --border-dark: #000000;
-    --white: #ffffff;
-    --blue-accent: #6c8bfa;
+    /* 변수명은 유지하지만 색상은 뉴트럴로 변경 */
+    --primary-coral: #111;     /* 사용처: 버튼/포커스 등 → 검정 */
+    --coral-light: #e6e6e6;    /* 연회색 */
+    --coral-dark: #000;        /* 진한 검정 */
+
+    --main-bg: #FFF8F2;        /* 기존 배경톤 유지(히어로와 어울림) */
+    --page-bg: #FFFFFF;
+    --border-color: #E6E6E6;
+    --border-dark: #D0D0D0;
+    --white: #FFFFFF;
+    --blue-accent: #6C8BFA;    /* 필요 시 사용 */
+
+    --text-strong: #2E2E2E;
+    --text-normal: #555555;
+    --text-muted: #888888;
+
+    --shadow-brutal: 3px 3px 0px 0px #D0D0D0;
+    --shadow-brutal-hover: 5px 5px 0px 0px #B8B8B8;
+
     --font-family: 'Poppins', sans-serif;
-
-    --primary-coral: #FF6B6B;
-    --coral-light: #FFE5E5;
-    --coral-dark: #FF5252;
-    --cream-bg: #FFF5F0;
-    --pure-white: #FFFFFF;
-    --text-black: #000000;
-    --text-gray: #8B8B8B;
-    --border-light: #F5F5F5;
-
-    --shadow-brutal: 3px 3px 0px 0px #000000;
-    --shadow-brutal-hover: 5px 5px 0px 0px #000000;
 }
 
 /* ========================================
-   로고 : 이거 빨간줄 생겨도 정상이에요.
+   로고 (코랄 → 검정)
    ======================================== */
-
 .logo-image {
-    background-color: #D9534F;
-
-    mask-image: url('/PETOPIA-Photoroom.png');
-    -webkit-mask-image: url('/PETOPIA-Photoroom.png');
-
+    background-color: #111;
+    mask-image: url('/mark.png');
+    -webkit-mask-image: url('/mark.png');
     mask-size: contain;
     -webkit-mask-size: contain;
     mask-repeat: no-repeat;
@@ -49,228 +43,75 @@
 }
 
 /* ========================================
-   바탕화면
+   바탕화면 (기존 그radient 유지 가능)
    ======================================== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-/*🎨 배경 색상 */
 body {
-    background: #ff9ea1;
-    background: linear-gradient(0deg, rgba(255, 158, 161, 1) 0%, rgba(255, 240, 214, 1) 100%);
+    background: linear-gradient(180deg, #FFEFEF 0%, #FFFDF9 100%);
+    color: var(--text-strong);
+    font-family: var(--font-family);
 }
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url(data:image/png;base64,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);
-    pointer-events: none;
-    z-index: -1;
-}
-
 
 /* ========================================
-   MainLayout.jsx
+   메인 컨테이너
    ======================================== */
-.main-layout {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 3rem 1rem;
-    min-height: 100vh;
-    box-sizing: border-box;
-}
-
 .main-container {
-    width: 90%;
-    height: 120vh;
-    max-width: 1400px;
-    max-height: 1080px;
-    background-color: white;
-    border: 3px solid #212529;
-    box-shadow: 10px 10px 1px 1px #2C2D31FF;
-    display: flex;
-    flex-direction: column;
-}
-
-/* 메인 콘텐츠와 푸터를 감싸는 래퍼 */
-.main-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-}
-
-/* 콘텐츠 영역 */
-.content-area {
-    padding-left: 0;
-    padding-right: 0;
-    flex: 1;
-    overflow-x: hidden;
-}
-
-/* 푸터는 항상 맨 아래 고정 */
-.footer-area {
-    flex-shrink: 0;
+    background-color: var(--page-bg);
+    border: 3px solid var(--border-color);
+    box-shadow: 8px 8px 0px 0px #E6D5CA;
+    color: var(--text-strong);
 }
 
 /* ========================================
-   레트로 스타일 스크롤바
+   스크롤바 (뉴트럴)
    ======================================== */
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: #FAFAFA; border: 2px solid #EDEDED; }
+::-webkit-scrollbar-thumb { background: #BDBDBD; border: 2px solid #EDEDED; }
+::-webkit-scrollbar-thumb:hover { background: #9E9E9E; }
 
-/* 웹킷 기반 브라우저 (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-    width: 16px;
-    height: 16px;
+/* ========================================
+   커서
+   ======================================== */
+* { cursor: auto; }
+a, button, [role="button"], .btn { cursor: pointer; }
+input, textarea, [contenteditable="true"] { cursor: text; }
+
+/* ========================================
+   버튼/링크 (BoardLayout 스타일 · 코랄색 제거)
+   ======================================== */
+button, .btn {
+    border-radius: 999px;              /* 둥근 캡슐형 */
+    font-weight: 800;
+    padding: 10px 18px;
+    border: none;
+    background: #111;                  /* 기본: 검정 */
+    color: #fff;                       /* 텍스트: 흰색 */
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,.15);
 }
 
-::-webkit-scrollbar-track {
-    background: #f6ece6;
-    border: 2px solid #2C2D31FF;
-    border-radius: 0;
+/* hover */
+button:hover, .btn:hover {
+    background: #000;                  /* 더 짙은 검정 */
+    box-shadow: 0 4px 8px rgba(0,0,0,.2);
 }
 
-::-webkit-scrollbar-thumb {
-    background: #2C2D31FF;
-    border: 2px solid #2C2D31FF;
-    border-radius: 0;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #2C2D31FF;
-    border: 2px solid #2C2D31FF;
-}
-
-/* 스크롤바 버튼 (위/아래 화살표) */
-::-webkit-scrollbar-button {
-    background: #f6ece6;
-    border: 2px solid #2C2D31FF;
-    height: 16px;
-    box-shadow: 1px 1px 0px 0px #2C2D31FF;
-}
-
-/* 위 화살표 */
-::-webkit-scrollbar-button:vertical:decrement {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><path d="M4 2L1 5h6z" fill="#2C2D31FF"/></svg>');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: #f6ece6;
-}
-
-/* 아래 화살표 */
-::-webkit-scrollbar-button:vertical:increment {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"><path d="M4 6L7 3H1z" fill="#2C2D31FF"/></svg>');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: #f6ece6;
-}
-
-/* 스크롤바 코너 */
-::-webkit-scrollbar-corner {
-    background: #f6ece6;
-    border: 2px solid #2C2D31FF;
-}
-
-/* Firefox용 스크롤바 스타일 */
-* {
-    scrollbar-width: auto;
-    scrollbar-color: #2C2D31FF #f6ece6;
+/* active */
+button:active, .btn:active {
+    background: #333;                  /* 살짝 연한 톤 */
+    transform: scale(0.97);
 }
 
 /* ========================================
-   레트로 픽셀 스타일 커서
+   선택 영역 (코랄 제거 → 검정)
    ======================================== */
-
-/* 기본 커서 - 픽셀 화살표 */
-* {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M4 4v12l4-4h3v-3l4 4v-9z" fill="#2C2D31FF"/><path d="M5 5v9l3-3h3v-3l3 3v-6z" fill="white"/></svg>') 4 4, auto;
-}
-
-/* 링크/버튼 호버 커서 - 손가락 모양 */
-a,
-button,
-[role="button"],
-.clickable,
-.btn {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="10" width="4" height="8" fill="#2C2D31FF"/><rect x="10" y="6" width="4" height="12" fill="#2C2D31FF"/><rect x="14" y="8" width="4" height="10" fill="#2C2D31FF"/><rect x="18" y="10" width="4" height="8" fill="#2C2D31FF"/><rect x="6" y="18" width="16" height="4" fill="#2C2D31FF"/><rect x="7" y="11" width="2" height="6" fill="white"/><rect x="11" y="7" width="2" height="10" fill="white"/><rect x="15" y="9" width="2" height="8" fill="white"/><rect x="19" y="11" width="2" height="6" fill="white"/></svg>') 12 6, pointer;
-}
-
-/* 텍스트 선택 커서 - I빔 */
-input,
-textarea,
-[contenteditable="true"] {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 16 20"><rect x="2" y="2" width="12" height="2" fill="#2C2D31FF"/><rect x="7" y="2" width="2" height="16" fill="#2C2D31FF"/><rect x="2" y="16" width="12" height="2" fill="#2C2D31FF"/></svg>') 8 10, text;
-}
-
-/* 드래그 가능한 요소 - 십자 화살표 */
-.draggable,
-[draggable="true"] {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="#2C2D31FF" stroke-width="2"/><path d="M12 2l3 4h-6zM12 22l-3-4h6zM2 12l4-3v6zM22 12l-4 3v-6z" fill="#2C2D31FF"/></svg>') 12 12, move;
-}
-
-/* 로딩 커서 - 모래시계 */
-.loading,
-.processing,
-.wait {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="24" viewBox="0 0 20 24"><rect x="4" y="2" width="12" height="2" fill="#2C2D31FF"/><rect x="4" y="20" width="12" height="2" fill="#2C2D31FF"/><path d="M6 4v6l4 2-4 2v6h8v-6l-4-2 4-2V4z" fill="#2C2D31FF"/><path d="M7 5v4l3 2-3 2v5h6v-5l-3-2 3-2V5z" fill="white"/><rect x="8" y="6" width="4" height="2" fill="#2C2D31FF"/></svg>') 10 12, wait;
-}
-
-/* 비활성화 커서 - X 표시 */
-:disabled,
-.disabled,
-[aria-disabled="true"] {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#2C2D31FF" stroke-width="2"/><path d="M6 6l8 8M14 6l-8 8" stroke="#2C2D31FF" stroke-width="2"/></svg>') 10 10, not-allowed;
-}
-
-/* 리사이즈 커서 */
-.resize,
-.resizable {
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M4 16h12v-12" fill="none" stroke="#2C2D31FF" stroke-width="2"/><path d="M8 16l8-8" stroke="#2C2D31FF" stroke-width="2"/></svg>') 10 10, nwse-resize;
-}
+::selection { background: #111; color: #fff; }
+::-moz-selection { background: #111; color: #fff; }
 
 /* ========================================
-   버튼/링크 호버 효과 (레트로 스타일에 맞게)
+   포커스 (코랄 제거 → 검정 점선)
    ======================================== */
-
-/* 버튼 호버시 커서와 함께 스타일 변경 */
-button:hover,
-.btn:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 1px 1px #2C2D31FF;
-}
-
-button:active,
-.btn:active {
-    transform: translate(1px, 1px);
-    box-shadow: 3px 3px 1px 1px #2C2D31FF;
-}
-
-/* ========================================
-   선택 영역 스타일링
-   ======================================== */
-
-::selection {
-    background: #2C2D31FF;
-    color: #f6ece6;
-}
-
-::-moz-selection {
-    background: #2C2D31FF;
-    color: #f6ece6;
-}
-
-/* ========================================
-   포커스 스타일 (접근성)
-   ======================================== */
-
 :focus-visible {
-    outline: 2px dashed #2C2D31FF;
+    outline: 2px dashed #111;
     outline-offset: 2px;
 }

@@ -14,25 +14,65 @@ import java.util.List;
 @Entity
 @Table(name = "board")
 public class Board {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동 증가
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String title;
+
+    @Column(name = "content", nullable = false, length = 255)
     private String content;
 
-    @Column(updatable = false, insertable = false) // 생성 시각 자동 default NOW();
+    @Column(name = "inserted_at", updatable = false, insertable = false)
     private LocalDateTime insertedAt;
 
+    // ===== 거래 관련 필드들 =====
+    @Column(nullable = false)
+    private Integer price;
+
+    @Column(length = 50)
+    private String category;
+
+    @Column(name = "trade_condition", length = 20, nullable = false)
+    private String tradeCondition = "USED";
+
+    @Column(name = "trade_type", length = 20, nullable = false)
+    private String tradeType = "ANY";
+
+    @Column(name = "trade_status", length = 20, nullable = false)
+    private String tradeStatus = "ON_SALE";
+
+    @Column(name = "region_sido", length = 30)
+    private String regionSido;
+
+    @Column(name = "region_sigungu", length = 30)
+    private String regionSigungu;
+
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
+    @Column(name = "like_count", nullable = false)
+    private Integer likeCount = 0;
+
+    // ===== 연관관계 =====
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BoardFile> files = new ArrayList<>();
 
-    // 얘로 작성자 어떤 회원인지 참조해서 가져오는건 작성자(nickName) 가져올 거
-    @ManyToOne
-    @JoinColumn(name = "author")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author", nullable = false)
     private Member author;
 
+    // ===== 편의 메서드 =====
+    public void increaseViewCount() {
+        this.viewCount = (this.viewCount == null ? 1 : this.viewCount + 1);
+    }
 
-    // 공개/비공개 추가
+    public void increaseLikeCount() {
+        this.likeCount = (this.likeCount == null ? 1 : this.likeCount + 1);
+    }
 
+    public void decreaseLikeCount() {
+        if (this.likeCount != null && this.likeCount > 0) this.likeCount -= 1;
+    }
 }

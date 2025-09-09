@@ -58,57 +58,11 @@ export function MainLayout() {
           </div>
 
           {/* 플로팅 채팅 버튼 - 우측 하단 고정 */}
-          <div className="chat-button-container">
-            <ChatButton />
-          </div>
+
         </div>
       </div>
 
-      {/* 왼쪽 광고 - 절대 위치로 메인 컨테이너 바깥에 배치 */}
-      <div
-        className="left-ad-area"
-        style={{
-          position: "fixed",
-          left: "20px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          zIndex: 5,
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-        }}
-      >
-        <AdSpace width={200} height={650} position="왼쪽" />
-        {/*<AdSpace width={200} height={200} position="왼쪽2" />*/}
-      </div>
 
-      {/* 오른쪽 광고 - 절대 위치로 메인 컨테이너 바깥에 배치 */}
-      <div
-        className="right-ad-area"
-        style={{
-          position: "fixed",
-          right: "20px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          zIndex: 5,
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-        }}
-      >
-        <AdSpace width={200} height={650} position="오른쪽" />
-        {/*<AdSpace width={200} height={200} position="오른쪽2" />*/}
-      </div>
-
-      {/* 반응형: 작은 화면에서 광고 숨기기 */}
-      <style>{`
-        @media (max-width: 1875px) {
-          .left-ad-area,
-          .right-ad-area {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

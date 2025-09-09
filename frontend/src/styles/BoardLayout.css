@@ -1,68 +1,164 @@
-/* ========================================
-   BoardLayout.jsx cta 디자인
-   ======================================== */
-.cta-section {
-    background: #f6ece6;
-    padding: 18px;
-    margin-bottom: 0;
+/* 색/타이포 */
+.jn-root {
+    --bg-hero: #fff3ec;
+    --chip: #f2f3f5;
+    --chip-active: #111;
+    --text: #222;
+    --muted: #666;
+    --border: #eee;
+    --accent: #ff6b6b;
+    --card-bg: #fff;
+    --shadow: 0 10px 24px rgba(0,0,0,.08);
+    --radius: 14px;
+    font-family: "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--text);
+}
+
+/* 히어로 */
+.jn-hero {
+    background: var(--bg-hero);
+    padding: 40px 0 32px;
+    border-bottom: 3px solid #ffe0d4;
     text-align: center;
-    border-top: 1px solid #2C2D31FF;
+}
+.jn-hero-title {
+    font-size: 2.6rem;
+    font-weight: 900;
+    margin: 0 0 12px;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    background: linear-gradient(90deg, #ff6b6b, #ff9f43);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+.jn-hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 600;
+}
+.jn-hero-sub strong {
+    color: #111;
+    font-weight: 800;
 }
 
-.cta-content {
-    max-width: 960px;
-    margin: 0 auto;
+/* (미사용) 검색/트렌드 섹션
+.jn-search-wrap { max-width: 720px; margin: 0 auto; }
+.jn-search {
+    border: 2px solid #ffd7cb; background: #fff; border-radius: 999px; overflow: hidden;
 }
-
-.cta-title {
-    font-size: 1.75rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-    color: #343a40;
+.jn-search .form-control { border: none; box-shadow: none; padding-left: 40px; }
+.jn-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
+.jn-search-clear { border: none; }
+.jn-trends {
+    display: flex; gap: 10px; align-items: center; padding: 8px 4px; color: var(--muted);
 }
-
-.cta-description {
-    font-size: 1.0rem;
-    margin-bottom: 25px;
-    color: #6c757d;
+.jn-trends-label { font-weight: 700; }
+.jn-trend-btn {
+    border: none; background: transparent; color: var(--text); padding: 4px 8px; border-radius: 999px;
 }
+.jn-trend-btn:hover { background: #fff; }
+*/
 
-.cta-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
+/* 카테고리 칩 */
+.jn-cats {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    padding-top: 14px;
 }
-
-.cta-button {
-    padding: 10px 20px;
-    font-size: 0.95rem;
-    font-weight: bold;
-    border-radius: 8px;
-    border: none;
+.jn-chip {
+    border: 1px solid var(--border);
+    background: var(--chip);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 700; font-size: .95rem;
+    line-height: 1;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: filter .15s ease, background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.jn-chip:hover { filter: brightness(.97); }
+.jn-chip.active { background: var(--chip-active); color: #fff; border-color: #111; }
+.jn-chip.sm { padding: 4px 10px; font-size: .9rem; }
+
+/* 배너(사용 시) */
+.jn-banner { padding: 14px 0; }
+.jn-carousel { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.jn-caption h5 { font-weight: 800; }
+
+/* 퀵필터(사용 시) */
+.jn-filter { border-top: 1px solid var(--border); padding: 12px 0; background: #fff; }
+.jn-label { font-weight: 800; color: var(--muted); }
+.jn-trade-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* 카드 그리드 */
+.jn-grid { padding: 12px 0 24px; }
+.jn-loading, .jn-empty { text-align: center; color: var(--muted); padding: 24px 0; }
+
+.jn-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card-bg);
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    cursor: pointer;
+}
+.jn-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: #e8e8e8; }
+
+.jn-thumb { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #fafafa; }
+.jn-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.jn-thumb-empty { width: 100%; height: 100%; display: grid; place-items: center; color: #aaa; font-weight: 700; }
+
+.jn-badge {
+    position: absolute; left: 10px; top: 10px;
+    padding: 4px 8px; border-radius: 999px; font-weight: 800; font-size: .8rem; color: #fff;
+}
+.jn-badge.onsale { background: #111; }
+.jn-badge.reserved { background: #ff9f43; }
+.jn-badge.sold { background: #6c757d; }
+
+.jn-card-body { padding: 10px; }
+.jn-cat { color: var(--muted); font-size: .82rem; margin-bottom: 4px; }
+.jn-title {
+    font-weight: 800; line-height: 1.25; margin-bottom: 4px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.jn-price { font-weight: 900; font-size: 1.05rem; margin-bottom: 4px; }
+.jn-meta { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); }
+.jn-loc { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jn-counts i { margin-right: 4px; }
+
+/* 더보기 CTA */
+.jn-more { display: grid; place-items: center; padding-top: 12px; }
+.jn-more-btn {
+    border-radius: 999px; font-weight: 800; padding: 10px 18px; border: none; background: #111; color: #fff;
+    transition: transform .12s ease, filter .12s ease, background-color .12s ease;
+}
+.jn-more-btn:hover { background: #000; transform: translateY(-1px); }
+
+/* 공지/리뷰 패널 */
+.jn-extra { padding: 10px 0 24px; border-top: 1px solid var(--border); background: #fff; }
+.jn-panel { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fff; }
+.jn-panel-title { margin: 0 0 10px; font-weight: 900; }
+
+/* CTA 섹션(사용 시) */
+.jn-cta { padding: 28px 0 36px; background: #f7f8fa; }
+.jn-logos {
+    margin-top: 10px;
+    display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 12px; justify-items: center;
+}
+.jn-logos img { width: 200px; height: 60px; object-fit: contain; }
+@media (min-width: 768px) { .jn-logos { grid-template-columns: repeat(4, minmax(160px, 1fr)); } }
+
+/* 접근성: 포커스 스타일 */
+.jn-cats .jn-chip:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 999px;
 }
 
-.cta-button.primary {
-    background-color: #ffc107; /* 노란색 계열 */
-    color: #212529; /* 어두운 글씨색 */
-}
-
-.cta-button.primary:hover {
-    background-color: #e0a800;
-}
-
-.cta-button.secondary {
-    background-color: #ffffff;
-    color: #343a40;
-    border: 1px solid #ced4da;
-}
-
-.cta-button.secondary:hover {
-    background-color: #e9ecef;
-}
-
-.cta-button i {
-    margin-right: 8px;
+/* 반응형 자잘한 보정 */
+@media (max-width: 480px) {
+    .jn-hero-title { font-size: 2.1rem; }
+    .jn-hero-sub { font-size: 1.05rem; }
 }

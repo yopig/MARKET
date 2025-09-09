@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useNavigate, Navigate } from "react-router";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -16,59 +16,89 @@ import {
 } from "react-bootstrap";
 import { FaFileAlt, FaSave, FaTimes, FaTrashAlt } from "react-icons/fa";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
+import "../../styles/BoardAdd.css";
+
+// ✅ 지역 데이터: 분리된 모듈에서 import (경로 주의)
+import { SIDO_OPTIONS, getSigunguOptions } from "../board/regions";
+
+/** ====== 카테고리(상위만) ====== */
+const CATEGORY_LIST = [
+  "전체","디지털/가전","가구/인테리어","유아동","생활/가공식품","스포츠/레저","여성의류","남성의류","게임/취미","반려동물용품","기타",
+];
 
 export function BoardAdd() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState([]);
-  const [isPrivate, setIsPrivate] = useState(false); // private 체크박스 상태
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  // 판매 상태: 고정값(판매중)
+  const [tradeStatus] = useState("ON_SALE"); // 고정
+
+  // 가격/지역
+  const [price, setPrice] = useState("");
+  const [regionSido, setRegionSido] = useState("");
+  const [regionSigungu, setRegionSigungu] = useState("");
+
+  // 카테고리 (서브카테고리 제거)
+  const [category, setCategory] = useState("전체");
+
+  // ⬇️ 시/군/구 옵션
+  const sigunguOptions = useMemo(() => {
+    return regionSido ? getSigunguOptions(regionSido) : [];
+  }, [regionSido]);
+
   const [modalShow, setModalShow] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { user, isAdmin } = useContext(AuthenticationContext);
+  const { user } = useContext(AuthenticationContext);
   const navigate = useNavigate();
 
-  // 로그인 여부 체크
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login?redirect=/board/add" replace />;
   }
 
-  // 관리자 권한 체크
-  const adminCheck = typeof isAdmin === "function" ? isAdmin() : isAdmin;
-  if (!adminCheck) {
-    return <Navigate to="/unauthorized" replace />; // 권한없음 페이지 없으면 "/login" 등으로 변경
-  }
+  const isValid = title.trim() !== "" && (content.trim() !== "" || files.length > 0);
 
-  const isValid =
-    title.trim() !== "" && (content.trim() !== "" || files.length > 0);
-
-  // 파일 첨부 시 처리 함수
+  // 파일 첨부/삭제
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
+    const selectedFiles = Array.from(e.target.files || []);
     setFiles((prevFiles) => {
       const newFiles = selectedFiles.map((file) => ({
         file,
-        previewUrl: file.type.startsWith("image/")
-          ? URL.createObjectURL(file)
-          : null,
+        previewUrl: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
       }));
       return [...prevFiles, ...newFiles];
     });
   };
+  const handleFileRemove = (idx) => setFiles((prev) => prev.filter((_, i) => i !== idx));
 
-  // 파일 삭제 시 처리 함수
-  const handleFileRemove = (idx) => {
-    setFiles(files.filter((_, i) => i !== idx));
+  // 가격 입력(숫자만)
+  const handlePriceChange = (e) => setPrice(e.target.value.replace(/[^\d]/g, ""));
+
+  // 시/도 변경 → 시/군/구 초기화
+  const onChangeSido = (e) => {
+    const next = e.target.value;
+    setRegionSido(next);
+    setRegionSigungu("");
   };
 
-  // 저장 버튼 클릭 시 처리
+  // 시/군/구 변경
+  const onChangeSigungu = (e) => {
+    setRegionSigungu(e.target.value);
+  };
+
+  // 저장
   const handleSaveButtonClick = () => {
     if (!isValid) {
-      toast.warning(
-        "제목은 필수이며, 본문 또는 첨부파일이 하나 이상 있어야 합니다.",
-      );
+      toast.warning("제목은 필수이며, 본문 또는 첨부파일이 하나 이상 있어야 합니다.");
       return;
     }
+    if (price !== "" && isNaN(Number(price))) {
+      toast.warning("가격은 숫자만 입력하세요.");
+      return;
+    }
+
     setModalShow(false);
     setIsProcessing(true);
 
@@ -76,52 +106,117 @@ export function BoardAdd() {
     formData.append("title", title);
     formData.append("content", content);
     formData.append("isPrivate", isPrivate);
-    files.forEach((fileObj) => formData.append("files", fileObj.file));
+    formData.append("tradeStatus", "ON_SALE"); // 고정
+    formData.append("category", category);
+    if (price !== "") formData.append("price", Number(price));
+    if (regionSido.trim() !== "") formData.append("regionSido", regionSido.trim());
+    if (regionSigungu.trim() !== "") formData.append("regionSigungu", regionSigungu.trim());
+    files.forEach((f) => formData.append("files", f.file));
 
     axios
-      .post("/api/board/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
+      .post("/api/board/add", formData, { headers: { "Content-Type": "multipart/form-data" } })
       .then((res) => {
         const message = res.data?.message;
-        toast(message?.text || "게시글이 등록되었습니다.", {
-          type: message?.type || "success",
-        });
+        toast(message?.text || "게시글이 등록되었습니다.", { type: message?.type || "success" });
         navigate("/board/list");
       })
       .catch((err) => {
         const message = err.response?.data?.message;
-        toast(message?.text || "오류가 발생했습니다.", {
-          type: message?.type || "error",
-        });
+        toast(message?.text || "오류가 발생했습니다.", { type: message?.type || "error" });
       })
-      .finally(() => {
-        setIsProcessing(false);
-      });
+      .finally(() => setIsProcessing(false));
   };
 
   return (
-    <Row className="justify-content-center my-4">
+    <Row className="board-add justify-content-center my-4">
       <Col xs={12} md={8} lg={6}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <FormControl
-            className="fw-bold text-dark"
-            placeholder="제목을 입력하세요"
-            style={{
-              fontSize: "1.5rem",
-              border: "none",
-              padding: 0,
-              outline: "none",
-              boxShadow: "none",
-            }}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={isProcessing}
-          />
-        </div>
-
         <Card className="shadow-sm rounded-3 border-0">
           <Card.Body>
+            {/* 1행: 카테고리 · 시/도 · 시/군/구 */}
+            <Row className="g-3 mb-4">
+              <Col xs={12} md={4}>
+                <FormGroup>
+                  <Form.Label className="fw-semibold">카테고리</Form.Label>
+                  <Form.Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    disabled={isProcessing}
+                  >
+                    {CATEGORY_LIST.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </Form.Select>
+                </FormGroup>
+              </Col>
+
+              <Col xs={12} md={4}>
+                <FormGroup>
+                  <Form.Label className="fw-semibold">지역(시/도)</Form.Label>
+                  <Form.Select value={regionSido} onChange={onChangeSido} disabled={isProcessing}>
+                    <option value="">선택</option>
+                    {SIDO_OPTIONS.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </Form.Select>
+                </FormGroup>
+              </Col>
+
+              <Col xs={12} md={4}>
+                <FormGroup>
+                  <Form.Label className="fw-semibold">지역(시/군/구)</Form.Label>
+                  <Form.Select
+                    value={regionSigungu}
+                    onChange={onChangeSigungu}
+                    disabled={isProcessing || !regionSido}
+                  >
+                    <option value="">{regionSido ? "선택" : "시/도를 먼저 선택"}</option>
+                    {regionSido &&
+                      sigunguOptions.map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                  </Form.Select>
+                </FormGroup>
+              </Col>
+            </Row>
+
+            {/* 2행: 판매상태(고정) · 가격 */}
+            <Row className="g-3 mb-4">
+              <Col xs={12} md={4}>
+                <FormGroup>
+                  <Form.Label className="fw-semibold">판매 상태</Form.Label>
+                  <Form.Select value="ON_SALE" disabled>
+                    <option value="ON_SALE">판매중</option>
+                  </Form.Select>
+                  <Form.Text className="text-muted">판매상태는 ‘판매중’으로 고정됩니다.</Form.Text>
+                </FormGroup>
+              </Col>
+
+              <Col xs={12} md={4}>
+                <FormGroup>
+                  <Form.Label className="fw-semibold">가격(원)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="예) 15000"
+                    value={price}
+                    onChange={handlePriceChange}
+                    disabled={isProcessing}
+                  />
+                  <Form.Text className="text-muted">숫자만 입력하세요. 미입력 시 가격 없이 저장됩니다.</Form.Text>
+                </FormGroup>
+              </Col>
+            </Row>
+
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <FormControl
+                className="page-title-input fw-bold text-dark"
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={isProcessing}
+              />
+            </div>
+
             <FormGroup className="mb-4">
               <FormControl
                 as="textarea"
@@ -129,11 +224,7 @@ export function BoardAdd() {
                 placeholder="내용을 입력하세요"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                style={{
-                  whiteSpace: "pre-wrap",
-                  fontSize: "1rem",
-                  lineHeight: 1.5,
-                }}
+                style={{ whiteSpace: "pre-wrap", fontSize: "1rem", lineHeight: 1.5 }}
                 disabled={isProcessing}
               />
             </FormGroup>
@@ -143,23 +234,14 @@ export function BoardAdd() {
               <div className="mb-4">
                 <ListGroup>
                   {files.map((fileObj, idx) => (
-                    <ListGroup.Item
-                      key={idx}
-                      className="d-flex justify-content-between align-items-center"
-                    >
+                    <ListGroup.Item key={idx} className="d-flex justify-content-between align-items-center">
                       {fileObj.previewUrl && (
                         <img
                           src={fileObj.previewUrl}
                           alt={fileObj.file.name}
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "cover",
-                            marginRight: "10px",
-                          }}
+                          style={{ width: 50, height: 50, objectFit: "cover", marginRight: 10 }}
                         />
                       )}
-
                       <div className="d-flex justify-content-between align-items-center w-100">
                         <span className="text-truncate d-flex align-items-center gap-2">
                           <FaFileAlt /> {fileObj.file.name}
@@ -181,18 +263,14 @@ export function BoardAdd() {
             )}
 
             <FormGroup className="mb-4">
-              <FormControl
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                disabled={isProcessing}
-              />
+              <FormControl type="file" multiple onChange={handleFileChange} disabled={isProcessing} />
             </FormGroup>
+
             <Row className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
               <Col xs={6}>
                 <div>
                   <strong>작성자</strong>
-                  <div> {user.nickName}</div>
+                  <div>{user.nickName}</div>
                 </div>
               </Col>
             </Row>
@@ -216,42 +294,24 @@ export function BoardAdd() {
                 onClick={() => setModalShow(true)}
                 title="저장"
               >
-                {isProcessing && (
-                  <Spinner animation="border" size="sm" className="me-2" />
-                )}
+                {isProcessing && <Spinner animation="border" size="sm" className="me-2" />}
                 <FaSave />
               </Button>
             </div>
           </Card.Body>
         </Card>
 
-        <Modal
-          show={modalShow}
-          onHide={() => setModalShow(false)}
-          centered
-          backdrop="static"
-          keyboard={false}
-        >
+        <Modal show={modalShow} onHide={() => setModalShow(false)} centered backdrop="static" keyboard={false}>
           <Modal.Header closeButton>
             <Modal.Title>게시물 저장 확인</Modal.Title>
           </Modal.Header>
           <Modal.Body>게시물을 등록하시겠습니까?</Modal.Body>
           <Modal.Footer>
-            <Button
-              variant="outline-dark"
-              onClick={() => setModalShow(false)}
-              disabled={isProcessing}
-            >
+            <Button variant="outline-dark" onClick={() => setModalShow(false)} disabled={isProcessing}>
               취소
             </Button>
-            <Button
-              variant="primary"
-              onClick={handleSaveButtonClick}
-              disabled={isProcessing}
-            >
-              {isProcessing && (
-                <Spinner animation="border" size="sm" className="me-2" />
-              )}
+            <Button variant="primary" onClick={handleSaveButtonClick} disabled={isProcessing}>
+              {isProcessing && <Spinner animation="border" size="sm" className="me-2" />}
               등록
             </Button>
           </Modal.Footer>
