@@ -1,0 +1,23 @@
+.latest-boards-container {
+    margin-top: 1rem;
+}
+.board-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.board-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.board-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+.board-meta {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+.board-region {
+    font-size: 0.8rem;
+    color: #555;
+}
