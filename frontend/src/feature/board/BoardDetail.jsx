@@ -1,12 +1,12 @@
 // src/feature/board/BoardDetail.jsx  (FULL REPLACE)
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Badge, Button, Image, Modal, Spinner } from "react-bootstrap";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 import { CommentContainer } from "../comment/CommentContainer.jsx";
-import { chatApi } from "../chat/chatApi"; // ✅ chatApi 경로 수정
+import { chatApi } from "../chat/chatApi";
 import {
   FaClock,
   FaEdit,
@@ -51,7 +51,7 @@ function loadPaymentWidgetScript() {
   return paymentWidgetScriptPromise;
 }
 
-export function BoardDetail() { // ✅ named export
+export function BoardDetail() {
   const [board, setBoard] = useState(null);
   const [modalShow, setModalShow] = useState(false); // 삭제 모달
   const [chatLoading, setChatLoading] = useState(false);
@@ -59,14 +59,20 @@ export function BoardDetail() { // ✅ named export
   // ✅ 결제 모달 상태
   const [payOpen, setPayOpen] = useState(false);
   const [payReady, setPayReady] = useState(false);
-  const paymentWidgetRef = useRef(null); // PaymentWidget 인스턴스
-  const paymentMethodsRef = useRef(null); // renderPaymentMethods 반환 핸들
-  const agreementRef = useRef(null); // renderAgreement 반환 핸들
+
+  // Toss 위젯 인스턴스/핸들
+  const paymentWidgetRef = useRef(null);     // new PaymentWidget(...)
+  const paymentMethodsRef = useRef(null);    // renderPaymentMethods 반환
+  const agreementRef = useRef(null);         // renderAgreement 반환
+  const initDoneRef = useRef(false);         // ✅ 초기화 1회 가드(StrictMode 대응)
+
+  // 컨테이너 id (고유 문자열) — 셀렉터로만 넘긴다!
+  const [methodsId, setMethodsId] = useState("");
+  const [agreementId, setAgreementId] = useState("");
 
   const { hasAccess, user } = useContext(AuthenticationContext);
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const defaultProfileImage = "/user.png";
 
@@ -130,7 +136,6 @@ export function BoardDetail() { // ✅ named export
   async function handleChatButtonClick() {
     if (!board) return;
 
-    // 비로그인 방어
     const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
     if (!token) {
       toast.info("채팅은 로그인 후 이용할 수 있습니다.");
@@ -139,9 +144,8 @@ export function BoardDetail() { // ✅ named export
 
     setChatLoading(true);
     try {
-      // 백엔드: POST /api/chat/rooms/open?boardId={id}
       const data = await chatApi.openRoomByBoard(board.id);
-      const roomId = data.id ?? data.roomId; // 서버 구현 따라 유연 처리
+      const roomId = data.id ?? data.roomId;
       if (!roomId) throw new Error("roomId not found");
       navigate(`/chat/rooms/${roomId}`);
     } catch (e) {
@@ -156,9 +160,8 @@ export function BoardDetail() { // ✅ named export
    *  ========================= */
   const CLIENT_KEY =
     (typeof import.meta !== "undefined" && import.meta.env?.VITE_TOSS_CLIENT_KEY) ||
-    "test_ck_DLJOpm5Qrl72jXNzdqYAVPNdxbWn"; // 👉 네가 준 테스트 키
+    "test_ck_DLJOpm5Qrl72jXNzdqYAVPNdxbWn"; // 👉 테스트 키(환경변수로 대체 권장)
 
-  // 고객 식별 키: 로그인 사용자의 이메일/ID가 제일 좋고, 없으면 로컬 생성
   function getCustomerKey() {
     const candidate = user?.email || user?.id || localStorage.getItem("customerKey");
     if (candidate) return String(candidate);
@@ -167,44 +170,70 @@ export function BoardDetail() { // ✅ named export
     return gen;
   }
 
-  async function openPayModal() {
+  // 🔓 결제 모달 열기 → 컨테이너 id 세팅 + 초기화는 useEffect에서 자동
+  function openPayModal() {
     if (!board) return;
     if (!board.price || Number.isNaN(Number(board.price))) {
       toast.warn("가격 정보가 없어 결제를 진행할 수 없습니다.");
       return;
     }
-    try {
-      setPayOpen(true);
-      setPayReady(false);
-      await loadPaymentWidgetScript();
-
-      // 전역 SDK 로드됨
-      const PaymentWidget = window.PaymentWidget;
-      const customerKey = getCustomerKey();
-
-      // 인스턴스 생성
-      const widget = new PaymentWidget(CLIENT_KEY, customerKey);
-      paymentWidgetRef.current = widget;
-
-      // 결제수단/약관 렌더
-      paymentMethodsRef.current = widget.renderPaymentMethods("#payment-methods", {
-        value: Number(board.price),
-      });
-      agreementRef.current = widget.renderAgreement("#agreement", { variant: "AGREE" });
-
-      setPayReady(true);
-    } catch (e) {
-      console.error(e);
-      toast.error("결제위젯을 로드하는 중 문제가 발생했습니다.");
-      setPayOpen(false);
-    }
+    setPayReady(false);
+    initDoneRef.current = false; // 새로 열 때 다시 초기화
+    // 고유 id 생성(게시글 id + 시간)
+    const salt = Date.now();
+    setMethodsId(`pm-${board.id}-${salt}`);
+    setAgreementId(`ag-${board.id}-${salt}`);
+    setPayOpen(true);
   }
 
+  // ✅ 모달이 열리고 컨테이너가 DOM에 붙으면 위젯 1회 초기화
+  useEffect(() => {
+    const run = async () => {
+      if (!payOpen || !board) return;
+      if (!methodsId || !agreementId) return;     // id 준비 전
+      if (initDoneRef.current) return;            // ✅ 중복 초기화 방지
+
+      try {
+        setPayReady(false);
+        await loadPaymentWidgetScript();
+
+        const { PaymentWidget } = window;
+        const widget = new PaymentWidget(CLIENT_KEY, getCustomerKey());
+        paymentWidgetRef.current = widget;
+
+        // ✅ 셀렉터 문자열만 전달 (DOM 객체 절대 X)
+        paymentMethodsRef.current = await widget.renderPaymentMethods(`#${methodsId}`, {
+          value: Number(board.price),
+        });
+        agreementRef.current = await widget.renderAgreement(`#${agreementId}`, {
+          variantKey: "AGREEMENT",
+        });
+
+        initDoneRef.current = true;
+        setPayReady(true);
+      } catch (e) {
+        console.error(e);
+        toast.error("결제 UI 초기화 실패");
+        setPayOpen(false);
+      }
+    };
+    run();
+  }, [payOpen, board, methodsId, agreementId]);
+
+  // ▶ 결제 시작
   async function requestPayment() {
-    if (!paymentWidgetRef.current || !board) return;
+    if (!payReady || !paymentWidgetRef.current || !paymentMethodsRef.current || !board) {
+      toast.info("결제 UI가 아직 준비 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
     try {
+      if (typeof paymentMethodsRef.current.updateAmount === "function") {
+        await paymentMethodsRef.current.updateAmount(Number(board.price));
+      }
+
       const orderId = `BD-${board.id}-${Date.now()}`;
       const origin = window.location.origin;
+
       await paymentWidgetRef.current.requestPayment({
         orderId,
         orderName: board.title?.slice(0, 40) || `게시글 #${board.id}`,
@@ -214,23 +243,28 @@ export function BoardDetail() { // ✅ named export
         customerName: user?.nickName || user?.name || undefined,
         customerMobilePhone: user?.phone || undefined,
       });
-
-      // 위 호출은 결제창으로 이동(또는 새 창)하며, 성공/실패 URL로 리다이렉트됨
-      // 성공 페이지에서 paymentKey, orderId, amount로 백엔드 승인 API 호출 필요
     } catch (e) {
-      // 사용자가 닫기 등
       console.warn(e);
+      toast.error(e?.message || "결제 요청 중 오류가 발생했습니다.");
     }
   }
 
+  // 모달 닫기/정리
   function closePayModal() {
     setPayOpen(false);
+  }
+  function cleanupPaymentWidget() {
     setPayReady(false);
-    // 특별한 해제는 불필요하지만, 필요 시 아래처럼 DOM 초기화 가능
-    const container = document.querySelector("#payment-methods");
-    if (container) container.innerHTML = "";
-    const agreement = document.querySelector("#agreement");
-    if (agreement) agreement.innerHTML = "";
+    initDoneRef.current = false;
+    paymentWidgetRef.current = null;
+    paymentMethodsRef.current = null;
+    agreementRef.current = null;
+
+    // DOM 비우기 (id가 남아 있으면 다음 오픈 때 새로 렌더됨)
+    const m = methodsId && document.getElementById(methodsId);
+    if (m) m.innerHTML = "";
+    const a = agreementId && document.getElementById(agreementId);
+    if (a) a.innerHTML = "";
   }
 
   if (!board) {
@@ -258,7 +292,6 @@ export function BoardDetail() { // ✅ named export
             {tradeBadge}
           </h1>
 
-          {/* ✅ 비소유자(구매자)에게만 버튼 노출 */}
           {!isOwner && (
             <div className="d-flex align-items-center gap-2">
               {canPay && (
@@ -294,10 +327,9 @@ export function BoardDetail() { // ✅ named export
             />
             {board.authorNickName}
           </div>
-
         </div>
 
-        {/* ✅ 거래 정보 블럭 (가격/지역/카테고리/시간/ID) */}
+        {/* ✅ 거래 정보 블럭 */}
         <div className="d-flex flex-wrap gap-3 mt-2 text-muted">
           <span className="d-inline-flex align-items-center gap-1">
             <FaClock /> {formattedInsertedAt}
@@ -378,20 +410,25 @@ export function BoardDetail() { // ✅ named export
       </Modal>
 
       {/* ✅ 결제 모달 (토스 결제위젯) */}
-      <Modal show={payOpen} onHide={closePayModal} centered size="lg">
+      <Modal
+        show={payOpen}
+        onHide={closePayModal}
+        centered
+        size="lg"
+        restoreFocus={false}
+        onExited={cleanupPaymentWidget}
+      >
         <Modal.Header closeButton>
           <Modal.Title>안전결제</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {!payReady ? (
+          {/* ✅ 반드시 id를 부여하고, SDK엔 '#id' 문자열로 전달 */}
+          <div id={methodsId || "pm-skeleton"} />
+          <div id={agreementId || "ag-skeleton"} className="mt-3" />
+          {!payReady && (
             <div className="d-flex justify-content-center my-4">
               <Spinner animation="border" role="status" />
             </div>
-          ) : (
-            <>
-              <div id="payment-methods" />
-              <div id="agreement" className="mt-3" />
-            </>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -407,4 +444,4 @@ export function BoardDetail() { // ✅ named export
   );
 }
 
-export default undefined; // ⚠️ default export 막기 (named export만 사용)
+export default BoardDetail;

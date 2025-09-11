@@ -299,3 +299,26 @@ TRUNCATE TABLE support;
 DELETE
 FROM prj04.board
 WHERE id = 17;
+
+CREATE TABLE payment (
+                         id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+                         order_id     VARCHAR(100)  NOT NULL,
+                         payment_key  VARCHAR(100)  NOT NULL,
+                         amount       INT           NOT NULL,
+                         status       VARCHAR(20)   NOT NULL,
+                         method       VARCHAR(30)   NOT NULL,
+                         board_id     INT           NOT NULL,
+                         receipt_url  VARCHAR(500)  NULL,
+                         raw_json     LONGTEXT      NULL,
+
+    -- 고유/조회 인덱스
+                         UNIQUE KEY uk_payment_order_id (order_id),
+                         KEY idx_payment_payment_key (payment_key),
+                         KEY idx_payment_board_id (board_id),
+
+    -- (선택) board 테이블과 FK 연결
+                         CONSTRAINT fk_payment_board
+                             FOREIGN KEY (board_id) REFERENCES board(id)
+                                 ON UPDATE RESTRICT
+                                 ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

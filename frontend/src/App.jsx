@@ -27,6 +27,8 @@ import "./styles/styles.css";
 import "./styles/Carousel.css";
 import { ChatRoomPage } from "./feature/chat/ChatRoomPage.jsx";
 import { ChatListPage } from "./feature/chat/ChatListPage.jsx";
+import { PaySuccess } from "./feature/pay/PaySuccess.jsx";
+import { PayFail } from "./feature/pay/PayFail.jsx";
 import "./styles/ReviewLike.css";
 
 function App() {
@@ -62,6 +64,8 @@ function App() {
             <Route path="/chatbot" element={<Chatbot />} />
 
             <Route path="/support" element={<ServicePage />} />
+            <Route path="/pay/success" element={<PaySuccess />} />
+            <Route path="/pay/fail" element={<PayFail />} />
 
             <Route path="/admin" element={<AdminPage />}>
               <Route index element={<AdminHome />} />
