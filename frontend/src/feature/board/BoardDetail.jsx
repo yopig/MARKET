@@ -1,6 +1,6 @@
 // src/feature/board/BoardDetail.jsx  (FULL REPLACE)
-import { useContext, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Badge, Button, Image, Modal, Spinner } from "react-bootstrap";
@@ -9,7 +9,6 @@ import { CommentContainer } from "../comment/CommentContainer.jsx";
 import { chatApi } from "../chat/chatApi"; // ✅ chatApi 경로 수정
 import {
   FaClock,
-  FaDownload,
   FaEdit,
   FaMapMarkerAlt,
   FaTag,
@@ -36,13 +35,40 @@ const pickThumb = (files) => {
   return files.find((f) => /\.(jpe?g|png|gif|webp)$/i.test(f)) || null;
 };
 
+/** ✅ 토스페이먼츠 Payment Widget 로더 */
+let paymentWidgetScriptPromise = null;
+function loadPaymentWidgetScript() {
+  if (paymentWidgetScriptPromise) return paymentWidgetScriptPromise;
+  paymentWidgetScriptPromise = new Promise((resolve, reject) => {
+    if (window.PaymentWidget) return resolve();
+    const s = document.createElement("script");
+    s.src = "https://js.tosspayments.com/v1/payment-widget";
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = (e) => reject(e);
+    document.head.appendChild(s);
+  });
+  return paymentWidgetScriptPromise;
+}
+
 export function BoardDetail() { // ✅ named export
   const [board, setBoard] = useState(null);
-  const [modalShow, setModalShow] = useState(false);
+  const [modalShow, setModalShow] = useState(false); // 삭제 모달
   const [chatLoading, setChatLoading] = useState(false);
-  const { hasAccess } = useContext(AuthenticationContext);
+
+  // ✅ 결제 모달 상태
+  const [payOpen, setPayOpen] = useState(false);
+  const [payReady, setPayReady] = useState(false);
+  const paymentWidgetRef = useRef(null); // PaymentWidget 인스턴스
+  const paymentMethodsRef = useRef(null); // renderPaymentMethods 반환 핸들
+  const agreementRef = useRef(null); // renderAgreement 반환 핸들
+
+  const { hasAccess, user } = useContext(AuthenticationContext);
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const defaultProfileImage = "/user.png";
 
   // 판매 상태 뱃지
   const tradeBadge = useMemo(() => {
@@ -125,6 +151,88 @@ export function BoardDetail() { // ✅ named export
     }
   }
 
+  /** =========================
+   *  ✅ 안전결제(토스 위젯) 처리
+   *  ========================= */
+  const CLIENT_KEY =
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_TOSS_CLIENT_KEY) ||
+    "test_ck_DLJOpm5Qrl72jXNzdqYAVPNdxbWn"; // 👉 네가 준 테스트 키
+
+  // 고객 식별 키: 로그인 사용자의 이메일/ID가 제일 좋고, 없으면 로컬 생성
+  function getCustomerKey() {
+    const candidate = user?.email || user?.id || localStorage.getItem("customerKey");
+    if (candidate) return String(candidate);
+    const gen = `anon_${crypto?.randomUUID?.() || Date.now()}`;
+    localStorage.setItem("customerKey", gen);
+    return gen;
+  }
+
+  async function openPayModal() {
+    if (!board) return;
+    if (!board.price || Number.isNaN(Number(board.price))) {
+      toast.warn("가격 정보가 없어 결제를 진행할 수 없습니다.");
+      return;
+    }
+    try {
+      setPayOpen(true);
+      setPayReady(false);
+      await loadPaymentWidgetScript();
+
+      // 전역 SDK 로드됨
+      const PaymentWidget = window.PaymentWidget;
+      const customerKey = getCustomerKey();
+
+      // 인스턴스 생성
+      const widget = new PaymentWidget(CLIENT_KEY, customerKey);
+      paymentWidgetRef.current = widget;
+
+      // 결제수단/약관 렌더
+      paymentMethodsRef.current = widget.renderPaymentMethods("#payment-methods", {
+        value: Number(board.price),
+      });
+      agreementRef.current = widget.renderAgreement("#agreement", { variant: "AGREE" });
+
+      setPayReady(true);
+    } catch (e) {
+      console.error(e);
+      toast.error("결제위젯을 로드하는 중 문제가 발생했습니다.");
+      setPayOpen(false);
+    }
+  }
+
+  async function requestPayment() {
+    if (!paymentWidgetRef.current || !board) return;
+    try {
+      const orderId = `BD-${board.id}-${Date.now()}`;
+      const origin = window.location.origin;
+      await paymentWidgetRef.current.requestPayment({
+        orderId,
+        orderName: board.title?.slice(0, 40) || `게시글 #${board.id}`,
+        successUrl: `${origin}/pay/success?boardId=${board.id}&orderId=${encodeURIComponent(orderId)}`,
+        failUrl: `${origin}/pay/fail?boardId=${board.id}&orderId=${encodeURIComponent(orderId)}`,
+        customerEmail: user?.email || undefined,
+        customerName: user?.nickName || user?.name || undefined,
+        customerMobilePhone: user?.phone || undefined,
+      });
+
+      // 위 호출은 결제창으로 이동(또는 새 창)하며, 성공/실패 URL로 리다이렉트됨
+      // 성공 페이지에서 paymentKey, orderId, amount로 백엔드 승인 API 호출 필요
+    } catch (e) {
+      // 사용자가 닫기 등
+      console.warn(e);
+    }
+  }
+
+  function closePayModal() {
+    setPayOpen(false);
+    setPayReady(false);
+    // 특별한 해제는 불필요하지만, 필요 시 아래처럼 DOM 초기화 가능
+    const container = document.querySelector("#payment-methods");
+    if (container) container.innerHTML = "";
+    const agreement = document.querySelector("#agreement");
+    if (agreement) agreement.innerHTML = "";
+  }
+
   if (!board) {
     return (
       <div className="d-flex justify-content-center my-5">
@@ -134,10 +242,12 @@ export function BoardDetail() { // ✅ named export
   }
 
   const formattedInsertedAt = board.insertedAt ? board.insertedAt.substring(0, 16) : "";
-  const defaultProfileImage = "/user.png";
   const priceText = formatPrice(board.price);
   const regionText = [board.regionSido, board.regionSigungu].filter(Boolean).join(" ");
   const thumb = pickThumb(board.files);
+
+  const isOwner = hasAccess(board.authorEmail);
+  const canPay = !isOwner && board.tradeStatus !== "SOLD_OUT" && Number(board.price) > 0;
 
   return (
     <div className="board-view-wrapper">
@@ -148,9 +258,19 @@ export function BoardDetail() { // ✅ named export
             {tradeBadge}
           </h1>
 
-          {/* ✅ 비소유자(구매자)에게만 채팅 버튼 노출 (판매완료면 숨기고 싶으면 && board.tradeStatus !== "SOLD_OUT" 추가) */}
-          {!hasAccess(board.authorEmail) && (
-            <div className="d-flex align-items-center">
+          {/* ✅ 비소유자(구매자)에게만 버튼 노출 */}
+          {!isOwner && (
+            <div className="d-flex align-items-center gap-2">
+              {canPay && (
+                <Button
+                  className="btn-neo btn-warning"
+                  onClick={openPayModal}
+                  title="안전결제(에스크로/PG)로 진행"
+                >
+                  🔒 안전결제
+                </Button>
+              )}
+
               <Button
                 className="btn-neo btn-primary"
                 onClick={handleChatButtonClick}
@@ -175,41 +295,35 @@ export function BoardDetail() { // ✅ named export
             {board.authorNickName}
           </div>
 
-          <div className="meta-item">
-            <FaClock className="meta-icon" />
-            {formattedInsertedAt}
-          </div>
-
-          <div className="meta-item">
-            <span>#{board.id}</span>
-          </div>
         </div>
 
-        {/* ✅ 거래 정보 블럭 (가격/지역/카테고리) */}
-        {(priceText || regionText || board.category) && (
-          <div className="d-flex flex-wrap gap-3 mt-2 text-muted">
-            {priceText && (
-              <span className="d-inline-flex align-items-center gap-1">
-                <FaWonSign /> <strong>{priceText}</strong> 원
-              </span>
-            )}
-            {regionText && (
-              <span className="d-inline-flex align-items-center gap-1">
-                <FaMapMarkerAlt /> {regionText}
-              </span>
-            )}
-            {board.category && (
-              <span className="d-inline-flex align-items-center gap-1">
-                <FaTag /> {board.category}
-              </span>
-            )}
-          </div>
-        )}
+        {/* ✅ 거래 정보 블럭 (가격/지역/카테고리/시간/ID) */}
+        <div className="d-flex flex-wrap gap-3 mt-2 text-muted">
+          <span className="d-inline-flex align-items-center gap-1">
+            <FaClock /> {formattedInsertedAt}
+          </span>
+          <span className="d-inline-flex align-items-center gap-1">#{board.id}</span>
+
+          {priceText && (
+            <span className="d-inline-flex align-items-center gap-1">
+              <FaWonSign /> <strong>{priceText}</strong> 원
+            </span>
+          )}
+          {regionText && (
+            <span className="d-inline-flex align-items-center gap-1">
+              <FaMapMarkerAlt /> {regionText}
+            </span>
+          )}
+          {board.category && (
+            <span className="d-inline-flex align-items-center gap-1">
+              <FaTag /> {board.category}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* 본문 */}
       <div className="board-view-body">
-        {/* 썸네일 큰 이미지가 있으면 상단에 보여주고 싶다면 여기에 추가 */}
         {thumb && (
           <div className="board-hero-image mb-3">
             <img src={thumb} alt="대표 이미지" style={{ maxWidth: "100%", borderRadius: 12 }} />
@@ -218,43 +332,9 @@ export function BoardDetail() { // ✅ named export
         <p className="board-content">{board.content}</p>
       </div>
 
-      {/* 첨부파일 */}
-      {Array.isArray(board.files) && board.files.length > 0 && (
-        <div className="board-view-attachments">
-          <h3 className="attachments-title">첨부파일</h3>
-
-          <div className="image-preview-list">
-            {board.files
-              .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-              .map((file, idx) => (
-                <img key={idx} src={file} alt={`첨부 이미지 ${idx + 1}`} />
-              ))}
-          </div>
-
-          <div className="file-list">
-            {board.files.map((file, idx) => {
-              const fileName = decodeURIComponent(file.split("/").pop());
-              return (
-                <div key={idx} className="file-item">
-                  <Button
-                    href={file}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-neo btn-download"
-                    title={fileName}
-                  >
-                    <FaDownload />
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* 하단 버튼 */}
       <div className="board-view-footer">
-        {hasAccess(board.authorEmail) && (
+        {isOwner && (
           <div className="d-flex gap-2">
             <Button
               onClick={() => navigate(`/board/edit?id=${board.id}`)}
@@ -293,6 +373,33 @@ export function BoardDetail() { // ✅ named export
           </Button>
           <Button variant="danger" onClick={handleDeleteButtonClick}>
             삭제
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ✅ 결제 모달 (토스 결제위젯) */}
+      <Modal show={payOpen} onHide={closePayModal} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>안전결제</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {!payReady ? (
+            <div className="d-flex justify-content-center my-4">
+              <Spinner animation="border" role="status" />
+            </div>
+          ) : (
+            <>
+              <div id="payment-methods" />
+              <div id="agreement" className="mt-3" />
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" onClick={closePayModal}>
+            닫기
+          </Button>
+          <Button variant="primary" onClick={requestPayment} disabled={!payReady}>
+            결제하기
           </Button>
         </Modal.Footer>
       </Modal>

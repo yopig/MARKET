@@ -1,9 +1,11 @@
 // src/main/java/com/example/backend/chat/controller/ChatController.java
 package com.example.backend.chat.controller;
 
+import com.example.backend.chat.dto.ChatDtos;
 import com.example.backend.chat.dto.ChatDtos.ChatMessageDto;
 import com.example.backend.chat.dto.ChatDtos.OpenRoomResponse;
 import com.example.backend.chat.dto.ChatDtos.RoomSummaryDto;
+import com.example.backend.chat.dto.ChatDtos.SendMessageRequest;
 import com.example.backend.chat.service.ChatService;
 import com.example.backend.member.entity.Member;
 import com.example.backend.member.repository.MemberRepository;
@@ -29,6 +31,7 @@ public class ChatController {
     private final SimpMessagingTemplate template;
     private final MemberRepository memberRepository;
 
+    /** JWT → memberId */
     private Long toMemberId(Jwt jwt) {
         String email = jwt.getSubject(); // sub=email
         return memberRepository.findByEmail(email)
@@ -69,15 +72,28 @@ public class ChatController {
         chatService.markRead(roomId, me, lastMessageId);
     }
 
-    /** STOMP: 메시지 송신 (닉네임 포함 DTO 브로드캐스트) */
+    /** STOMP: 메시지 송신 (content만 받고, senderId는 서버에서 확인) */
     @MessageMapping("/rooms/{roomId}/send")
     public void send(@DestinationVariable Long roomId,
-                     @Payload ChatMessageDto in,
+                     @Payload SendMessageRequest in,
                      Principal principal) {
         if (principal == null) throw new MessagingException("No principal");
         Long senderId = Long.valueOf(principal.getName()); // Principal.getName() == memberId
 
         ChatMessageDto out = chatService.saveMessageAsDto(roomId, senderId, in.getContent());
         template.convertAndSend("/topic/rooms/" + roomId, out);
+    }
+
+    /** 방 상세 조회 */
+    @GetMapping("/rooms/{roomId}")
+    public ChatDtos.RoomDetailDto getRoomDetail(@PathVariable Long roomId) {
+        return chatService.getRoomDetail(roomId);
+    }
+
+    /** 방 삭제 (하드 딜리트) */
+    @DeleteMapping("/rooms/{roomId}")
+    public void deleteRoom(@PathVariable Long roomId, @AuthenticationPrincipal Jwt jwt) {
+        Long me = toMemberId(jwt);
+        chatService.deleteRoom(roomId, me);
     }
 }

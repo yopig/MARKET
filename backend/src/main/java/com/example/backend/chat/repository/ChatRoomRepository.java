@@ -63,4 +63,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
       ORDER BY COALESCE(lm.inserted_at, r.created_at) DESC
       """, nativeQuery = true)
   List<RoomListProjection> listMyRooms(@Param("meId") Long meId);
+
 }
+

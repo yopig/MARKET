@@ -1,19 +1,28 @@
-import { useState } from "react";
+// src/feature/service/ServicePage.jsx (FULL REPLACE)
+import { useState, useMemo } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import "../../styles/service.css";
 import { FaPhoneAlt, FaRegBuilding, FaRegEnvelope } from "react-icons/fa";
 
-// 문의 양식의 최대 길이를 상수로 정의하여 관리하기 쉽도록 함
+// 최대 길이 상수
 const MAX_SUBJECT_LENGTH = 30;
 const MAX_MESSAGE_LENGTH = 300;
+
+// .env의 VITE_API_BASE 우선 사용, 없으면 상대경로
+const API_BASE =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) || "";
 
 export default function ServicePage() {
   const [form, setForm] = useState({
     email: "",
     subject: "",
     message: "",
+    // 스팸봇 차단용(사용자는 보이지 않음, 값이 있으면 차단)
+    nickname: "",
   });
+
   const [loading, setLoading] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -23,10 +32,17 @@ export default function ServicePage() {
     message: "",
   });
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const subjectCount = useMemo(
+    () => `${form.subject.length} / ${MAX_SUBJECT_LENGTH}`,
+    [form.subject.length]
+  );
+  const messageCount = useMemo(
+    () => `${form.message.length} / ${MAX_MESSAGE_LENGTH}`,
+    [form.message.length]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,32 +52,36 @@ export default function ServicePage() {
 
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // 입력 중 유효성 검사 업데이트
+    // 입력 중 유효성 반영
     setFormErrors((prev) => {
-      const newErrors = { ...prev };
+      const next = { ...prev };
       if (name === "email") {
-        newErrors.email = validateEmail(value)
-          ? ""
-          : "올바른 이메일 형식을 입력하세요.";
+        next.email = validateEmail(value) ? "" : "올바른 이메일 형식을 입력하세요.";
       }
-      if (name === "subject" && value.length > MAX_SUBJECT_LENGTH) {
-        newErrors.subject = `제목은 ${MAX_SUBJECT_LENGTH}자 이하로 작성해주세요.`;
-      } else if (name === "subject") {
-        newErrors.subject = "";
+      if (name === "subject") {
+        next.subject =
+          value.length === 0
+            ? `제목은 1자 이상 ${MAX_SUBJECT_LENGTH}자 이하로 작성해주세요.`
+            : "";
       }
-
-      if (name === "message" && value.length > MAX_MESSAGE_LENGTH) {
-        newErrors.message = `문의 내용은 ${MAX_MESSAGE_LENGTH}자 이하로 작성해주세요.`;
-      } else if (name === "message") {
-        newErrors.message = "";
+      if (name === "message") {
+        next.message =
+          value.length === 0
+            ? `문의 내용은 1자 이상 ${MAX_MESSAGE_LENGTH}자 이하로 작성해주세요.`
+            : "";
       }
-
-      return newErrors;
+      return next;
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 허니팟 값이 있으면 봇으로 간주
+    if (form.nickname) {
+      setErrorMsg("전송이 차단되었습니다. 다시 시도해주세요.");
+      return;
+    }
 
     const errors = { email: "", subject: "", message: "" };
     let hasError = false;
@@ -70,7 +90,6 @@ export default function ServicePage() {
       errors.email = "올바른 이메일 형식을 입력하세요.";
       hasError = true;
     }
-    // ✅ 길이 초과 검사는 제거하고, 빈 값인지 여부만 확인합니다.
     if (form.subject.length === 0) {
       errors.subject = `제목은 1자 이상 ${MAX_SUBJECT_LENGTH}자 이하로 작성해주세요.`;
       hasError = true;
@@ -90,62 +109,73 @@ export default function ServicePage() {
     setSuccessMsg("");
     setLoading(true);
 
-    (async () => {
-      try {
-        const response = await fetch("/api/support", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+    try {
+      const res = await fetch(`${API_BASE}/api/support`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // 백엔드가 필요하면 추후 제목/본문 앞뒤 공백 트림 or XSS 필터링 추가
+        body: JSON.stringify({
+          email: form.email.trim(),
+          subject: form.subject.trim(),
+          message: form.message.trim(),
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error("서버 오류");
-        }
+      if (!res.ok) throw new Error("SERVER_ERROR");
 
-        const data = await response.text();
-
-        setSuccessMsg(data);
-        setForm({ email: "", subject: "", message: "" });
-      } catch {
-        setErrorMsg(
-          "문의 접수 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
+      const text = await res.text();
+      setSuccessMsg(text || "문의가 접수되었습니다. 빠르게 답변드릴게요!");
+      setForm({ email: "", subject: "", message: "", nickname: "" });
+      setJustSubmitted(true);
+      // 3초 후 재전송 가능
+      setTimeout(() => setJustSubmitted(false), 3000);
+    } catch {
+      setErrorMsg("문의 접수 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="support-page-container">
       <div className="support-page-header">
-        <h1>CONTACT US</h1>
-        <p>PETOPIA에 궁금한 점이 있으신가요? 언제든지 편하게 문의해주세요.</p>
+        <h1>고객센터</h1>
+        <p>
+          안전마켓 이용 중 궁금한 점이나 불편 사항이 있나요?
+          <br />
+          언제든 편하게 문의해 주세요. 빠르게 도와드릴게요.
+        </p>
       </div>
 
       <div className="support-grid">
+        {/* 좌측 안내 패널 */}
         <div className="support-info-panel">
-          <h3>문의 정보</h3>
+          <h3>문의 안내</h3>
           <p>
-            아래 연락처를 통해 직접 문의하시거나, 오른쪽의 양식을 작성하여
-            보내주시면 신속하게 답변해 드리겠습니다.
+            아래 연락처로 직접 문의하시거나, 오른쪽 양식을 작성해 보내주시면
+            순차적으로 답변드립니다.
           </p>
           <div className="contact-details">
             <div className="contact-item">
               <FaRegBuilding size={20} />
-              <span>PETOPIA Portfolio Project</span>
+              <span>안전마켓 운영팀</span>
             </div>
             <div className="contact-item">
               <FaRegEnvelope size={20} />
-              <span>petopia@email.com</span>
+              <span>support@safety-market.app</span>
             </div>
             <div className="contact-item">
               <FaPhoneAlt size={20} />
-              <span>TEL: 010-1234-5678</span>
+              <span>TEL: 010-0000-0000</span>
             </div>
           </div>
+          <ul className="mt-3 text-muted" style={{ fontSize: "0.9rem" }}>
+            <li>운영시간: 평일 10:00 ~ 18:00 (주말/공휴일 휴무)</li>
+            <li>중고거래 사기 의심 시 즉시 신고해 주세요.</li>
+          </ul>
         </div>
 
+        {/* 우측 폼 패널 */}
         <div className="support-form-panel">
           {successMsg && (
             <Alert className="alert-neo alert-success-neo">{successMsg}</Alert>
@@ -155,6 +185,21 @@ export default function ServicePage() {
           )}
 
           <Form onSubmit={handleSubmit} noValidate>
+            {/* 허니팟: 시각적으로 숨김 */}
+            <div style={{ position: "absolute", left: "-10000px", top: "auto" }}>
+              <label>
+                Leave this field empty
+                <input
+                  type="text"
+                  name="nickname"
+                  value={form.nickname}
+                  onChange={handleChange}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </label>
+            </div>
+
             <Form.Group className="mb-4" controlId="formEmail">
               <Form.Label className="form-label-neo">이메일 주소</Form.Label>
               <Form.Control
@@ -165,6 +210,7 @@ export default function ServicePage() {
                 isInvalid={!!formErrors.email}
                 required
                 className="form-input-neo"
+                placeholder="답변을 받을 이메일을 입력하세요"
               />
               <Form.Control.Feedback type="invalid">
                 {formErrors.email}
@@ -182,15 +228,13 @@ export default function ServicePage() {
                 maxLength={MAX_SUBJECT_LENGTH}
                 required
                 className="form-input-neo"
+                placeholder="예) 거래 취소 문의"
               />
               <Form.Control.Feedback type="invalid">
                 {formErrors.subject}
               </Form.Control.Feedback>
-              <div
-                className="text-end text-muted mt-1"
-                style={{ fontSize: "0.8rem" }}
-              >
-                {form.subject.length} / {MAX_SUBJECT_LENGTH}
+              <div className="text-end text-muted mt-1" style={{ fontSize: "0.8rem" }}>
+                {subjectCount}
               </div>
             </Form.Group>
 
@@ -207,24 +251,24 @@ export default function ServicePage() {
                 required
                 className="form-input-neo"
                 style={{ resize: "none" }}
+                placeholder={
+                  "상세 상황(상품/거래 링크, 시간, 상대 닉네임 등)을 남겨주시면\n더 신속하게 도와드릴 수 있어요."
+                }
               />
               <Form.Control.Feedback type="invalid">
                 {formErrors.message}
               </Form.Control.Feedback>
-              <div
-                className="text-end text-muted mt-1"
-                style={{ fontSize: "0.8rem" }}
-              >
-                {form.message.length} / {MAX_MESSAGE_LENGTH}
+              <div className="text-end text-muted mt-1" style={{ fontSize: "0.8rem" }}>
+                {messageCount}
               </div>
             </Form.Group>
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || justSubmitted}
               className="btn-neo btn-warning-neo w-100"
             >
-              {loading ? "전송 중..." : "문의 보내기"}
+              {loading ? "전송 중..." : justSubmitted ? "잠시 후 재전송 가능" : "문의 보내기"}
             </Button>
           </Form>
         </div>
