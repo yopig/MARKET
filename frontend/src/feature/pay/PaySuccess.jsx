@@ -1,96 +1,60 @@
 // src/feature/pay/PaySuccess.jsx
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Spinner, Button, Alert } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
 
-export function PaySuccess() {
-  const [sp] = useSearchParams();
+export default function PaySuccess() {
+  const [search] = useSearchParams();
   const navigate = useNavigate();
-  const [state, setState] = useState({ loading: true, error: null, data: null });
+  const paymentKey = search.get("paymentKey");
+  const orderId    = search.get("orderId");
+  const boardId    = search.get("boardId"); // 우리가 successUrl에 붙였던 값
+  const [busy, setBusy] = useState(true);
 
   useEffect(() => {
-    const paymentKey = sp.get("paymentKey");
-    const orderId   = sp.get("orderId");
-    const amountStr = sp.get("amount"); // 토스가 넘겨줌(숫자 문자열)
-    const boardId   = sp.get("boardId");
+    (async () => {
+      if (!paymentKey || !orderId || !boardId) {
+        toast.error("결제 성공 파라미터가 유효하지 않습니다.");
+        navigate("/");
+        return;
+      }
 
-    // 기본 검증
-    if (!paymentKey || !orderId || !amountStr || !boardId) {
-      setState({ loading: false, error: "필수 파라미터가 누락되었습니다.", data: null });
-      return;
-    }
+      try {
+        // 금액 검증은 서버에서 게시글 가격과 대조하므로 클라이언트가 한 번 더 조회해도 되고 생략해도 됨
+        // 여기서는 서버가 신뢰원이라 amount를 서버에서 재검증하도록 게시글 가격을 가져와 사용
+        const { data: board } = await axios.get(`/api/board/${boardId}`);
+        const amount = Number(String(board?.price ?? "").replace(/[^\d.-]/g, ""));
+        if (!Number.isFinite(amount) || amount <= 0) {
+          throw new Error("게시글 가격이 유효하지 않습니다.");
+        }
 
-    const amount = Number(amountStr);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setState({ loading: false, error: "결제 금액이 올바르지 않습니다.", data: null });
-      return;
-    }
+        await axios.post("/api/pay/confirm", {
+          paymentKey,
+          orderId,
+          amount,                   // 서버에서 다시 검증함
+          boardId: Number(boardId),
+        });
 
-    // ✅ 백엔드 승인 호출 (네가 만든 /api/pay/confirm)
-    axios.post("/api/pay/confirm", {
-      paymentKey,
-      orderId,
-      amount,      // Object로 보내도 되고 숫자로 보내도 됨(백엔드 toInt가 처리)
-      boardId,
-    })
-      .then((res) => {
-        setState({ loading: false, error: null, data: res.data });
-      })
-      .catch((err) => {
-        const msg = err.response?.data?.message || err.message || "승인 처리 중 오류";
-        setState({ loading: false, error: msg, data: null });
-      });
+        toast.success("결제가 완료되었어요. 판매자에게 안내할게요.");
+        // 상세 페이지로 이동(서버에서 이미 상태를 PAID로 바꿨으니 버튼 자동 비활성화)
+        navigate(`/board/detail/${boardId}`, { replace: true });
+      } catch (e) {
+        console.warn("confirm failed", e);
+        const msg = e?.response?.data?.message || e?.message || "결제 승인 처리 중 오류가 발생했습니다.";
+        toast.error(msg);
+        navigate(`/pay/fail?boardId=${boardId}&orderId=${encodeURIComponent(orderId)}`, { replace: true });
+      } finally {
+        setBusy(false);
+      }
+    })();
+  }, [paymentKey, orderId, boardId, navigate]);
 
-  }, []);
-
-  if (state.loading) {
-    return (
-      <div className="container py-5 text-center">
-        <Spinner animation="border" />
-        <div className="mt-3">결제 승인 처리 중...</div>
-      </div>
-    );
-  }
-
-  if (state.error) {
-    return (
-      <div className="container py-5">
-        <Alert variant="danger">결제 승인 실패: {state.error}</Alert>
-        <div className="d-flex gap-2">
-          <Button variant="secondary" onClick={() => navigate(-1)}>뒤로가기</Button>
-          <Button variant="outline-primary" onClick={() => navigate("/")}>홈으로</Button>
-        </div>
-      </div>
-    );
-  }
-
-  // 성공
-  const r = state.data; // ConfirmResponse
   return (
-    <div className="container py-5">
-      <h2 className="mb-3">결제가 완료되었습니다.</h2>
-      <ul className="list-unstyled">
-        <li><strong>상태:</strong> {r.status}</li>
-        <li><strong>주문번호:</strong> {r.orderId}</li>
-        <li><strong>결제키:</strong> {r.paymentKey}</li>
-        <li><strong>결제금액:</strong> {r.amount?.toLocaleString?.() ?? r.amount} 원</li>
-        <li><strong>결제수단:</strong> {r.method}</li>
-        {r.receiptUrl && (
-          <li>
-            <strong>영수증:</strong>{" "}
-            <a href={r.receiptUrl} target="_blank" rel="noreferrer">열기</a>
-          </li>
-        )}
-      </ul>
-      <div className="d-flex gap-2 mt-3">
-        <Button variant="primary" onClick={() => navigate(`/board/${new URLSearchParams(location.search).get("boardId")}`)}>
-          게시글로 돌아가기
-        </Button>
-        <Button variant="outline-secondary" onClick={() => navigate("/")}>
-          홈
-        </Button>
-      </div>
+    <div className="d-flex justify-content-center my-5">
+      <Spinner animation="border" role="status" />
+      <span className="ms-2">결제 승인 처리 중...</span>
     </div>
   );
 }

@@ -14,43 +14,99 @@ import {
 } from "react-bootstrap";
 import { useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom"; // ✅ dom
 import { toast } from "react-toastify";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
 import { MyReview } from "../review/MyReview.jsx";
 import "../../styles/MemberDetail.css";
 
-/** 거래이력 패널 */
+/** 공통 유틸 */
+const formatPrice = (v) => {
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return "-";
+  return Number(v).toLocaleString() + "원";
+};
+const formatDate = (v) => (v ? String(v).replace("T", " ").slice(0, 16) : "");
+
+/** 거래 상태 뱃지 */
+const tradeStatusBadge = (status) => {
+  const s = (status || "").toLowerCase();
+  let variant = "secondary";
+  if (s.includes("sold")) variant = "dark";
+  else if (s.includes("reserve")) variant = "warning";
+  else if (s.includes("sale") || s.includes("on_sale")) variant = "success";
+  return <Badge bg={variant}>{status || "상태미정"}</Badge>;
+};
+
+/** 거래이력 패널 (게시물 = 거래이력, 페이지네이션 포함) */
 function TradeHistoryPanel({ memberId }) {
-  const [items, setItems] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("all"); // all | buy | sell
+  const [items, setItems] = useState([]);
+  const [pageInfo, setPageInfo] = useState({ currentPageNumber: 1, totalPages: 1 });
+  const [page, setPage] = useState(1);
+  const size = 12;
 
   useEffect(() => {
     let alive = true;
+
+    if (memberId == null) {
+      setItems([]);
+      setPageInfo({ currentPageNumber: 1, totalPages: 1 });
+      setLoading(false);
+      return () => { alive = false; };
+    }
+
     setLoading(true);
     axios
-      .get(`/api/trade/history?memberId=${memberId}`)
+      .get("/api/board/list", {
+        params: {
+          p: page,
+          size,
+          authorId: memberId, // ✅ 내가 쓴 게시물만
+        },
+      })
       .then((res) => {
         if (!alive) return;
-        setItems(Array.isArray(res.data) ? res.data : res.data?.content || []);
+        const data = res.data || {};
+        const list = Array.isArray(data.boardList) ? data.boardList : [];
+        setPageInfo(data.pageInfo || { currentPageNumber: page, totalPages: 1 });
+
+        // 게시글 → 거래 카드 형태로 매핑
+        const mapped = list.map((b) => {
+          const thumb =
+            b.thumbnailUrl ||
+            (Array.isArray(b.files) ? b.files.find((f) => /\.(jpg|jpeg|png|gif|webp)$/i.test(f)) : null) ||
+            "/no-image.png";
+          return {
+            id: b.id,
+            boardId: b.id,
+            title: b.title,
+            price: b.price,
+            status: b.tradeStatus,
+            role: "seller",              // 내 게시물이므로 판매로 간주
+            thumbnailUrl: thumb,
+            updatedAt: b.insertedAt,
+            reviewWritten: false,        // 게시글 목록에선 정보 없음
+          };
+        });
+        setItems(mapped);
       })
       .catch((err) => {
         console.error(err);
-        toast.error("중고거래 이력을 불러오는 중 오류가 발생했습니다.");
+        const msg =
+          err.response?.data?.message?.text ??
+          err.response?.data?.error ??
+          `거래 이력(게시물) 조회 실패 (HTTP ${err.response?.status ?? "?"})`;
+        toast.error(msg);
         setItems([]);
+        setPageInfo({ currentPageNumber: page, totalPages: 1 });
       })
       .finally(() => alive && setLoading(false));
-    return () => {
-      alive = false;
-    };
-  }, [memberId]);
 
-  const filtered = useMemo(() => {
-    if (!items) return [];
-    if (tab === "all") return items;
-    return items.filter((it) => (tab === "buy" ? it.role === "buyer" : it.role === "seller"));
-  }, [items, tab]);
+    return () => { alive = false; };
+  }, [memberId, page]);
+
+  const goPrev = () => setPage((p) => Math.max(1, p - 1));
+  const goNext = () => setPage((p) => Math.min(pageInfo.totalPages || 1, p + 1));
 
   if (loading) {
     return (
@@ -60,73 +116,36 @@ function TradeHistoryPanel({ memberId }) {
     );
   }
 
-  const EmptyState = (
-    <div className="brutal-card">
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <h5 className="m-0">🧾 중고거래 이력</h5>
-        <div className="d-flex gap-2">
-          <Button size="sm" variant={tab === "all" ? "dark" : "outline-dark"} onClick={() => setTab("all")}>
-            전체
-          </Button>
-          <Button size="sm" variant={tab === "buy" ? "dark" : "outline-dark"} onClick={() => setTab("buy")}>
-            구매
-          </Button>
-          <Button size="sm" variant={tab === "sell" ? "dark" : "outline-dark"} onClick={() => setTab("sell")}>
-            판매
-          </Button>
-        </div>
-      </div>
-      <div className="text-muted">표시할 거래 이력이 없습니다.</div>
-    </div>
-  );
-
-  if (!filtered.length) return EmptyState;
-
-  const formatPrice = (v) => {
-    if (v === null || v === undefined || Number.isNaN(Number(v))) return "-";
-    return Number(v).toLocaleString() + "원";
-  };
-
-  const formatDate = (v) => (v ? String(v).replace("T", " ").slice(0, 16) : "");
-
-  const statusBadge = (status) => {
-    const s = (status || "").toLowerCase();
-    let variant = "secondary";
-    if (s.includes("sold")) variant = "dark";
-    else if (s.includes("reserve")) variant = "warning";
-    else if (s.includes("sale")) variant = "success";
-    return <Badge bg={variant}>{status || "상태미정"}</Badge>;
-  };
-
   return (
     <div className="brutal-card">
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <h5 className="m-0">🧾 중고거래 이력</h5>
-        <div className="d-flex gap-2">
-          <Button size="sm" variant={tab === "all" ? "dark" : "outline-dark"} onClick={() => setTab("all")}>
-            전체
+        <h5 className="m-0">🧾 거래 이력(내 게시물)</h5>
+        <div className="d-flex align-items-center gap-2">
+          <span className="small text-muted">
+            {pageInfo.currentPageNumber}/{pageInfo.totalPages}
+          </span>
+          <Button size="sm" variant="outline-dark" onClick={goPrev} disabled={pageInfo.currentPageNumber <= 1}>
+            이전
           </Button>
-          <Button size="sm" variant={tab === "buy" ? "dark" : "outline-dark"} onClick={() => setTab("buy")}>
-            구매
-          </Button>
-          <Button size="sm" variant={tab === "sell" ? "dark" : "outline-dark"} onClick={() => setTab("sell")}>
-            판매
+          <Button
+            size="sm"
+            variant="dark"
+            onClick={goNext}
+            disabled={pageInfo.currentPageNumber >= (pageInfo.totalPages || 1)}
+          >
+            다음
           </Button>
         </div>
       </div>
 
-      <ListGroup className="trade-list">
-        {filtered.map((it) => {
-          const thumb =
-            it.thumbnailUrl ||
-            it.boardThumbnail ||
-            (Array.isArray(it.files) ? it.files.find((f) => /\.(jpg|jpeg|png|gif|webp)$/i.test(f)) : null) ||
-            "/no-image.png";
-
-          return (
+      {items.length === 0 ? (
+        <div className="text-muted">표시할 거래 이력이 없습니다.</div>
+      ) : (
+        <ListGroup className="trade-list">
+          {items.map((it) => (
             <ListGroup.Item key={it.id} className="d-flex gap-3 align-items-center trade-item">
               <Image
-                src={thumb}
+                src={it.thumbnailUrl || "/no-image.png"}
                 alt="thumb"
                 rounded
                 style={{ width: 64, height: 64, objectFit: "cover", flex: "0 0 64px" }}
@@ -134,50 +153,29 @@ function TradeHistoryPanel({ memberId }) {
               <div className="flex-grow-1">
                 <div className="d-flex align-items-center gap-2">
                   <strong className="text-truncate" style={{ maxWidth: 420 }}>
-                    {it.title || it.boardTitle || "(제목 없음)"}
+                    {it.title || "(제목 없음)"}
                   </strong>
-                  {statusBadge(it.status)}
-                  <Badge bg="info" text="dark">
-                    {it.role === "seller" ? "판매" : it.role === "buyer" ? "구매" : "기타"}
-                  </Badge>
+                  {tradeStatusBadge(it.status)}
+                  <Badge bg="info" text="dark">판매</Badge>
                 </div>
                 <div className="small text-muted mt-1">
-                  {formatPrice(it.price)} · {it.opponentNickName || it.partnerNickName || "상대 미표기"} ·{" "}
-                  {formatDate(it.updatedAt || it.dealAt || it.createdAt)}
+                  {formatPrice(it.price)} · {formatDate(it.updatedAt)}
                 </div>
               </div>
 
               <div className="d-flex gap-2">
-                {it.boardId ? (
-                  <Button
-                    size="sm"
-                    variant="outline-secondary"
-                    onClick={() => (window.location.href = `/board/${it.boardId}`)}
-                  >
-                    게시글
-                  </Button>
-                ) : null}
-                {it.reviewWritten ? (
-                  <Button size="sm" variant="outline-success" disabled>
-                    후기 작성됨
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="dark"
-                    onClick={() => {
-                      const bid = it.boardId || it.id;
-                      window.location.href = `/review/write?boardId=${bid}&tradeId=${it.id}`;
-                    }}
-                  >
-                    후기 작성
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={() => (window.location.href = `/board/${it.boardId}`)}
+                >
+                  게시글
+                </Button>
               </div>
             </ListGroup.Item>
-          );
-        })}
-      </ListGroup>
+          ))}
+        </ListGroup>
+      )}
     </div>
   );
 }
@@ -189,18 +187,22 @@ export function MemberDetail() {
   const [tempCode, setTempCode] = useState("");
   const { logout, hasAccess, isAdmin } = useContext(AuthenticationContext);
   const [params] = useSearchParams();
-  const [rightColumnView, setRightColumnView] = useState("trades"); // 기본: 거래이력
+  const [rightColumnView, setRightColumnView] = useState("trades"); // trades | myReviews
   const navigate = useNavigate();
 
   useEffect(() => {
     const email = params.get("email");
     if (!email) return;
     axios
-      .get(`/api/member?email=${encodeURIComponent(email)}`)
+      .get(`/api/member`, { params: { email } })
       .then((res) => setMember(res.data))
       .catch((err) => {
         console.error(err);
-        toast.error("회원 정보를 불러오는 중 오류가 발생했습니다.");
+        toast.error(
+          err.response?.data?.message?.text ||
+          err.response?.data?.error ||
+          `회원 정보를 불러오는 중 오류 (HTTP ${err.response?.status ?? "?"})`
+        );
       });
   }, [params]);
 
@@ -212,10 +214,10 @@ export function MemberDetail() {
           type: res.data.message?.type || "success",
         });
         navigate("/");
-        logout();
+        logout?.();
       })
       .catch((err) => {
-        toast(err.response?.data?.message?.text || "오류가 발생했습니다.", { type: "danger" });
+        toast(err.response?.data?.message?.text || "오류가 발생했습니다.", { type: "error" });
       })
       .finally(() => {
         setModalShow(false);
@@ -230,12 +232,16 @@ export function MemberDetail() {
       axios
         .post("/api/member/withdrawalCode", { email: member.email })
         .then((res) => {
-          setTempCode(res.data.tempCode);
+          setTempCode(res.data?.tempCode);
           setModalShow(true);
         })
         .catch((err) => {
           console.error(err);
-          toast.error("임시 코드를 발급받지 못했습니다.");
+          toast.error(
+            err.response?.data?.message?.text ||
+            err.response?.data?.error ||
+            `임시 코드를 발급받지 못했습니다. (HTTP ${err.response?.status ?? "?"})`
+          );
         })
         .finally(() => setPassword(""));
     } else {
@@ -308,12 +314,20 @@ export function MemberDetail() {
               <Button onClick={() => navigate(`/member/edit?email=${member.email}`)} className="btn-brutal btn-edit">
                 수정
               </Button>
-              <Button
-                onClick={() => setRightColumnView(rightColumnView === "trades" ? "myReviews" : "trades")}
-                className="btn-brutal btn-view"
-              >
-                {rightColumnView === "trades" ? "후기 보기" : "거래 이력"}
-              </Button>
+              <div className="d-flex gap-2">
+                <Button
+                  onClick={() => setRightColumnView("trades")}
+                  className={`btn-brutal btn-view ${rightColumnView === "trades" ? "active" : ""}`}
+                >
+                  거래 이력
+                </Button>
+                <Button
+                  onClick={() => setRightColumnView("myReviews")}
+                  className={`btn-brutal btn-view ${rightColumnView === "myReviews" ? "active" : ""}`}
+                >
+                  후기 보기
+                </Button>
+              </div>
               <Button onClick={handleModalButtonClick} className="btn-brutal btn-delete">
                 탈퇴
               </Button>

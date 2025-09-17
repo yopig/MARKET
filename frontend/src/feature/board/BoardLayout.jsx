@@ -1,13 +1,7 @@
-// src/feature/board/BoardLayout.jsx
+// src/feature/board/BoardLayout.jsx  (FULL REPLACE)
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Col,
-  Row,
-  Container,
-  Button,
-  Card,
-} from "react-bootstrap";
+import { Col, Row, Container, Button, Card } from "react-bootstrap";
 import axios from "axios";
 import "../../styles/BoardLayout.css";
 import { FaEye } from "react-icons/fa";
@@ -25,6 +19,15 @@ const CATEGORIES = [
   "반려동물용품",
   "기타",
 ];
+
+/** 서버에서 오는 상태 문자열을 흡수적으로 정규화 */
+const normalizeTradeStatus = (raw) => {
+  const s = String(raw || "").trim().toUpperCase();
+  if (["SOLD_OUT", "SOLD", "SOLDOUT", "COMPLETED", "COMPLETE", "DONE"].includes(s)) return "SOLD_OUT";
+  if (["RESERVED", "RESERVE", "HOLD"].includes(s)) return "RESERVED";
+  if (["ON_SALE", "SALE", "SELLING", "AVAILABLE"].includes(s)) return "ON_SALE";
+  return ""; // 알 수 없음
+};
 
 export function BoardLayout() {
   const navigate = useNavigate();
@@ -125,6 +128,18 @@ export function BoardLayout() {
                     : b.price
                       ? `${b.price}원`
                       : "가격문의";
+
+                const st = normalizeTradeStatus(b.tradeStatus);
+                const badgeClass =
+                  st === "SOLD_OUT" ? "sold" :
+                    st === "RESERVED" ? "reserved" :
+                      st === "ON_SALE" ? "onsale" : null;
+
+                const badgeText =
+                  st === "ON_SALE" ? "판매중" :
+                    st === "RESERVED" ? "예약중" :
+                      st === "SOLD_OUT" ? "판매완료" : null;
+
                 return (
                   <Col key={b.id} xs={6} sm={4} md={3} lg={2}>
                     <Card className="jn-card" onClick={() => navigate(`/board/${b.id}`)}>
@@ -134,29 +149,24 @@ export function BoardLayout() {
                             src={thumb}
                             alt={b.title}
                             loading="lazy"
-                            onError={(e) => (e.currentTarget.style.display = "none")}
+                            onError={(e) => {
+                              // 이미지 깨지면 숨기고 빈 썸네일 표시
+                              e.currentTarget.style.display = "none";
+                              const fallback = e.currentTarget.parentElement?.querySelector(".jn-thumb-empty");
+                              if (fallback) fallback.style.display = "grid";
+                            }}
                           />
                         ) : (
                           <div className="jn-thumb-empty">No Image</div>
                         )}
-                        {b.tradeStatus && (
-                          <span
-                            className={`jn-badge ${
-                              b.tradeStatus === "SOLD_OUT"
-                                ? "sold"
-                                : b.tradeStatus === "RESERVED"
-                                  ? "reserved"
-                                  : "onsale"
-                            }`}
-                          >
-                            {b.tradeStatus === "ON_SALE"
-                              ? "판매중"
-                              : b.tradeStatus === "RESERVED"
-                                ? "예약중"
-                                : "판매완료"}
+
+                        {badgeClass && (
+                          <span className={`jn-badge ${badgeClass}`}>
+                            {badgeText}
                           </span>
                         )}
                       </div>
+
                       <Card.Body className="jn-card-body">
                         {b.category && <div className="jn-cat">#{b.category}</div>}
                         <div className="jn-title" title={b.title}>

@@ -36,26 +36,29 @@ public class BoardController {
         ));
     }
 
-    // ✅ 목록 (검색 + 카테고리/상태/가격/지역 필터)
+    // ✅ 목록 (검색 + 카테고리/상태/가격/지역 + 작성자 필터)
+    // ✅ 목록 (검색 + 카테고리/상태/가격/지역 + 작성자 필터)
     @GetMapping("/list")
     public Map<String, Object> getAll(
             @RequestParam(value = "q", defaultValue = "") String keyword,
             @RequestParam(value = "p", defaultValue = "1") Integer pageNumber,
-            @RequestParam(value = "size", defaultValue = "18") Integer size,   // 👈 추가
+            @RequestParam(value = "size", defaultValue = "18") Integer size,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "tradeStatus", required = false) String tradeStatus,
             @RequestParam(value = "minPrice", required = false) Integer minPrice,
             @RequestParam(value = "maxPrice", required = false) Integer maxPrice,
             @RequestParam(value = "regionSido", required = false) String regionSido,
-            @RequestParam(value = "regionSigungu", required = false) String regionSigungu
+            @RequestParam(value = "regionSigungu", required = false) String regionSigungu,
+            @RequestParam(value = "authorId", required = false) Long authorId   // 👈 추가!
     ) {
         return boardService.listV2(
-                keyword, pageNumber, size,        // 👈 size 전달
-                category,
-                tradeStatus, minPrice, maxPrice,
-                regionSido, regionSigungu
+                keyword, pageNumber, size,
+                category, tradeStatus, minPrice, maxPrice,
+                regionSido, regionSigungu,
+                authorId                                          // 👈 전달!
         );
     }
+
 
     // ✅ 단건 조회: 조회수 1 증가 + 상세 DTO 반환
     @GetMapping("/{id}")
@@ -136,5 +139,6 @@ public class BoardController {
         List<Map<String, Object>> result = boardService.getLatestWithFirstImage(limit);
         return ResponseEntity.ok(result);
     }
+
 
 }

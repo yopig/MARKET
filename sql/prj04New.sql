@@ -322,3 +322,110 @@ CREATE TABLE payment (
                                  ON UPDATE RESTRICT
                                  ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+ALTER TABLE `member`
+    ADD COLUMN `email_verified`    TINYINT(1)  NOT NULL DEFAULT 0 AFTER `role`,
+    ADD COLUMN `status`            VARCHAR(20) NOT NULL DEFAULT 'UNVERIFIED' AFTER `email_verified`,
+    ADD COLUMN `email_verified_at` DATETIME     NULL AFTER `status`;
+
+CREATE TABLE IF NOT EXISTS `email_verification_token` (
+                                                          `id`           BIGINT      NOT NULL AUTO_INCREMENT,
+                                                          `member_id`    BIGINT      NOT NULL,
+                                                          `token_hash`   CHAR(64)    NOT NULL,     /* SHA-256 hex */
+                                                          `purpose`      VARCHAR(20) NOT NULL,     /* 'SIGNUP' 등 */
+                                                          `expires_at`   DATETIME    NOT NULL,
+                                                          `used_at`      DATETIME    NULL,
+                                                          `created_at`   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                          `created_ip`   VARCHAR(64)  NULL,
+                                                          `created_agent`VARCHAR(255) NULL,
+                                                          PRIMARY KEY (`id`),
+                                                          KEY `idx_evt_token_hash` (`token_hash`),
+                                                          KEY `idx_evt_member_purpose` (`member_id`, `purpose`),
+                                                          CONSTRAINT `fk_evt_member`
+                                                              FOREIGN KEY (`member_id`) REFERENCES `member` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE payment DROP FOREIGN KEY fk_payment_board;
+
+-- 2) CASCADE로 재생성
+ALTER TABLE payment
+    ADD CONSTRAINT fk_payment_board
+        FOREIGN KEY (board_id) REFERENCES board(id)
+            ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS reviews (
+                                      id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+                                      board_id        INT            NOT NULL,    -- 대상 거래글
+                                      reviewer_id     BIGINT         NOT NULL,    -- 리뷰 작성한 사람(회원)
+                                      reviewee_id     BIGINT         NOT NULL,    -- 리뷰 대상(회원, 보통 판매자/구매자)
+
+                                      rating          TINYINT UNSIGNED NOT NULL,  -- 1~5 범위 (백엔드 수동 검증)
+                                      content         TEXT            NULL,       -- 코멘트(선택)
+
+    -- 첨부 이미지가 필요하면 JSON 문자열로 저장 (프런트에서 배열 형태로 전달)
+    -- MariaDB의 JSON 타입 호환을 위해 LONGTEXT + 주석 권장
+                                      images_json     LONGTEXT        NULL COMMENT 'JSON array of image URLs or keys',
+
+    -- 스냅샷 필드(선택): 탈퇴/닉변 대비하여 당시 별명 저장 (UI 표시용)
+                                      reviewer_nick   VARCHAR(50)     NULL,
+                                      reviewee_nick   VARCHAR(50)     NULL,
+
+                                      is_deleted      TINYINT(1)      NOT NULL DEFAULT 0,
+                                      deleted_at      DATETIME        NULL,
+
+                                      inserted_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                      updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    -- FK
+                                      CONSTRAINT fk_review_board
+                                          FOREIGN KEY (board_id) REFERENCES board(id)
+                                              ON DELETE CASCADE,               -- 거래글 삭제 시 해당 리뷰도 함께 삭제(정책에 맞춰 조정 가능)
+
+                                      CONSTRAINT fk_review_reviewer
+                                          FOREIGN KEY (reviewer_id) REFERENCES member(id)
+                                              ON DELETE RESTRICT ON UPDATE RESTRICT,
+
+                                      CONSTRAINT fk_review_reviewee
+                                          FOREIGN KEY (reviewee_id) REFERENCES member(id)
+                                              ON DELETE RESTRICT ON UPDATE RESTRICT,
+
+    -- 동일 거래글에서 같은 사람이 같은 상대에게 중복 리뷰 금지
+                                      UNIQUE KEY uk_review_once (board_id, reviewer_id, reviewee_id),
+
+    -- 조회용 인덱스(프로필/목록 최적화)
+                                      KEY idx_review_reviewee (reviewee_id, inserted_at),
+                                      KEY idx_review_reviewer (reviewer_id, inserted_at),
+                                      KEY idx_review_board    (board_id, inserted_at)
+)
+    ENGINE=InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci;
+
+-- board_report 테이블 (신고)
+CREATE TABLE board_report (
+                              id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+                              board_id      INT            NOT NULL,
+                              reporter_id   BIGINT         NOT NULL,
+                              reason        VARCHAR(50)    NOT NULL,      -- 사유 코드(문자열)
+                              detail        TEXT           NULL,          -- 상세설명(선택)
+                              status        VARCHAR(20)    NOT NULL DEFAULT 'OPEN',  -- 상태(OPEN/REVIEWED/REJECTED/etc) 문자열로 관리
+                              admin_memo    TEXT           NULL,          -- 관리자 메모
+                              inserted_at   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              updated_at    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                              CONSTRAINT uq_board_report_unique UNIQUE (board_id, reporter_id), -- 같은 유저가 같은 글 중복신고 방지
+
+                              INDEX idx_board_report_board (board_id),
+                              INDEX idx_board_report_reporter (reporter_id),
+                              INDEX idx_board_report_status (status),
+
+                              CONSTRAINT fk_board_report_board
+                                  FOREIGN KEY (board_id) REFERENCES board(id)
+                                      ON DELETE CASCADE ON UPDATE RESTRICT,
+
+                              CONSTRAINT fk_board_report_member
+                                  FOREIGN KEY (reporter_id) REFERENCES member(id)
+                                      ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

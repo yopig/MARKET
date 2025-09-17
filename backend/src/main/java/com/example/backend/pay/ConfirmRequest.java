@@ -1,5 +1,5 @@
-package com.example.backend.pay;// src/main/java/com/example/backend/pay/dto/ConfirmRequest.java
-
+// src/main/java/com/example/backend/pay/dto/ConfirmRequest.java
+package com.example.backend.pay;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -9,5 +9,5 @@ public record ConfirmRequest(
         @NotBlank String paymentKey,
         @NotBlank String orderId,
         @NotNull @Min(1) Long amount,
-        @NotNull Long boardId   // 프론트에서 successUrl 쿼리로 같이 전달
+        @NotNull Long boardId  // successUrl로 함께 전달
 ) {}

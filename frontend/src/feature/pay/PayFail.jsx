@@ -1,29 +1,29 @@
 // src/feature/pay/PayFail.jsx
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Alert, Button } from "react-bootstrap";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "react-bootstrap";
+import { toast } from "react-toastify";
 
-export function PayFail() {
-  const [sp] = useSearchParams();
+export default function PayFail() {
+  const [search] = useSearchParams();
   const navigate = useNavigate();
-  const code = sp.get("code");
-  const message = sp.get("message");
-  const boardId = sp.get("boardId");
+  const code = search.get("code");
+  const message = search.get("message");
+  const boardId = search.get("boardId") || "";
+
+  useEffect(() => {
+    if (message) toast.error(decodeURIComponent(message));
+  }, [message]);
 
   return (
-    <div className="container py-5">
-      <Alert variant="warning">
-        <h4 className="mb-2">결제가 완료되지 않았습니다.</h4>
-        <div className="mb-1"><strong>코드:</strong> {code || "-"}</div>
-        <div><strong>사유:</strong> {message || "사용자가 취소했거나 오류가 발생했습니다."}</div>
-      </Alert>
-      <div className="d-flex gap-2">
-        {boardId && (
-          <Button variant="primary" onClick={() => navigate(`/board/${boardId}`)}>
-            게시글로 돌아가기
-          </Button>
-        )}
-        <Button variant="outline-secondary" onClick={() => navigate("/")}>홈</Button>
-      </div>
+    <div className="container my-5">
+      <h2>결제에 실패했어요</h2>
+      <p className="text-muted">사유: {decodeURIComponent(message || "알 수 없음")} {code ? `(${code})` : ""}</p>
+      {boardId && (
+        <Button variant="primary" onClick={() => navigate(`/board/detail/${boardId}`)}>
+          게시글로 돌아가기
+        </Button>
+      )}
     </div>
   );
 }

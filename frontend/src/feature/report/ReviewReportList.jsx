@@ -1,118 +1,93 @@
+// src/feature/board/BoardReportList.jsx
 import { useEffect, useState, useContext } from "react";
-import { Table, Alert, Spinner } from "react-bootstrap";
+import { Table, Alert, Spinner, Button } from "react-bootstrap";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import "../../styles/ReviewReportList.css";
-import { ReviewText } from "../../common/ReviewText.jsx";
 import { toast } from "react-toastify";
-import ReviewReportActions from "./ReviewReportActions.jsx";
+import "../../styles/ReviewReportList.css";
 
-export default function ReviewReportList() {
+// 사유 라벨
+const REASON_LABELS = {
+  SPAM: "스팸/도배",
+  SCAM: "사기/선입금",
+  ILLEGAL: "불법/위법",
+  OFFENSIVE: "욕설/혐오/선정성",
+  OTHER: "기타",
+};
+
+export default function BoardReportList() {
   const { isAdmin, loading: loadingAuth } = useContext(AuthenticationContext);
-  const [reports, setReports] = useState([]);
-  const [loadingReports, setLoadingReports] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [deletingId, setDeletingId] = useState(null); // 리뷰 삭제 ID
-  const [reportToDelete, setReportToDelete] = useState(null); // 신고 내역 삭제 ID
+
+  const [rows, setRows] = useState([]); // BoardReportDto[]
+  const [deletingId, setDeletingId] = useState(null);
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   function getAuthHeader() {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  useEffect(() => {
-    async function fetchReports() {
-      try {
-        const res = await axios.get("/api/review/report/list", {
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(),
-          },
-        });
-        setReports(res.data);
-      } catch (err) {
-        if (err.response?.status === 401) {
-          setError("로그인이 필요합니다.");
-        } else if (err.response?.status === 403) {
-          setError("권한이 없습니다.");
-        } else {
-          setError("서버 오류로 신고 내역을 불러올 수 없습니다.");
-        }
-      } finally {
-        setLoadingReports(false);
-      }
-    }
-    fetchReports();
-  }, []);
-
-  async function handleDeleteReportOnly(id) {
-    if (reportToDelete) return;
-    setReportToDelete(id);
-
+  async function fetchReports() {
+    setLoading(true);
+    setError("");
     try {
-      await axios.delete(`/api/review/report/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
+      const res = await axios.get(`/api/board-report`, {
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
       });
-      toast.success("신고 내역이 성공적으로 삭제되었습니다.");
-      setReports((prev) => prev.filter((r) => String(r.id) !== String(id)));
+      const data = res.data || {};
+      setRows(data.content || []);
     } catch (err) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "신고 내역 삭제 중 오류가 발생했습니다.",
-      );
+      const code = err.response?.status;
+      if (code === 401 || code === 403) {
+        toast.error(code === 401 ? "로그인이 필요합니다." : "권한이 없습니다.");
+        navigate("/login", { replace: true, state: { from: location } });
+        return;
+      }
+      setError("서버 오류로 신고 내역을 불러올 수 없습니다.");
     } finally {
-      setReportToDelete(null);
+      setLoading(false);
     }
   }
 
-  async function handleDeleteReview(reviewId) {
-    if (deletingId) return;
-    setDeletingId(reviewId);
+  useEffect(() => {
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  function handleRowClick(boardId, e) {
+    if (e.target.closest(".report-actions") || e.target.tagName === "BUTTON") return;
+    if (!boardId) return;
+    navigate(`/board/${boardId}`);
+  }
+
+  async function handleDeleteReport(id) {
+    setDeletingId(id);
     try {
-      await axios.delete(`/api/review/delete/${reviewId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
+      await axios.delete(`/api/board-report/${id}`, {
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
       });
-      toast.success("리뷰와 관련된 모든 신고가 삭제되었습니다.");
-      setReports((prev) =>
-        prev.filter((r) => String(r.reviewId) !== String(reviewId)),
-      );
+      toast.success("신고 내역이 삭제되었습니다.");
+      setRows((prev) => prev.filter((r) => String(r.id) !== String(id)));
     } catch (err) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message ||
-          "리뷰와 신고 삭제 중 오류가 발생했습니다.",
-      );
+      const code = err.response?.status;
+      if (code === 401 || code === 403) {
+        toast.error(code === 401 ? "로그인이 필요합니다." : "권한이 없습니다.");
+        navigate("/login", { replace: true, state: { from: location } });
+      } else {
+        const m = err?.response?.data?.message?.text || "신고 내역 삭제 중 오류가 발생했습니다.";
+        toast.error(m);
+      }
     } finally {
       setDeletingId(null);
     }
   }
 
-  const handleRowClick = (reviewWriterId, reviewId, e) => {
-    // ReviewReportActions 내부 클릭이면 이동 막기
-    if (
-      e.target.closest(".review-actions-container") ||
-      e.target.closest(".modal")
-    ) {
-      return;
-    }
-
-    if (reviewWriterId) {
-      navigate(`/review/my/${reviewWriterId}?focusReviewId=${reviewId}`);
-    } else {
-      toast.error("작성자 정보가 없습니다.");
-    }
-  };
-
-  if (loadingAuth || loadingReports) {
+  if (loadingAuth || loading) {
     return (
       <div className="text-center my-5">
         <Spinner animation="border" />
@@ -129,64 +104,64 @@ export default function ReviewReportList() {
     return <Alert variant="danger">{error}</Alert>;
   }
 
-  if (reports.length === 0) {
-    return <Alert variant="info">신고된 리뷰가 없습니다.</Alert>;
-  }
-
   return (
     <div className="p-4">
-      <h2 className="mb-4 fw-bold text-muted">리뷰 신고 내역 목록</h2>
-      <Table className="review-report-table" responsive>
-        <thead>
+      <div className="d-flex flex-wrap align-items-end gap-3 mb-3">
+        <div>
+          <h2 className="mb-1 fw-bold text-muted">게시물 신고 내역</h2>
+          <div className="text-muted small">총 {rows.length.toLocaleString()}건</div>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <Alert variant="info">조건에 해당하는 신고가 없습니다.</Alert>
+      ) : (
+        <Table className="review-report-table" responsive>
+          <thead>
           <tr>
+            <th>ID</th>
+            <th>게시글 ID</th>
             <th>신고자 이메일</th>
-            <th>리뷰 ID</th>
-            <th>신고 사유</th>
+            <th>사유</th>
+            <th>상세</th>
             <th>신고일</th>
+            <th style={{ width: 120 }}>관리</th>
           </tr>
-        </thead>
-        <tbody>
-          {reports.map(
-            ({
-              id,
-              reporterEmail,
-              reviewId,
-              reason,
-              reportedAt,
-              reviewWriterId,
-            }) => (
-              <tr
-                key={id}
-                className={reviewWriterId ? "clickable-row" : ""}
-                onClick={(e) => handleRowClick(reviewWriterId, reviewId, e)}
-                title={reviewWriterId ? "작성자 리뷰 보기" : undefined}
-              >
-                <td className="reporter-email-cell">
-                  <div className="d-flex align-items-center">
-                    <div
-                      className="flex-grow-1 text-truncate me-2"
-                      title={reporterEmail}
-                    >
-                      {reporterEmail}
-                    </div>
-                    <ReviewReportActions
-                      reportId={id}
-                      reviewId={reviewId}
-                      handleDeleteReportOnly={handleDeleteReportOnly}
-                      handleDeleteReview={handleDeleteReview}
-                    />
-                  </div>
-                </td>
-                <td>{reviewId}</td>
-                <td className="reason-cell">
-                  <ReviewText text={reason} />
-                </td>
-                <td>{reportedAt ? reportedAt.substring(0, 10) : "-"}</td>
-              </tr>
-            ),
-          )}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+          {rows.map((r) => (
+            <tr
+              key={r.id}
+              className="clickable-row"
+              onClick={(e) => handleRowClick(r.boardId, e)}
+              title="게시글 상세로 이동"
+            >
+              <td>{r.id}</td>
+              <td>#{r.boardId}</td>
+              <td className="reporter-email-cell">
+                <div className="text-truncate" title={r.reporterEmail}>{r.reporterEmail}</div>
+              </td>
+              <td className="reason-cell">{REASON_LABELS[r.reason] || r.reason}</td>
+              <td className="text-truncate" title={r.detail || ""}>
+                {(r.detail || "").slice(0, 50)}{r.detail && r.detail.length > 50 ? "…" : ""}
+              </td>
+              <td>{r.insertedAt ? String(r.insertedAt).replace("T", " ").slice(0, 16) : "-"}</td>
+              <td className="report-actions">
+                <Button
+                  size="sm"
+                  variant="outline-danger"
+                  onClick={(e) => { e.stopPropagation(); handleDeleteReport(r.id); }}
+                  disabled={deletingId === r.id}
+                  title="신고 삭제"
+                >
+                  {deletingId === r.id ? "삭제중…" : "삭제"}
+                </Button>
+              </td>
+            </tr>
+          ))}
+          </tbody>
+        </Table>
+      )}
     </div>
   );
 }

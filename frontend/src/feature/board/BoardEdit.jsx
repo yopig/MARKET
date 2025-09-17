@@ -272,11 +272,10 @@ export function BoardEdit() {
                       <Form.Label className="fw-semibold">가격(원)</Form.Label>
                       <Form.Control
                         type="text"
-                        inputMode="numeric"
-                        placeholder="예) 15000"
-                        value={price}
-                        onChange={handlePriceChange}
-                        disabled={isProcessing}
+                        value={price ? Number(price).toLocaleString() : ""}
+                        readOnly
+                        disabled
+                        placeholder="수정 불가 (등록 시에만 입력)"
                       />
                     </FormGroup>
                   </Col>

@@ -1,8 +1,6 @@
 // src/main/java/com/example/backend/pay/PaymentController.java
 package com.example.backend.pay;
 
-import com.example.backend.pay.ConfirmRequest;
-import com.example.backend.pay.ConfirmResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

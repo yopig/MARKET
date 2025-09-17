@@ -98,7 +98,7 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
     int incrementViewCount(@Param("id") Integer id);
 
 
-    // ✅ 검색(필터)
+    // ✅ 검색(필터) + 작성자 필터(authorId)
     @Query("""
         SELECT new com.example.backend.board.dto.BoardListDto(
             b.id,
@@ -128,12 +128,13 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
             OR LOWER(b.content)  LIKE LOWER(CONCAT('%', :keyword, '%'))
             OR LOWER(m.nickName) LIKE LOWER(CONCAT('%', :keyword, '%'))
         )
-        AND ( :category    IS NULL OR :category    = '' OR LOWER(b.category) = LOWER(:category) )
-        AND ( :tradeStatus IS NULL OR :tradeStatus = '' OR b.tradeStatus = :tradeStatus )
-        AND ( :minPrice    IS NULL OR b.price >= :minPrice )
-        AND ( :maxPrice    IS NULL OR b.price <= :maxPrice )
-        AND ( :regionSido  IS NULL OR :regionSido  = '' OR b.regionSido   = :regionSido )
+        AND ( :category      IS NULL OR :category      = '' OR LOWER(b.category) = LOWER(:category) )
+        AND ( :tradeStatus   IS NULL OR :tradeStatus   = '' OR b.tradeStatus = :tradeStatus )
+        AND ( :minPrice      IS NULL OR b.price >= :minPrice )
+        AND ( :maxPrice      IS NULL OR b.price <= :maxPrice )
+        AND ( :regionSido    IS NULL OR :regionSido    = '' OR b.regionSido   = :regionSido )
         AND ( :regionSigungu IS NULL OR :regionSigungu = '' OR b.regionSigungu = :regionSigungu )
+        AND ( :authorId      IS NULL OR m.id = :authorId )
         GROUP BY b.id, b.title, m.nickName, b.insertedAt,
                  b.tradeStatus, m.id, b.price, b.category,
                  b.regionSido, b.regionSigungu, b.viewCount, b.likeCount
@@ -147,11 +148,12 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
             @Param("maxPrice") Integer maxPrice,
             @Param("regionSido") String regionSido,
             @Param("regionSigungu") String regionSigungu,
+            @Param("authorId") Long authorId,   // 👈 Long으로 통일
             Pageable pageable
     );
 
 
-    // 🔥 신규 추가: 최신 N개 + 첫 이미지 파일명(firstImageName)
+    // 🔥 최신 N개 + 첫 이미지 파일명(firstImageName)
     @Query("""
         SELECT new map(
             b.id AS id,

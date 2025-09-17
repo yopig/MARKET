@@ -160,7 +160,6 @@ public class BoardService {
         board.setLikeCount(0);
 
         boardRepository.save(board);
-
         saveFiles(board, dto);
     }
 
@@ -335,26 +334,30 @@ public class BoardService {
     }
 
     // ──────────────────────────────────
-    // 리스트 V2 (필터 지원)  ✅ 프론트 필터 + 페이지 사이즈 대응
+    // 리스트 V2 (필터 지원) — 오버로드(기본 size=18)
     // ──────────────────────────────────
     @Transactional(readOnly = true)
     public Map<String, Object> listV2(String keyword, Integer pageNumber,
                                       String category,
                                       String tradeStatus, Integer minPrice, Integer maxPrice,
                                       String regionSido, String regionSigungu) {
-        // 기본 페이지 크기 18로 위임
         return listV2(
                 keyword, pageNumber, 18,
                 category, tradeStatus, minPrice, maxPrice,
-                regionSido, regionSigungu
+                regionSido, regionSigungu,
+                null // authorId 기본 없음
         );
     }
 
+    // ──────────────────────────────────
+    // 리스트 V2 (필터 + 페이지 크기 + authorId)
+    // ──────────────────────────────────
     @Transactional(readOnly = true)
     public Map<String, Object> listV2(String keyword, Integer pageNumber, Integer size,
                                       String category,
                                       String tradeStatus, Integer minPrice, Integer maxPrice,
-                                      String regionSido, String regionSigungu) {
+                                      String regionSido, String regionSigungu,
+                                      Long authorId) {   // 👈 Long으로 통일
 
         int current = Math.max(1, Optional.ofNullable(pageNumber).orElse(1));
         int pageSize = Math.max(1, Optional.ofNullable(size).orElse(18)); // 기본 18
@@ -370,6 +373,7 @@ public class BoardService {
                 kw, cat, ts,
                 minPrice, maxPrice,
                 sido, sigun,
+                authorId,                 // ✅ Long
                 pageable
         );
 
@@ -444,24 +448,24 @@ public class BoardService {
     }
 
     // ──────────────────────────────────
-    // 상세 (읽기 전용) — 조회수 증가 금지
+    // 상세 (읽기 전용)
     // ──────────────────────────────────
     @Transactional(readOnly = true)
     public Optional<BoardDto> getBoardById(Integer id) {
         return boardRepository.findById(id).map(this::toDto);
     }
 
-    // ✅ 조회수 증가 전용 메서드 (필요 시 단독 사용)
+    // ✅ 조회수 증가 전용
     @Transactional
     public void increaseViewCount(Integer id) {
         boardRepository.incrementViewCount(id);
     }
 
-    // ✅ 통합: 조회수 1 증가 + 상세 DTO 반환 (컨트롤러는 이 메서드만 호출)
+    // ✅ 조회수 1 증가 + 상세 DTO 반환
     @Transactional
     public BoardDto viewAndGet(Integer id) {
-        boardRepository.incrementViewCount(id);      // 1) 딱 한 번 증가
-        Board board = boardRepository.findById(id)   // 2) 상세 읽기
+        boardRepository.incrementViewCount(id);
+        Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글이 없습니다."));
         return toDto(board);
     }
@@ -492,6 +496,22 @@ public class BoardService {
                     map.put("firstImageUrl", firstImageUrl);
                     return map;
                 }).collect(Collectors.toList());
+    }
+
+    public List<Map<String, Object>> getLatestWithFirstImage(int limit) {
+        int size = Math.max(1, Math.min(limit, 100));
+        List<Map<String, Object>> rows = boardRepository.findLatestWithFirstImage(PageRequest.of(0, size));
+        // URL로 치환하여 프런트 편의 제공
+        for (Map<String, Object> r : rows) {
+            Integer id = (Integer) r.get("id");
+            String name = (String) r.get("firstImageName");
+            if (id != null && name != null) {
+                r.put("firstImageUrl", imagePrefix + "prj3/board/" + id + "/" + name);
+            } else {
+                r.put("firstImageUrl", null);
+            }
+        }
+        return rows;
     }
 
     // ──────────────────────────────────
@@ -535,10 +555,5 @@ public class BoardService {
         return lower.endsWith(".jpg") || lower.endsWith(".jpeg")
                 || lower.endsWith(".png") || lower.endsWith(".gif")
                 || lower.endsWith(".webp") || lower.endsWith(".avif");
-    }
-
-    public List<Map<String, Object>> getLatestWithFirstImage(int limit) {
-        int size = Math.max(1, Math.min(limit, 100));
-        return boardRepository.findLatestWithFirstImage(PageRequest.of(0, size));
     }
 }

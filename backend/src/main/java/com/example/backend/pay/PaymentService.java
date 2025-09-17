@@ -6,8 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.Optional;
@@ -20,116 +21,116 @@ public class PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepo;
-    private final BoardRepository boardRepo;  // 가격/상태만 조회/업데이트
+    private final BoardRepository boardRepo;   // 가격/상태 조회/업데이트 (JPA)
     private final TossClient tossClient;
+    private final TransactionTemplate tx;      // 명시적 트랜잭션
 
+    // 문자열 허용값 (ENUM 금지)
     private static final Set<String> ALLOWED_STATUS = Set.of("PAID", "CANCELED", "FAILED");
     private static final Set<String> ALLOWED_METHODS = Set.of(
             "CARD","VIRTUAL_ACCOUNT","MOBILE_PHONE","TRANSFER","CULTURE_GIFT_CERTIFICATE",
             "FOREIGN_SIMPLE_PAY","GIFT_CERTIFICATE","BOOKING","UNKNOWN"
     );
 
-    /**
-     * 1) 게시글 가격/상태 검증(동기)
-     * 2) 토스 confirm 호출(비동기)
-     * 3) 결제기록 upsert 및 게시글 상태 업데이트
-     */
-    @Transactional(readOnly = true)
     public Mono<ConfirmResponse> confirm(ConfirmRequest req) {
-        // ✅ boardId/amount 정규화 (Long, String 등 → Integer)
-        Integer boardId = toInt(req.boardId());
+        Integer boardId   = toInt(req.boardId());
         Integer reqAmount = toInt(req.amount());
 
-        // 1) 게시글 가격/상태 확인 (blocking JPA)
-        Optional<BoardRepository.PriceStatusView> boardOpt = boardRepo.findPriceAndStatus(boardId);
-        BoardRepository.PriceStatusView board = boardOpt.orElseThrow(() ->
-                new IllegalArgumentException("게시글을 찾을 수 없습니다: " + boardId));
+        // 1) 게시글 가격/상태 검증 (블로킹 JPA → boundedElastic)
+        return Mono.fromCallable(() -> {
+                    Optional<BoardRepository.PriceStatusView> boardOpt = boardRepo.findPriceAndStatus(boardId);
+                    BoardRepository.PriceStatusView board = boardOpt.orElseThrow(() ->
+                            new IllegalArgumentException("게시글을 찾을 수 없습니다: " + boardId));
 
-        Integer price = board.getPrice();
-        if (price == null || price <= 0) {
-            throw new IllegalStateException("게시글 가격이 유효하지 않습니다.");
-        }
-        if (!price.equals(reqAmount)) {
-            throw new IllegalArgumentException("결제 금액이 게시글 가격과 다릅니다.");
-        }
-        String ts = safe(board.getTradeStatus());
-        if (ts.equals("SOLD_OUT") || ts.equals("PAID")) {
-            throw new IllegalStateException("이미 판매 완료된 게시글입니다.");
-        }
+                    Integer price = board.getPrice();
+                    if (price == null || price <= 0) {
+                        throw new IllegalStateException("게시글 가격이 유효하지 않습니다.");
+                    }
+                    if (!price.equals(reqAmount)) {
+                        throw new IllegalArgumentException("결제 금액이 게시글 가격과 다릅니다.");
+                    }
 
-        // 2) 토스 confirm (WebClient)
-        return tossClient.confirm(req.paymentKey(), req.orderId(), reqAmount)
-                .map(res -> handleAndSave(boardId, req, reqAmount, res));
+                    String ts = safe(board.getTradeStatus());
+                    if (ts.equals("SOLD_OUT") || ts.equals("PAID")) {
+                        throw new IllegalStateException("이미 판매 완료된 게시글입니다.");
+                    }
+                    return true;
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+
+                // 2) 토스 confirm (비동기 WebClient)
+                .then(tossClient.confirm(req.paymentKey(), req.orderId(), reqAmount))
+
+                // 3) 저장/상태 업데이트 (블로킹 JPA → boundedElastic + 명시적 트랜잭션)
+                .publishOn(Schedulers.boundedElastic())
+                .map(res -> saveAndBuildResponse(boardId, req, reqAmount, res));
     }
 
-    // DB 갱신은 본 메소드에서 수행 (레포지토리 @Transactional 적용)
-    private ConfirmResponse handleAndSave(Integer boardId, ConfirmRequest req, Integer reqAmount, Map<String, Object> res) {
-        String status = str(res.get("status"));
-        String method = str(res.get("method"));
-        String receiptUrl = null;
+    // 트랜잭션 안에서 idempotent upsert & 상태 업데이트
+    private ConfirmResponse saveAndBuildResponse(Integer boardId, ConfirmRequest req, Integer reqAmount, Map<String, Object> res) {
+        return tx.execute(status -> {
+            String statusStr = str(res.get("status"));
+            String method    = str(res.get("method"));
+            String receiptUrl = extractReceiptUrl(res);
 
+            String internalStatus = switch (safe(statusStr)) {
+                case "DONE", "SUCCESS", "APPROVED", "PAID" -> "PAID";
+                case "CANCELED" -> "CANCELED";
+                default -> "FAILED";
+            };
+            if (!ALLOWED_STATUS.contains(internalStatus)) internalStatus = "FAILED";
+
+            String normalizedMethod = (method == null || method.isBlank())
+                    ? "UNKNOWN"
+                    : method.trim().toUpperCase();
+            if (!ALLOWED_METHODS.contains(normalizedMethod)) normalizedMethod = "UNKNOWN";
+
+            // idempotent upsert by orderId
+            Payment payment = paymentRepo.findByOrderId(req.orderId())
+                    .orElseGet(() -> Payment.builder().orderId(req.orderId()).build());
+
+            payment.setPaymentKey(req.paymentKey());
+            payment.setAmount(reqAmount);              // Integer 일관
+            payment.setStatus(internalStatus);         // 문자열 정책
+            payment.setMethod(normalizedMethod);
+            payment.setBoardId(boardId);
+            payment.setReceiptUrl(receiptUrl);
+            try {
+                payment.setRawJson(String.valueOf(res)); // 빠른 저장(원하면 Jackson으로 변경 가능)
+            } catch (Exception ignored) {}
+
+            paymentRepo.save(payment);
+
+            if ("PAID".equals(internalStatus)) {
+                int rows = boardRepo.updateTradeStatus(boardId, "PAID");
+                log.info("Trade status updated to PAID for boardId={}, affectedRows={}", boardId, rows);
+            }
+
+            return new ConfirmResponse(
+                    payment.getStatus(),
+                    payment.getOrderId(),
+                    payment.getPaymentKey(),
+                    payment.getAmount(),   // Integer → long 자동 승격
+                    payment.getMethod(),
+                    payment.getReceiptUrl()
+            );
+        });
+    }
+
+    private static String extractReceiptUrl(Map<String, Object> res) {
+        String receiptUrl = null;
         Object receiptObj = res.get("receipt");
         if (receiptObj instanceof Map<?,?> receipt) {
             Object url = receipt.get("url");
             if (url != null) receiptUrl = String.valueOf(url);
         }
         if (receiptUrl == null) receiptUrl = str(res.get("receiptUrl"));
-
-        String internalStatus = switch (safe(status)) {
-            case "DONE", "SUCCESS", "APPROVED", "PAID" -> "PAID";
-            case "CANCELED" -> "CANCELED";
-            default -> "FAILED";
-        };
-        if (!ALLOWED_STATUS.contains(internalStatus)) internalStatus = "FAILED";
-
-        String normalizedMethod = (method == null || method.isBlank())
-                ? "UNKNOWN"
-                : method.trim().toUpperCase();
-        if (!ALLOWED_METHODS.contains(normalizedMethod)) normalizedMethod = "UNKNOWN";
-
-        // payment upsert
-        Payment payment = paymentRepo.findByOrderId(req.orderId())
-                .orElseGet(() -> Payment.builder().orderId(req.orderId()).build());
-
-        payment.setPaymentKey(req.paymentKey());
-        payment.setAmount(reqAmount);        // Integer로 통일
-        payment.setStatus(internalStatus);
-        payment.setMethod(normalizedMethod);
-        payment.setBoardId(boardId);         // ✅ Integer boardId 사용
-        payment.setReceiptUrl(receiptUrl);
-
-        // raw JSON 저장 (예외 무시)
-        try {
-            payment.setRawJson(String.valueOf(res));
-        } catch (Exception ignored) {}
-
-        paymentRepo.save(payment);
-
-        // 결제 성공이면 게시글 상태 업데이트 → "PAID"
-        if ("PAID".equals(internalStatus)) {
-            int rows = boardRepo.updateTradeStatus(boardId, "PAID");
-            log.info("Trade status updated to PAID for boardId={}, affectedRows={}", boardId, rows);
-        }
-
-        return new ConfirmResponse(
-                payment.getStatus(),
-                payment.getOrderId(),
-                payment.getPaymentKey(),
-                payment.getAmount(),
-                payment.getMethod(),
-                payment.getReceiptUrl()
-        );
+        return receiptUrl;
     }
 
     private static String str(Object o){ return (o == null) ? null : String.valueOf(o); }
     private static String safe(String s){ return (s == null) ? "" : s.trim().toUpperCase(); }
 
-    /**
-     * 다양한 타입(Long/Integer/Short/Double/BigDecimal/String 등)을 안전하게 Integer로 변환
-     * - null → null
-     * - 소수점 숫자는 소수부 버림(intValue) 사용
-     * - Long은 범위 체크 후 Math.toIntExact
-     */
     private static Integer toInt(Object v) {
         if (v == null) return null;
         if (v instanceof Integer i) return i;

@@ -32,14 +32,14 @@ export function AdminPage() {
           >
             <BsChatLeftTextFill size={18} /> 문의 내역
           </Button>
+
+          {/* 🔁 여기 변경: 리뷰 신고 목록 → 신고 센터(ReportCenter) */}
           <Button
-            variant={
-              isLinkActive("/admin/review/report") ? "outline-dark" : "light"
-            }
+            variant={isLinkActive("/admin/report") ? "outline-dark" : "light"}
             className={sidebarButtonClass}
             onClick={() => navigate("/admin/review/report/list")}
           >
-            <BsFlagFill size={18} /> 리뷰 신고 목록
+            <BsFlagFill size={18} /> 신고 센터
           </Button>
         </div>
       </Col>

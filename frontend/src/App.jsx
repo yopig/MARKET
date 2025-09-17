@@ -3,11 +3,12 @@ import { MainLayout } from "./common/MainLayout.jsx";
 import { BoardLayout } from "./feature/board/BoardLayout.jsx";
 import { BoardAdd } from "./feature/board/BoardAdd.jsx";
 import { BoardList } from "./feature/board/BoardList.jsx";
-import { BoardDetail } from "./feature/board/BoardDetail.jsx";
+import  BoardDetail  from "./feature/board/BoardDetail.jsx";
 import { BoardEdit } from "./feature/board/BoardEdit.jsx";
 import { MemberAdd } from "./feature/member/MemberAdd.jsx";
 import { MemberDetail } from "./feature/member/MemberDetail.jsx";
 import { MemberList } from "./feature/member/MemberList.jsx";
+import ReportCenter from "./feature/report/ReportCenter.jsx";
 import { MemberEdit } from "./feature/member/MemberEdit.jsx";
 import { MemberLogin } from "./feature/member/MemberLogin.jsx";
 import { AuthenticationContextProvider } from "./common/AuthenticationContextProvider.jsx";
@@ -27,9 +28,11 @@ import "./styles/styles.css";
 import "./styles/Carousel.css";
 import { ChatRoomPage } from "./feature/chat/ChatRoomPage.jsx";
 import { ChatListPage } from "./feature/chat/ChatListPage.jsx";
-import { PaySuccess } from "./feature/pay/PaySuccess.jsx";
-import { PayFail } from "./feature/pay/PayFail.jsx";
+import PaySuccess from "./feature/pay/PaySuccess.jsx";
+import PayFail from "./feature/pay/PayFail.jsx";
+import AdminPayments from "./feature/admin/AdminPayments.jsx";
 import "./styles/ReviewLike.css";
+import {ReviewPage} from "./feature/review/ReviewPage.jsx";
 
 function App() {
   return (
@@ -62,16 +65,17 @@ function App() {
             <Route path="/chat/rooms" element={<ChatListPage />} />
             <Route path="/chat/rooms/:roomId" element={<ChatRoomPage />} />
             <Route path="/chatbot" element={<Chatbot />} />
-
+            <Route path="/report" element={<ReportCenter />} />
             <Route path="/support" element={<ServicePage />} />
             <Route path="/pay/success" element={<PaySuccess />} />
             <Route path="/pay/fail" element={<PayFail />} />
-
+            <Route path="/review/:memberId" element={<ReviewPage />} />
             <Route path="/admin" element={<AdminPage />}>
               <Route index element={<AdminHome />} />
               <Route path="member/list" element={<MemberList />} />
               <Route path="support/list" element={<ServiceListPage />} />
               <Route path="review/report/list" element={<ReviewReportList />} />
+              <Route path="/admin/payments" element={<AdminPayments />} />
             </Route>
           </Route>
         </Routes>

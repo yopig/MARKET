@@ -23,15 +23,15 @@ public class Payment {
     @Column(nullable = false, length = 100)
     private String paymentKey;
 
-    // ✅ Long → Integer 로 수정
+    // Long → Integer 일치
     @Column(nullable = false)
     private Integer amount;
 
     @Column(length = 20, nullable = false)
-    private String status;
+    private String status;   // 문자열 정책
 
     @Column(length = 30, nullable = false)
-    private String method;
+    private String method;   // 문자열 정책
 
     @Column(nullable = false)
     private Integer boardId;
