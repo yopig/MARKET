@@ -1,285 +1,221 @@
+// src/feature/review/MyReview.jsx
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Badge, Carousel, Col, Image, Row, Spinner } from "react-bootstrap";
-import { ReviewLikeContainer } from "../like/ReviewLikeContainer.jsx";
-import { FavoriteContainer } from "../kakaoMap/FavoriteContainer.jsx";
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router";
-import { ReviewText } from "../../common/ReviewText.jsx";
-import { FaChevronRight } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../../styles/MyReview.css";
-import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
+import { Badge, Button, Dropdown, ListGroup, Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
 
-export function MyReview({ memberId: memberIdFromProp }) {
-  const { user, isLoading } = useContext(AuthenticationContext);
-  const [reviews, setReviews] = useState(null);
-  const [favoriteMap, setFavoriteMap] = useState({});
-  const navigate = useNavigate();
-  const { memberId: memberIdFromUrl } = useParams();
-  const [searchParams] = useSearchParams(); // setSearchParams는 안 쓸 수도??
-  const memberId = memberIdFromProp || memberIdFromUrl;
-  const reviewRefs = useRef({});
-
-  // 그러니까 res.data가 여러개를 받을텐데,
-  // 하나 받을 때마다 isFavorite인지 그것도 요청을 해야함.
-  // 즉 전에는 각 시설명에 대한 로그인유저의 즐찾 유무를 가져오지 못했기 때문에 안 나오는 게 당연했다!!
-  useEffect(() => {
-    // 1. 리뷰 목록을 가져오는 비동기 함수
-    const fetchReviews = axios.get(`/api/review/myReview/${memberId}`);
-
-    // 2. 로그인 유저가 즐겨찾기한 시설 목록을 가져오는 비동기 함수
-    // user가 존재할 때만 실행
-    const fetchFavorites = user
-      ? axios.get(`/api/favorite/mine`) // 즐겨찾기 목록을 가져오는 새로운 API 엔드포인트가 필요합니다.
-      : Promise.resolve({ data: [] }); // user가 없으면 빈 배열로 처리
-
-    Promise.all([fetchReviews, fetchFavorites])
-      .then(([reviewsResponse, favoritesResponse]) => {
-        const reviewData = reviewsResponse.data || [];
-        setReviews(reviewData);
-
-        // 즐겨찾기 목록 데이터를 Map 형태로 변환 (더 빠른 조회를 위해)
-        const favoriteFacilityIds = new Set(
-          favoritesResponse.data?.map((fav) => fav.facilityId),
-        );
-
-        // 초기 favoriteMap 생성
-        const map = {};
-        reviewData.forEach((r) => {
-          if (r.petFacility?.id != null) {
-            // 이 시설 ID가 로그인 유저의 즐겨찾기 목록에 포함되어 있는지 확인
-            // 그렇게 해서 모은 isFavorite의 집합이 favoriteMap이 되는거고,
-            // 얘를 각 리뷰에서 순서에 맞게 보내기 때문에 !! 잘 보이는 것임 이제 하하
-            map[r.petFacility.id] = favoriteFacilityIds.has(r.petFacility.id);
-          }
-        });
-        setFavoriteMap(map);
-
-        // console.log("리뷰 데이터:", reviewData);
-        // console.log("즐겨찾기 상태 맵:", map); // 이게 4개가 나왔던 이유는
-        // 지금 리뷰 목록에서 중복 제외하고, 시설명들의 id를 가져온건데,
-        // 거기서 true이면 즐찾이 되어있다!! 이 말
-      })
-      .catch((err) => {
-        console.error("데이터 불러오기 실패", err);
-        setReviews([]);
-        setFavoriteMap({});
-      });
-  }, [memberId, user]); // user가 변경될 때도 다시 실행하도록 추가
-
-  // 포커스 맞추는 useEffect
-  useEffect(() => {
-    const focusReviewId = searchParams.get("focusReviewId");
-    if (focusReviewId && reviews?.length > 0) {
-      const el = reviewRefs.current[focusReviewId];
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("bg-warning", "bg-opacity-25", "rounded", "p-2");
-        const timer = setTimeout(() => {
-          el.classList.remove("bg-warning", "bg-opacity-25", "rounded", "p-2");
-        }, 2500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [reviews, searchParams]);
-
-  const isImageFile = (url) =>
-    /\.(jpg|jpeg|png|gif|webp)$/i.test(url?.split("?")[0]);
-
-  if (!reviews) {
-    return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
-
-  if (reviews.length === 0) {
-    return (
-      <div className="text-center mt-5 text-muted">작성한 리뷰가 없습니다.</div>
-    );
-  }
-
-  const userNickName = reviews[0].memberEmailNickName ?? "알 수 없음";
-  const userProfileImage = reviews[0].profileImageUrl || "/user.png";
-  const userCountMemberReview = reviews[0].countMemberReview;
-  const userMemberAverageRating = reviews[0].memberAverageRating;
-
-  // const toggleFavorite = (facilityId, newState) => {
-  //   setFavoriteMap((prev) => ({
-  //     ...prev,
-  //     [facilityId]: newState,
-  //   }));
-  // };
-
-  const toggleFavorite = (facilityId, newState) => {
-    // API 호출을 통해 서버에 즐겨찾기 상태 변경을 요청
-    axios
-      .put("/api/favorite", {
-        // 찜 추가/취소 요청
-        facilityId,
-        isFavorite: newState,
-      })
-      .then(() => {
-        // 서버 요청 성공 시, 상태 업데이트
-        setFavoriteMap((prev) => ({
-          ...prev,
-          [facilityId]: newState,
-        }));
-      })
-      .catch((err) => {
-        console.error("즐겨찾기 상태 변경 실패", err);
-        alert("즐겨찾기 상태 변경에 실패했습니다.");
-      });
-  };
-
-  // isLoading 상태를 통해 로딩 중일 때 스피너를 보여줌
-  if (isLoading) {
-    return (
-      <div className="text-center mt-5">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
-
+/** 별점 렌더링 (1~5) */
+function Stars({ rating = 0 }) {
+  const r = Math.max(0, Math.min(5, Number(rating) || 0));
   return (
-    <>
-      <Row className="justify-content-center mt-5">
-        <Col xs={10} md={10} lg={10}>
-          <div className="d-flex flex-row align-items-start mb-2">
-            <Image
-              className="me-3"
-              src={userProfileImage}
-              alt={`${userNickName} 프로필`}
-              style={{
-                width: "75px",
-                height: "75px",
-                objectFit: "cover",
-              }}
-            />
-            <div className="d-flex flex-column align-items-start">
-              <h3 className="fw-bold mb-1">{userNickName}</h3>
-              <span>
-                리뷰 <strong>{userCountMemberReview}</strong> 평균 평점{" "}
-                <strong>{userMemberAverageRating}</strong>
-              </span>
-            </div>
-          </div>
-
-          <hr className="hr-color-hotpink review-separator" />
-
-          {reviews.map((r) => {
-            const reviewImages = r.files?.filter(isImageFile) || [];
-
-            return (
-              <div
-                key={r.id}
-                className="mb-3 review-card-custom"
-                ref={(el) => (reviewRefs.current[r.id] = el)}
-              >
-                <div className="card-body p-4">
-                  <div className={reviewImages.length > 0 ? "mb-3" : ""}>
-                    {reviewImages.length > 0 && (
-                      <div style={{ maxWidth: "400px", margin: "0 auto" }}>
-                        {reviewImages.length === 1 ? (
-                          <img
-                            src={reviewImages[0]}
-                            alt="리뷰 이미지"
-                            className="d-block w-100 rounded"
-                            style={{ height: "400px", objectFit: "cover" }}
-                          />
-                        ) : (
-                          <Carousel interval={null} indicators={false}>
-                            {reviewImages.map((image, i) => (
-                              <Carousel.Item key={i}>
-                                <img
-                                  src={image}
-                                  alt={`리뷰 이미지 ${i + 1}`}
-                                  className="d-block w-100"
-                                  style={{
-                                    height: "400px",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                                <div className="carousel-counter">
-                                  {i + 1} / {reviewImages.length}
-                                </div>
-                              </Carousel.Item>
-                            ))}
-                          </Carousel>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-1">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div
-                        className="fw-semibold d-flex align-items-center facility-link mb-2"
-                        style={{ cursor: "pointer" }}
-                        onClick={() =>
-                          navigate(`/facility/${r.petFacility.id}`)
-                        }
-                      >
-                        {r.petFacility.name}
-                        <FaChevronRight className="ms-1" size={13} />
-                      </div>
-                      <div className="small d-flex align-items-center">
-                        {r.petFacility?.id != null && (
-                          <FavoriteContainer
-                            facilityName={r.petFacility.name}
-                            facilityId={r.petFacility.id}
-                            isFavorite={favoriteMap[r.petFacility.id] ?? false}
-                            onToggle={(newState) =>
-                              toggleFavorite(r.petFacility.id, newState)
-                            }
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div style={{ color: "#888", fontSize: "0.85rem" }}>
-                      {r.petFacility.sidoName} {r.petFacility.sigunguName}
-                    </div>
-                    <hr className="my-2 hr-color-hotpink" />
-
-                    <div
-                      className="text-muted mb-1"
-                      style={{ whiteSpace: "pre-wrap" }}
-                    >
-                      <ReviewText text={r.review} />
-                    </div>
-
-                    {Array.isArray(r.tags) && r.tags.length > 0 && (
-                      <div className="d-flex flex-wrap gap-2 mb-2">
-                        {r.tags.map((tag) => (
-                          <Badge
-                            key={tag.id}
-                            bg="light"
-                            text="dark"
-                            className="fw-normal border"
-                            style={{
-                              borderRadius: "0",
-                            }}
-                          >
-                            # {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="text-muted" style={{ fontSize: "0.85rem" }}>
-                      {r.insertedAt?.split("T")[0]}
-                    </div>
-
-                    <ReviewLikeContainer reviewId={r.id} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </Col>
-      </Row>
-    </>
+    <span aria-label={`별점 ${r} / 5`} title={`${r}/5`}>
+      {"★".repeat(r)}
+      <span style={{ opacity: 0.25 }}>{"★".repeat(5 - r)}</span>
+    </span>
   );
 }
+
+/** 태그 배지 */
+function TagChips({ tags = [] }) {
+  if (!tags || tags.length === 0) return null;
+  return (
+    <div className="d-flex flex-wrap gap-1 mt-2">
+      {tags.map((t, idx) => (
+        <Badge key={`${t}-${idx}`} bg="light" text="dark" className="border">
+          #{t}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
+/** 정렬 옵션 */
+const SORT_OPTIONS = [
+  { key: "insertedAt,desc", label: "최신순" },
+  { key: "insertedAt,asc", label: "오래된순" },
+  { key: "rating,desc", label: "평점 높은순" },
+  { key: "rating,asc", label: "평점 낮은순" },
+];
+
+/**
+ * 받은 후기 목록 (publicOnly)
+ * props:
+ *  - memberId: Long (필수) — 이 회원이 ‘받은 후기’ 노출
+ */
+export function MyReview({ memberId }) {
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0); // 0-based
+  const [size, setSize] = useState(10);
+  const [sort, setSort] = useState("insertedAt,desc");
+  const [content, setContent] = useState({
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: 0,
+    size: 10,
+  });
+
+  const totalPages = content?.totalPages || 0;
+  const canPrev = page > 0;
+  const canNext = page < Math.max(0, totalPages - 1);
+
+  useEffect(() => {
+    if (!memberId) return;
+    let alive = true;
+    setLoading(true);
+
+    axios
+      .get(`/api/reviews/member/${memberId}`, {
+        params: {
+          publicOnly: true,
+          page,
+          size,
+          sort,
+        },
+      })
+      .then((res) => {
+        if (!alive) return;
+        setContent(res.data || {});
+      })
+      .catch((err) => {
+        console.error(err);
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          `후기 조회 실패 (HTTP ${err.response?.status ?? "?"})`;
+        toast.error(msg);
+        setContent({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: page,
+          size,
+        });
+      })
+      .finally(() => alive && setLoading(false));
+
+    return () => {
+      alive = false;
+    };
+  }, [memberId, page, size, sort]);
+
+  const summary = useMemo(() => {
+    const items = Array.isArray(content?.content) ? content.content : [];
+    const count = content?.totalElements || items.length || 0;
+    // 가벼운 평균 계산 (페이지 아이템 기반이 아닌 총평균이 필요하면 서버에서 제공)
+    const avg =
+      items.length > 0
+        ? (items.reduce((s, it) => s + (Number(it.rating) || 0), 0) / items.length).toFixed(1)
+        : "-";
+    return { count, avg };
+  }, [content]);
+
+  return (
+    <div className="brutal-card">
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h5 className="m-0">⭐ 받은 후기</h5>
+        <div className="d-flex align-items-center gap-2">
+          <Dropdown onSelect={(k) => k && setSort(k)}>
+            <Dropdown.Toggle size="sm" variant="outline-dark">
+              정렬: {SORT_OPTIONS.find((o) => o.key === sort)?.label || "최신순"}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {SORT_OPTIONS.map((o) => (
+                <Dropdown.Item eventKey={o.key} key={o.key} active={o.key === sort}>
+                  {o.label}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <Dropdown onSelect={(k) => setSize(Number(k))}>
+            <Dropdown.Toggle size="sm" variant="outline-dark">
+              {size}개씩
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {[5, 10, 20].map((n) => (
+                <Dropdown.Item key={n} eventKey={n} active={n === size}>
+                  {n}개
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+
+          <div className="small text-muted">
+            {content?.number + 1}/{content?.totalPages || 1}
+          </div>
+          <Button size="sm" variant="outline-dark" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={!canPrev}>
+            이전
+          </Button>
+          <Button
+            size="sm"
+            variant="dark"
+            onClick={() => setPage((p) => Math.min(Math.max(0, totalPages - 1), p + 1))}
+            disabled={!canNext}
+          >
+            다음
+          </Button>
+        </div>
+      </div>
+
+      {/* 요약 */}
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <Badge bg="dark">총 {summary.count}개</Badge>
+        <Badge bg="secondary">페이지 평균 {summary.avg}</Badge>
+      </div>
+
+      {loading ? (
+        <div className="d-flex justify-content-center my-4">
+          <Spinner animation="border" role="status" />
+        </div>
+      ) : Array.isArray(content?.content) && content.content.length > 0 ? (
+        <ListGroup>
+          {content.content.map((r) => (
+            <ListGroup.Item key={r.id} className="d-flex flex-column gap-1">
+              <div className="d-flex justify-content-between align-items-start">
+                <div className="d-flex flex-column">
+                  <div className="d-flex align-items-center gap-2">
+                    <Stars rating={r.rating} />
+                    <strong>{r.reviewerNickname || `작성자 #${r.reviewerId}`}</strong>
+                    {r.revieweeRole && (
+                      <Badge bg="light" text="dark" className="border">
+                        {r.revieweeRole === "SELLER" ? "판매자 후기" : "구매자 후기"}
+                      </Badge>
+                    )}
+                    {r.isPublic === false && (
+                      <Badge bg="warning" text="dark">
+                        비공개
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-muted small">{r.insertedAt?.replace("T", " ").slice(0, 16)}</div>
+                </div>
+
+                {/* 게시글 이동 */}
+                {r.boardId && (
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    onClick={() => (window.location.href = `/board/${r.boardId}`)}
+                  >
+                    게시글
+                  </Button>
+                )}
+              </div>
+
+              <div className="mt-2" style={{ whiteSpace: "pre-wrap" }}>
+                {r.content}
+              </div>
+
+              <TagChips tags={r.tags} />
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      ) : (
+        <div className="text-muted">표시할 후기가 없습니다.</div>
+      )}
+    </div>
+  );
+}
+
+export default MyReview;

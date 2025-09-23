@@ -1,15 +1,25 @@
-/* 색/타이포 */
+/* ========================================
+   Board List — 번개장터 톤 (레드 포인트/헤어라인/플랫)
+   ======================================== */
+
+/* 팔레트/토큰: 기존 변수명 유지하면서 레드로 전환 */
 .jn-root {
-    --bg-hero: #fff3ec;
-    --chip: #f2f3f5;
-    --chip-active: #111;
+    --bg-hero: #fff5f5;          /* 부드러운 레드 빛 배경 */
+    --chip: #f4f5f7;             /* 뉴트럴 칩 배경 */
+    --chip-active: #ff4b4b;      /* 활성 칩 배경 = 레드 */
     --text: #222;
-    --muted: #666;
-    --border: #eee;
-    --accent: #ff6b6b;
+    --muted: #6b7280;
+    --border: #eaecef;           /* 헤어라인 느낌 밝은 회색 */
+    --accent: #ff4b4b;           /* 브랜드 레드 */
     --card-bg: #fff;
-    --shadow: 0 10px 24px rgba(0,0,0,.08);
-    --radius: 14px;
+    --shadow: 0 2px 8px rgba(0,0,0,.05);   /* 낮은 그림자 */
+    --radius: 12px;
+
+    /* 상태 배지용 (통일감) */
+    --badge-onsale-bg: #111;     /* 판매중: 블랙 */
+    --badge-reserved-bg: #f59e0b;/* 예약중: 앰버 */
+    --badge-sold-bg: #9ca3af;    /* 판매완료: 그레이 */
+
     font-family: "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     color: var(--text);
 }
@@ -17,132 +27,149 @@
 /* 히어로 */
 .jn-hero {
     background: var(--bg-hero);
-    padding: 40px 0 32px;
-    border-bottom: 3px solid #ffe0d4;
+    padding: 36px 0 28px;
+    border-bottom: 1px solid #ffdede; /* 더 얇게 */
     text-align: center;
 }
 .jn-hero-title {
-    font-size: 2.6rem;
+    font-size: 2.4rem;
     font-weight: 900;
-    margin: 0 0 12px;
-    letter-spacing: -1px;
+    margin: 0 0 10px;
+    letter-spacing: -.5px;
     line-height: 1.2;
-    background: linear-gradient(90deg, #ff6b6b, #ff9f43);
+    background: linear-gradient(90deg, var(--accent), #ff7a7a);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
 }
 .jn-hero-sub {
-    font-size: 1.15rem;
+    font-size: 1.08rem;
     color: var(--muted);
     margin: 0;
     font-weight: 600;
 }
-.jn-hero-sub strong {
-    color: #111;
-    font-weight: 800;
-}
-
-/* (미사용) 검색/트렌드 섹션
-.jn-search-wrap { max-width: 720px; margin: 0 auto; }
-.jn-search {
-    border: 2px solid #ffd7cb; background: #fff; border-radius: 999px; overflow: hidden;
-}
-.jn-search .form-control { border: none; box-shadow: none; padding-left: 40px; }
-.jn-search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
-.jn-search-clear { border: none; }
-.jn-trends {
-    display: flex; gap: 10px; align-items: center; padding: 8px 4px; color: var(--muted);
-}
-.jn-trends-label { font-weight: 700; }
-.jn-trend-btn {
-    border: none; background: transparent; color: var(--text); padding: 4px 8px; border-radius: 999px;
-}
-.jn-trend-btn:hover { background: #fff; }
-*/
+.jn-hero-sub strong { color: #111; font-weight: 800; }
 
 /* 카테고리 칩 */
 .jn-cats {
     display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-    padding-top: 14px;
+    padding-top: 12px;
 }
 .jn-chip {
     border: 1px solid var(--border);
     background: var(--chip);
+    color: var(--text);
     border-radius: 999px;
     padding: 6px 12px;
-    font-weight: 700; font-size: .95rem;
-    line-height: 1;
+    font-weight: 800; font-size: .94rem; line-height: 1;
     cursor: pointer;
-    transition: filter .15s ease, background-color .15s ease, color .15s ease, border-color .15s ease;
+    transition: background .15s ease, color .15s ease, border-color .15s ease, transform .06s ease;
 }
-.jn-chip:hover { filter: brightness(.97); }
-.jn-chip.active { background: var(--chip-active); color: #fff; border-color: #111; }
-.jn-chip.sm { padding: 4px 10px; font-size: .9rem; }
+.jn-chip:hover { background: #f8f9fb; }
+.jn-chip:active { transform: scale(.98); }
+.jn-chip.active { background: var(--chip-active); color: #fff; border-color: var(--chip-active); }
+.jn-chip.sm { padding: 4px 10px; font-size: .88rem; }
 
 /* 배너(사용 시) */
-.jn-banner { padding: 14px 0; }
+.jn-banner { padding: 12px 0; }
 .jn-carousel { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .jn-caption h5 { font-weight: 800; }
 
 /* 퀵필터(사용 시) */
-.jn-filter { border-top: 1px solid var(--border); padding: 12px 0; background: #fff; }
-.jn-label { font-weight: 800; color: var(--muted); }
+.jn-filter { border-top: 1px solid var(--border); padding: 10px 0; background: #fff; }
+.jn-label { font-weight: 900; color: var(--muted); }
 .jn-trade-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* 카드 그리드 */
-.jn-grid { padding: 12px 0 24px; }
-.jn-loading, .jn-empty { text-align: center; color: var(--muted); padding: 24px 0; }
+.jn-grid { padding: 10px 0 22px; }
+.jn-loading, .jn-empty { text-align: center; color: var(--muted); padding: 20px 0; }
 
+/* 카드 */
 .jn-card {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
     background: var(--card-bg);
-    box-shadow: 0 0 0 rgba(0,0,0,0);
+    box-shadow: none;
     transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
     cursor: pointer;
 }
-.jn-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: #e8e8e8; }
+.jn-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: #e3e6eb;
+}
 
+/* 썸네일 */
 .jn-thumb { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #fafafa; }
 .jn-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.jn-thumb-empty { width: 100%; height: 100%; display: grid; place-items: center; color: #aaa; font-weight: 700; }
+.jn-thumb-empty { width: 100%; height: 100%; display: grid; place-items: center; color: #a8adb7; font-weight: 800; }
 
+/* 상태 배지: 좌상단 */
 .jn-badge {
     position: absolute; left: 10px; top: 10px;
-    padding: 4px 8px; border-radius: 999px; font-weight: 800; font-size: .8rem; color: #fff;
+    padding: 4px 9px; border-radius: 999px; font-weight: 900; font-size: .78rem; color: #fff;
+    letter-spacing: .02em;
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+    border: 1px solid rgba(255,255,255,.12);
 }
-.jn-badge.onsale { background: #111; }
-.jn-badge.reserved { background: #ff9f43; }
-.jn-badge.sold { background: #6c757d; }
+.jn-badge.onsale   { background: var(--badge-onsale-bg); }
+.jn-badge.reserved { background: var(--badge-reserved-bg); color: #111; }
+.jn-badge.sold     { background: var(--badge-sold-bg); }
 
+/* 본문 메타 */
 .jn-card-body { padding: 10px; }
 .jn-cat { color: var(--muted); font-size: .82rem; margin-bottom: 4px; }
 .jn-title {
-    font-weight: 800; line-height: 1.25; margin-bottom: 4px;
+    font-weight: 900; line-height: 1.25; margin-bottom: 4px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.jn-price { font-weight: 900; font-size: 1.05rem; margin-bottom: 4px; }
-.jn-meta { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); }
+.jn-price { font-weight: 900; font-size: 1.02rem; margin-bottom: 4px; }
+
+/* 하위 메타줄 */
+.jn-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .82rem; color: var(--muted);
+}
 .jn-loc { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 좋아요/댓글 수: 가독성 강화된 뱃지형 숫자 */
+.jn-counts {
+    display: inline-flex; gap: 6px; align-items: center;
+}
 .jn-counts i { margin-right: 4px; }
+
+.jn-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; padding: 0 6px;
+    border-radius: 999px; font-size: .74rem; font-weight: 900; line-height: 1;
+    background: var(--accent); color: #fff;      /* 진한 배경 + 흰 글씨 */
+    border: 1px solid #ffd1d1;                   /* 헤어라인 */
+    box-shadow: 0 2px 6px rgba(255,75,75,.18);
+}
+.jn-count.is-light {
+    background: #ffe9e9; color: #cc2f2f; border-color: var(--accent);
+}
 
 /* 더보기 CTA */
 .jn-more { display: grid; place-items: center; padding-top: 12px; }
 .jn-more-btn {
-    border-radius: 999px; font-weight: 800; padding: 10px 18px; border: none; background: #111; color: #fff;
-    transition: transform .12s ease, filter .12s ease, background-color .12s ease;
+    border-radius: 999px; font-weight: 900; padding: 10px 18px; border: 1px solid var(--accent);
+    background: var(--accent); color: #fff;
+    transition: transform .12s ease, background-color .12s ease, box-shadow .15s ease, filter .12s ease;
+    box-shadow: 0 2px 6px rgba(255,75,75,.22);
 }
-.jn-more-btn:hover { background: #000; transform: translateY(-1px); }
+.jn-more-btn:hover { background: #e63a3a; transform: translateY(-1px); }
 
 /* 공지/리뷰 패널 */
 .jn-extra { padding: 10px 0 24px; border-top: 1px solid var(--border); background: #fff; }
-.jn-panel { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fff; }
+.jn-panel {
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fff;
+}
 .jn-panel-title { margin: 0 0 10px; font-weight: 900; }
 
 /* CTA 섹션(사용 시) */
-.jn-cta { padding: 28px 0 36px; background: #f7f8fa; }
+.jn-cta { padding: 26px 0 32px; background: #fafafa; }
 .jn-logos {
     margin-top: 10px;
     display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 12px; justify-items: center;
@@ -151,14 +178,22 @@
 @media (min-width: 768px) { .jn-logos { grid-template-columns: repeat(4, minmax(160px, 1fr)); } }
 
 /* 접근성: 포커스 스타일 */
-.jn-cats .jn-chip:focus-visible {
+.jn-cats .jn-chip:focus-visible,
+.jn-more-btn:focus-visible,
+.jn-card:focus-visible {
     outline: 3px solid var(--accent);
     outline-offset: 2px;
-    border-radius: 999px;
+    border-radius: 12px;
 }
 
-/* 반응형 자잘한 보정 */
+/* 반응형 보정 */
 @media (max-width: 480px) {
-    .jn-hero-title { font-size: 2.1rem; }
-    .jn-hero-sub { font-size: 1.05rem; }
+    .jn-hero-title { font-size: 2rem; }
+    .jn-hero-sub { font-size: 1rem; }
 }
+
+/* ----------------------------------------
+   (선택) 기존 구조를 건드리지 않고 숫자 가독성만 강화하려면
+   카드 하단 숫자에 .jn-count 클래스를 덧씌워 사용하세요.
+   예) <span class="jn-count">12</span>
+   ---------------------------------------- */

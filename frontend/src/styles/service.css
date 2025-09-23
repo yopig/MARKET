@@ -1,177 +1,222 @@
-/* ========================================
-   안전마켓 고객 지원 페이지 (ServicePage) V2
-   - 팔레트 변수화(쉽게 커스터마이즈)
-   - 안전/신뢰감: Safety Green + Charcoal
-   ======================================== */
+/* =====================================================
+   안전마켓 고객 지원 페이지 (ServicePage) — Bunjang 느낌 리디자인
+   - 강렬한 레드 포인트, 미니멀 & 쨍한 대비
+   - 모바일 우선, 폼/알림/버튼 통일, 소프트 섀도
+   ===================================================== */
 
 :root {
-    /* Core Palette */
-    --ink: #1f2937;             /* 차콜(텍스트/보더) */
-    --ink-weak: #6b7280;        /* 보조 텍스트 */
-    --brand: #16a34a;           /* 안전 그린(포인트) */
-    --brand-strong: #0f7a37;    /* Brand hover/active */
-    --panel: #f1f8f5;           /* 연한 민트/그린 패널 */
-    --paper: #ffffff;           /* 기본 배경 */
-    --beige-soft: #f7efe8;      /* 보조 배경(선택) */
+    /* Palette (Bunjang Red) */
+    --ink: #1f2937;
+    --ink-weak: #6b7280;
+
+    --brand: #ff2c55;           /* Bunjang red */
+    --brand-strong: #e01e46;
+    --panel: #fff6f7;           /* very light red panel */
+    --paper: #ffffff;
+    --accent-weak: #ffe1e8;     /* soft red wash */
 
     /* Semantic */
-    --success-bg: #e7f6ee;
-    --success-ink: #0b6b3a;
-    --danger-bg: #ffebee;
-    --danger-ink: #c62828;
+    --success-bg: #e8f8ef; --success-ink: #206a3a;
+    --danger-bg: #ffedf0;  --danger-ink: #b71c1c;
 
-    /* Shadows (네오 느낌) */
-    --neo-shadow: 5px 5px 0 0 var(--ink);
-    --neo-shadow-lg: 7px 7px 0 0 var(--ink);
-    --neo-shadow-sm: 3px 3px 0 0 var(--ink);
+    /* Surfaces */
+    --line: #eceff1;
+    --shadow: 0 8px 22px rgba(0,0,0,0.06);
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.06);
 
-    /* Borders */
-    --border-w: 3px;
-    --radius: 0; /* 네오 브루탈 느낌 유지 */
+    /* Shape */
+    --radius: 16px;
+    --radius-sm: 12px;
+    --radius-xs: 10px;
+
+    /* Typography */
+    --font: 'Pretendard','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;
+
+    /* Focus */
+    --focus-ring: rgba(255,44,85,.35);
+    --focus-border: rgba(255,44,85,.45);
+    --focus-glow: rgba(255,44,85,.15);
 }
 
-/* 컨테이너 */
+/* ===== Container ===== */
 .support-page-container {
     width: 100%;
     max-width: 1100px;
     margin: 0 auto;
     padding: 40px 20px;
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--paper);
+    font-family: var(--font);
+    background: var(--paper);
 }
 
-/* 헤더 */
+/* ===== Header ===== */
 .support-page-header {
     text-align: center;
-    margin-bottom: 40px;
-    border-bottom: var(--border-w) solid var(--ink);
-    padding-bottom: 30px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
 }
-
 .support-page-header h1 {
     font-weight: 800;
-    font-size: 2.5rem;
+    font-size: clamp(28px, 3.2vw, 40px);
     color: var(--ink);
     letter-spacing: -0.02em;
 }
-
 .support-page-header p {
-    font-size: 1.1rem;
+    font-size: 15px;
     color: var(--ink-weak);
     margin-top: 10px;
 }
+.support-page-header .headline-underline {
+    width: 72px; height: 8px; border-radius: 999px; margin: 14px auto 0;
+    background: linear-gradient(90deg, var(--brand), var(--brand-strong));
+}
 
-/* 2단 레이아웃 */
+/* ===== Grid ===== */
 .support-grid {
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 40px;
+    gap: 28px;
+}
+@media (max-width: 992px) {
+    .support-grid { grid-template-columns: 1fr; }
 }
 
-/* 왼쪽 정보 패널 */
+/* ===== Left: Info Panel ===== */
 .support-info-panel {
-    background-color: var(--panel);               /* 그린 톤 패널 */
-    border: var(--border-w) solid var(--ink);
-    padding: 30px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
 }
-
 .support-info-panel h3 {
-    font-weight: 700;
-    border-bottom: 2px solid var(--ink);
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+    font-weight: 800;
     color: var(--ink);
+    margin: 0 0 16px;
 }
-
 .support-info-panel p {
     line-height: 1.7;
     color: var(--ink-weak);
-    margin-bottom: 30px;
+    margin-bottom: 18px;
 }
-
+.contact-details { margin-top: 10px; }
 .contact-details .contact-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    font-weight: 600;
-    color: var(--ink);
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; color: var(--ink);
+}
+.contact-item .icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent-weak);
+    display: grid; place-items: center; font-size: 18px; color: var(--brand);
 }
 
-/* 오른쪽 폼 패널 */
+/* Quick links pill */
+.quick-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 12px;
+    background: #f4f6f7; color: #495057; border: 1px solid var(--line);
+}
+.quick-pill--brand {
+    background: #ffe6ec; color: var(--brand); border-color: #ffd3de;
+}
+
+/* ===== Right: Form Panel ===== */
 .support-form-panel {
-    border: var(--border-w) solid var(--ink);
-    padding: 30px;
-    background-color: var(--paper);
-}
-
-/* 반응형 */
-@media (max-width: 992px) {
-    .support-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== Alerts (네오 스타일) ===== */
-.alert-neo {
-    padding: 15px;
-    border: var(--border-w) solid var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
-    font-weight: 700;
-    box-shadow: var(--neo-shadow);
+    padding: 24px;
+    box-shadow: var(--shadow);
 }
-
-.alert-success-neo {
-    background-color: var(--success-bg);
-    color: var(--success-ink);
+.support-form-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
 }
+.support-form-title h3 { margin: 0; color: var(--ink); font-weight: 800; }
+.support-form-sub { color: var(--ink-weak); font-size: 14px; margin-bottom: 8px; }
 
-.alert-danger-neo {
-    background-color: var(--danger-bg);
-    color: var(--danger-ink);
+/* ===== Form ===== */
+.form-row { display: grid; gap: 12px; margin-bottom: 14px; }
+.form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+@media (max-width: 640px) { .form-row.cols-2 { grid-template-columns: 1fr; } }
+
+.label {
+    font-size: 13px; font-weight: 700; color: #4b5563; margin-bottom: 6px;
 }
-
-/* ===== Inputs ===== */
-.form-input-neo {
-    border: 2px solid var(--ink);
-    border-radius: var(--radius);
+.form-input-neo, .form-textarea-neo, .form-select-neo {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: var(--ink);
+    font-size: 14px;
+    transition: box-shadow .15s ease, border-color .15s ease;
 }
+.form-textarea-neo { min-height: 120px; resize: vertical; }
 
-.form-input-neo:focus {
+.form-input-neo:focus, .form-textarea-neo:focus, .form-select-neo:focus {
     outline: none;
-    box-shadow: var(--neo-shadow);
+    border-color: var(--focus-border);
+    box-shadow: 0 0 0 4px var(--focus-glow);
 }
 
-.form-input-neo.is-invalid {
-    border-color: #d9534f !important;
-}
+/* Validation */
+.is-invalid { border-color: #e03131 !important; }
+.is-invalid:focus { box-shadow: 0 0 0 4px rgba(224,49,49,.12) !important; }
 
-.form-input-neo.is-invalid:focus {
-    box-shadow: var(--neo-shadow) !important;
+/* ===== Buttons ===== */
+.btn-brand {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 18px; font-weight: 800; font-size: 14px;
+    color: #fff; background: var(--brand);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
 }
+.btn-brand:hover { background: var(--brand-strong); transform: translateY(-1px); }
+.btn-brand:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
 
-/* ===== Buttons (브랜드 색상 반영) ===== */
-.btn-warning-neo {
-    background-color: var(--brand);
-    color: #ffffff;
-    border: var(--border-w) solid var(--ink);
+.btn-soft {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+    color: var(--brand); background: var(--accent-weak); border: 1px solid #ffd3de;
+    border-radius: 999px; font-weight: 700; font-size: 13px; transition: background .12s ease;
+}
+.btn-soft:hover { background: #ffdde5; }
+
+/* ===== Alerts ===== */
+.alert-neo {
+    padding: 14px 16px;
     border-radius: var(--radius);
-    box-shadow: var(--neo-shadow);
-    transition: transform 0.05s ease-in-out, box-shadow 0.05s ease-in-out, background-color 0.1s ease-in-out;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+}
+.alert-success-neo { background: var(--success-bg); color: var(--success-ink); }
+.alert-danger-neo { background: var(--danger-bg); color: var(--danger-ink); }
+
+/* ===== Helper: section card ===== */
+.section-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+.section-card + .section-card { margin-top: 14px; }
+
+/* ===== Footer ===== */
+.support-footer {
+    margin-top: 24px; text-align: center; color: var(--ink-weak); font-size: 13px;
 }
 
-.btn-warning-neo:hover:not(:disabled) {
-    background-color: var(--brand-strong);
-    transform: translate(-2px, -2px);
-    box-shadow: var(--neo-shadow-lg);
+/* ===== Accessibility ===== */
+.btn-brand:focus-visible, .btn-soft:focus-visible,
+.form-input-neo:focus-visible, .form-textarea-neo:focus-visible, .form-select-neo:focus-visible,
+.quick-pill:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
 }
 
-.btn-warning-neo:active:not(:disabled) {
-    transform: translate(1px, 1px);
-    box-shadow: var(--neo-shadow-sm);
-}
-
-/* ===== 선택: 보조 톤이 필요할 때 (사용 안 하면 무시) ===== */
-.support-info-panel.is-beige {
-    background-color: var(--beige-soft);
-}
+/* ===== Optional muted beige section (톤 유지) ===== */
+.support-info-panel.is-beige { background: #f8eff1; }

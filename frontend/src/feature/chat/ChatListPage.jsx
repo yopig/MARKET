@@ -112,6 +112,27 @@ async function enrichRoomsWithParticipants(rooms, bearer) {
   return out;
 }
 
+/** -------------------- UI 조각: 상태 뱃지(마켓 카드와 동일 톤) -------------------- */
+function StatusPill({ status }) {
+  // ON_SALE / RESERVED / SOLD_OUT → 텍스트/클래스 매핑
+  const map = {
+    ON_SALE: { text: "판매중", cls: "onsale" },
+    RESERVED: { text: "예약중", cls: "reserved" },
+    SOLD_OUT: { text: "판매완료", cls: "sold" },
+  };
+  const picked = map[status] || map.ON_SALE;
+
+  // jn-badge 색감/패딩 그대로 사용하되 position만 static으로 교정
+  return (
+    <span
+      className={`jn-badge ${picked.cls}`}
+      style={{ position: "static", display: "inline-block", lineHeight: 1 }}
+    >
+      {picked.text}
+    </span>
+  );
+}
+
 /** -------------------- 컴포넌트 -------------------- */
 export function ChatListPage() {
   const [rooms, setRooms] = useState(null);
@@ -264,7 +285,7 @@ export function ChatListPage() {
   }
 
   return (
-    <div className="container py-4">
+    <div className="container py-4 jn-root">
       <h2 className="mb-3">채팅</h2>
       <ListGroup>
         {rooms.map((r) => {
@@ -312,11 +333,9 @@ export function ChatListPage() {
                     <strong className="text-truncate" title={title} style={{ maxWidth: 320 }}>
                       {title || "(제목 없음)"}
                     </strong>
-                    {status === "SOLD_OUT" ? (
-                      <Badge bg="secondary">판매완료</Badge>
-                    ) : (
-                      <Badge bg="success">판매중</Badge>
-                    )}
+
+                    {/* ✅ 마켓 카드와 동일한 색/톤의 상태 뱃지 */}
+                    <StatusPill status={status} />
                   </div>
 
                   <div className="text-muted d-flex flex-wrap" style={{ gap: 10, fontSize: 13 }}>

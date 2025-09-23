@@ -8,16 +8,14 @@ import {
   Modal,
   Row,
   Spinner,
-  Badge,
   ListGroup,
   Image,
 } from "react-bootstrap";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom"; // ✅ dom
 import { toast } from "react-toastify";
 import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
-import { MyReview } from "../review/MyReview.jsx";
 import "../../styles/MemberDetail.css";
 
 /** 공통 유틸 */
@@ -27,14 +25,16 @@ const formatPrice = (v) => {
 };
 const formatDate = (v) => (v ? String(v).replace("T", " ").slice(0, 16) : "");
 
-/** 거래 상태 뱃지 */
+/** 거래 상태 뱃지 (중고나라 톤: .jn-badge 스타일 사용) */
 const tradeStatusBadge = (status) => {
-  const s = (status || "").toLowerCase();
-  let variant = "secondary";
-  if (s.includes("sold")) variant = "dark";
-  else if (s.includes("reserve")) variant = "warning";
-  else if (s.includes("sale") || s.includes("on_sale")) variant = "success";
-  return <Badge bg={variant}>{status || "상태미정"}</Badge>;
+  const s = String(status || "").toUpperCase().trim();
+  if (s.includes("SOLD")) {
+    return <span className="jn-badge jn-badge--inline sold">판매완료</span>;
+  }
+  if (s.includes("ON_SALE") || s.includes("SALE") || s.includes("ONSALE")) {
+    return <span className="jn-badge jn-badge--inline onsale">판매중</span>;
+  }
+  return <span className="jn-badge jn-badge--inline">상태미정</span>;
 };
 
 /** 거래이력 패널 (게시물 = 거래이력, 페이지네이션 포함) */
@@ -52,7 +52,9 @@ function TradeHistoryPanel({ memberId }) {
       setItems([]);
       setPageInfo({ currentPageNumber: 1, totalPages: 1 });
       setLoading(false);
-      return () => { alive = false; };
+      return () => {
+        alive = false;
+      };
     }
 
     setLoading(true);
@@ -82,10 +84,10 @@ function TradeHistoryPanel({ memberId }) {
             title: b.title,
             price: b.price,
             status: b.tradeStatus,
-            role: "seller",              // 내 게시물이므로 판매로 간주
+            role: "seller",
             thumbnailUrl: thumb,
             updatedAt: b.insertedAt,
-            reviewWritten: false,        // 게시글 목록에선 정보 없음
+            reviewWritten: false,
           };
         });
         setItems(mapped);
@@ -102,7 +104,9 @@ function TradeHistoryPanel({ memberId }) {
       })
       .finally(() => alive && setLoading(false));
 
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [memberId, page]);
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
@@ -156,7 +160,6 @@ function TradeHistoryPanel({ memberId }) {
                     {it.title || "(제목 없음)"}
                   </strong>
                   {tradeStatusBadge(it.status)}
-                  <Badge bg="info" text="dark">판매</Badge>
                 </div>
                 <div className="small text-muted mt-1">
                   {formatPrice(it.price)} · {formatDate(it.updatedAt)}
@@ -185,9 +188,8 @@ export function MemberDetail() {
   const [modalShow, setModalShow] = useState(false);
   const [password, setPassword] = useState("");
   const [tempCode, setTempCode] = useState("");
-  const { logout, hasAccess, isAdmin } = useContext(AuthenticationContext);
+  const { logout, hasAccess } = useContext(AuthenticationContext); // isAdmin 제거
   const [params] = useSearchParams();
-  const [rightColumnView, setRightColumnView] = useState("trades"); // trades | myReviews
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -314,20 +316,6 @@ export function MemberDetail() {
               <Button onClick={() => navigate(`/member/edit?email=${member.email}`)} className="btn-brutal btn-edit">
                 수정
               </Button>
-              <div className="d-flex gap-2">
-                <Button
-                  onClick={() => setRightColumnView("trades")}
-                  className={`btn-brutal btn-view ${rightColumnView === "trades" ? "active" : ""}`}
-                >
-                  거래 이력
-                </Button>
-                <Button
-                  onClick={() => setRightColumnView("myReviews")}
-                  className={`btn-brutal btn-view ${rightColumnView === "myReviews" ? "active" : ""}`}
-                >
-                  후기 보기
-                </Button>
-              </div>
               <Button onClick={handleModalButtonClick} className="btn-brutal btn-delete">
                 탈퇴
               </Button>
@@ -335,13 +323,9 @@ export function MemberDetail() {
           )}
         </Col>
 
-        {/* 오른쪽 컬럼 */}
+        {/* 오른쪽 컬럼: 거래 이력만 표시 */}
         <Col style={{ height: "100%", overflowY: "auto" }}>
-          {rightColumnView === "trades" && <TradeHistoryPanel memberId={member.id} />}
-          {rightColumnView === "myReviews" ||
-          (!hasAccess(member.email) && typeof isAdmin === "function" && isAdmin()) ? (
-            <MyReview memberId={member.id} />
-          ) : null}
+          <TradeHistoryPanel memberId={member.id} />
         </Col>
       </Row>
 

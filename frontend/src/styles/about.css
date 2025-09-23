@@ -1,113 +1,116 @@
-/* === About Hero 섹션 === */
+/* === About Hero 섹션 (중고나라 톤) === */
 .about-hero {
     text-align: center;
     margin-bottom: 5rem;
     padding: 6rem 2rem;
-    background: linear-gradient(135deg, #FF6B6B, #FFD93D); /* 레드 → 옐로우 그라데이션 */
-    color: var(--text-black);
+    background: linear-gradient(135deg, #f9fbff, #eef4ff); /* 화이트→연블루 */
+    color: #1f2937;
     border-radius: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    border: 1px solid #e6e8ee;
+    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
 }
 
 .about-hero h1.display-4 {
     font-weight: 900;
     line-height: 1.2;
+    letter-spacing: -0.3px;
 }
 
 .about-hero h1 span.text-primary {
-    color: #2E86DE; /* 포인트 블루 */
+    color: #1778ff; /* 포인트 블루 */
 }
 
 .about-hero p.lead {
-    font-size: 1.2rem;
-    opacity: 0.9;
+    font-size: 1.15rem;
+    color: #4b5563;
+    opacity: 0.95;
 }
 
 .about-hero .btn {
     padding: 1rem 2rem;
-    font-weight: 700;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background-color: #2E86DE;
-    color: var(--pure-white);
+    font-weight: 800;
     border-radius: 0.75rem;
+    background-color: #1778ff;
+    border: 1px solid #1778ff;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(23, 120, 255, 0.25);
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
 }
-
 .about-hero .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+    background-color: #0f5fd1;
+    border-color: #0f5fd1;
+    box-shadow: 0 10px 24px rgba(23, 120, 255, 0.35);
 }
 
 /* === 기능 카드 === */
 .about-features .card {
-    border: none;
-    border-radius: 1.5rem;
-    background: #FFF5F0; /* 크림톤 배경 */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e6e8ee;
+    border-radius: 1.25rem;
+    background: #ffffff; /* 크림톤 → 화이트 */
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
 }
-
 .about-features .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+    transform: translateY(-6px);
+    border-color: #d2d6e0;
+    box-shadow: 0 14px 30px rgba(17, 24, 39, 0.12);
 }
 
 .feature-icon {
-    width: 60px;
-    height: 60px;
+    width: 60px; height: 60px;
     border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--coral-light);
-    color: var(--primary-coral);
+    display: inline-flex; align-items: center; justify-content: center;
+    background-color: #eef4ff;   /* 연블루 배경 */
+    color: #1778ff;              /* 포인트 블루 */
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform .2s ease, box-shadow .2s ease;
 }
-
 .feature-icon:hover {
-    transform: scale(1.2);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    transform: scale(1.08);
+    box-shadow: 0 8px 18px rgba(23, 120, 255, 0.25);
 }
 
 /* === 3단계 사용법 === */
 .about-steps .step-circle {
-    width: 60px;
-    height: 60px;
+    width: 60px; height: 60px;
     border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--pure-white);
-    font-weight: 800;
-    font-size: 1.2rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #ffffff;
+    font-weight: 800; font-size: 1.1rem;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #5aa3ff, #1778ff); /* 블루 그라데이션 */
+    box-shadow: 0 6px 16px rgba(23, 120, 255, 0.25);
+    transition: transform .2s ease, box-shadow .2s ease;
 }
-
 .about-steps .step-circle:hover {
-    transform: scale(1.2);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+    transform: scale(1.08);
+    box-shadow: 0 10px 24px rgba(23, 120, 255, 0.35);
 }
 
 /* === CTA 섹션 === */
 .about-cta {
     text-align: center;
     padding: 5rem 2rem;
-    background: linear-gradient(135deg, #2E86DE, #6C5CE7); /* 블루 → 퍼플 */
-    color: var(--pure-white);
+    background: linear-gradient(135deg, #1778ff, #6c8bfa); /* 블루 → 소프트 퍼플블루 */
+    color: #ffffff;
     border-radius: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    border: 1px solid #e6e8ee;
+    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.12);
 }
-
 .about-cta .btn {
-    transition: all 0.3s ease;
     border-radius: 0.75rem;
+    padding: 0.9rem 1.6rem;
+    background: #ffffff; color: #1778ff;
+    border: 1px solid #ffffff;
+    font-weight: 800;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
 }
-
 .about-cta .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+    background: #eef4ff; color: #0f5fd1;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.18);
 }
 
 /* === Badge === */
@@ -115,12 +118,13 @@
     border-radius: 0.75rem;
     font-size: 0.85rem;
     padding: 0.5em 0.75em;
-    background: #FF6B6B;
-    color: var(--pure-white);
-    transition: all 0.3s ease;
+    background: #eef4ff;   /* 연블루 배경 */
+    color: #1778ff;        /* 블루 텍스트 */
+    border: 1px solid #dbe6ff;
+    transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
 }
-
 .badge:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(23, 120, 255, 0.2);
+    border-color: #bcd2ff;
 }

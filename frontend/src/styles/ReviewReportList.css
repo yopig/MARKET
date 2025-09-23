@@ -1,48 +1,146 @@
-/* ReviewReportList.css */
+/* =====================================================
+   ReviewReportList.css — 중고장터(번개/중고나라) 느낌 리디자인
+   - Neutral(차콜/슬레이트) + 살짝 블루 악센트
+   - 밀도 높은 테이블, 행 호버 리프트, 배지/칩
+   - 모바일에선 카드형 리스트로 자동 전환
+   ===================================================== */
 
+:root {
+    /* Palette */
+    --ink: #1f2937;            /* 차콜 */
+    --ink-weak: #6b7280;       /* 보조 텍스트 */
+    --paper: #ffffff;          /* 카드 배경 */
+    --surface: #f8fafc;        /* 페이지 소프트 배경 */
+    --line: #e5e7eb;           /* 테이블 라인 */
+    --accent: #2563eb;         /* 링크/포커스 악센트(잔잔한 블루) */
+    --accent-weak: #eff6ff;    /* 약한 블루 배경 */
+
+    /* States */
+    --ok-bg: #e8f5ee;   --ok-ink: #147a4b;
+    --warn-bg: #fff6e5; --warn-ink: #a35400;
+    --bad-bg: #ffedef;  --bad-ink: #b3261e;
+
+    /* Shape & Shadow */
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 6px 18px rgba(0,0,0,.06);
+    --shadow-sm: 0 3px 10px rgba(0,0,0,.05);
+}
+
+/* ===== Wrapper (선택) ===== */
+.review-report-wrapper { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+
+/* ===== Table ===== */
 .review-report-table {
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: var(--shadow);
 }
 
-.review-report-table thead {
-    background-color: #f8f9fa;
-}
+.review-report-table thead { background: #f3f4f6; }
 
 .review-report-table th {
-    font-weight: 600;
-    padding: 1rem 1.5rem;
-    background-color: #fdf7f7;
-    color: #000000;
-    border-bottom: 2px solid #e9ecef;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #374151;
+    border-bottom: 2px solid var(--line);
+    letter-spacing: .2px;
+    font-size: 13px;
 }
 
 .review-report-table td {
-    padding: 1rem 1.5rem;
+    padding: 12px 16px;
     vertical-align: middle;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background: var(--paper);
 }
 
-.review-report-table tbody .clickable-row td {
-    cursor: pointer;
-}
+/* 호버: 중고장터 리스트처럼 살짝 강조 */
+.review-report-table tbody tr { transition: background .15s ease, transform .08s ease, box-shadow .12s ease; }
+.review-report-table tbody .clickable-row { cursor: pointer; }
+.review-report-table tbody .clickable-row:hover td { background: #f9fafb; }
 
-.review-report-table tbody .clickable-row:hover td {
-    background-color: #f1f3f5;
-}
+/* 지그재그 줄무늬(은은) */
+.review-report-table tbody tr:nth-child(even) td { background: #fdfefe; }
 
+/* 열 별 셀 제약 */
 .review-report-table .reason-cell {
-    max-width: 400px;
+    max-width: 520px;
     white-space: pre-wrap;
+    overflow-wrap: break-word;
     word-break: break-word;
     text-overflow: initial;
+    color: #374151;
+}
+.review-report-table td.reporter-email-cell { overflow: visible; color: #1f2937; }
+
+/* 링크/텍스트 액션 */
+.review-report-table a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.review-report-table a:hover { text-decoration: underline; }
+
+/* ===== Status / Type Pills ===== */
+.status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap;
+}
+.status--open    { background: var(--warn-bg); color: var(--warn-ink); }
+.status--reviewed{ background: var(--ok-bg);   color: var(--ok-ink); }
+.status--rejected{ background: var(--bad-bg);  color: var(--bad-ink); }
+
+/* 카테고리/사유 칩 (번개/중고나라 태그 느낌) */
+.chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    background: #f4f6f8; color: #4b5563; border: 1px solid var(--line);
+}
+.chip--accent { background: var(--accent-weak); color: #1d4ed8; border-color: #dbeafe; }
+
+/* 작은 썸네일/프로필 (선택) */
+.thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; box-shadow: var(--shadow-sm); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+
+/* ===== 모바일: 카드형 리스트 변환 ===== */
+@media (max-width: 768px) {
+    .review-report-table thead { display: none; }
+    .review-report-table, .review-report-table tbody, .review-report-table tr, .review-report-table td { display: block; width: 100%; }
+
+    .review-report-table tr {
+        margin: 12px 0; padding: 14px; background: var(--paper);
+        border: 1px solid var(--line); border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-sm);
+    }
+    .review-report-table td { border: none; padding: 8px 0; position: relative; white-space: normal; overflow: visible; }
+    .review-report-table td + td { border-top: 1px dashed #eef2f7; padding-top: 10px; margin-top: 8px; }
+
+    /* 헤더 레이블을 data-label 로 노출 */
+    .review-report-table td[data-label]::before {
+        content: attr(data-label);
+        display: block; font-size: 12px; color: var(--ink-weak); margin-bottom: 4px; letter-spacing: .2px;
+    }
+
+    /* 긴 내용 폭 제약 해제 */
+    .review-report-table .reason-cell { max-width: none; }
 }
 
-.review-report-table td.reporter-email-cell {
-    overflow: visible;
+/* ===== Sticky 헤더(선택) ===== */
+.review-report-table.is-sticky thead th { position: sticky; top: 0; z-index: 2; }
+
+/* ===== 밀도 옵션 ===== */
+.table--dense td { padding: 10px 12px; }
+.table--loose td { padding: 16px 18px; }
+
+/* ===== 접근성 ===== */
+.review-report-table a:focus-visible, .status-pill:focus-visible, .chip:focus-visible {
+    outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; border-radius: 8px;
 }

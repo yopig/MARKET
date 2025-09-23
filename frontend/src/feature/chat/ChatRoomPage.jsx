@@ -1,7 +1,7 @@
 // src/feature/chat/ChatRoomPage.jsx (FULL REPLACE)
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Badge, Button, Form, Image, InputGroup, ListGroup, Spinner } from "react-bootstrap";
+import { Button, Form, Image, InputGroup, ListGroup, Spinner } from "react-bootstrap";
 import SockJS from "sockjs-client/dist/sockjs.js";
 import { Client as StompClient } from "@stomp/stompjs";
 import axios from "axios";
@@ -87,23 +87,24 @@ function mergeMeta(prev, next) {
 function normalizeMessage(raw) {
   if (!raw) return null;
   return {
-      id: raw.id ?? raw.messageId ?? raw.mid ?? null,
-      roomId: raw.roomId,
-      senderId: raw.senderId ?? raw.sender_id ?? raw.fromId ?? raw.from ?? null,
-      senderNickName:
-        raw.senderNickName ??
-        raw.senderNickname ??
-        raw.sender_name ??
-        raw.fromName ??
-        raw.nickname ??
-        raw.nick ??
-        null,
-      senderEmail: raw.senderEmail ?? raw.email ?? null,
-      senderName: raw.senderName ?? raw.name ?? null,
-     senderProfileImageUrl: raw.senderProfileImageUrl ?? raw.senderAvatar ?? raw.senderImageUrl ?? null,
+    id: raw.id ?? raw.messageId ?? raw.mid ?? null,
+    roomId: raw.roomId,
+    senderId: raw.senderId ?? raw.sender_id ?? raw.fromId ?? raw.from ?? null,
+    senderNickName:
+      raw.senderNickName ??
+      raw.senderNickname ??
+      raw.sender_name ??
+      raw.fromName ??
+      raw.nickname ??
+      raw.nick ??
+      null,
+    senderEmail: raw.senderEmail ?? raw.email ?? null,
+    senderName: raw.senderName ?? raw.name ?? null,
+    senderProfileImageUrl:
+      raw.senderProfileImageUrl ?? raw.senderAvatar ?? raw.senderImageUrl ?? null,
     content: (raw.content ?? raw.message ?? "").toString(),
     insertedAt: raw.insertedAt ?? raw.createdAt ?? raw.inserted_at ?? null,
-};
+  };
 }
 
 function formatTime(ts) {
@@ -276,7 +277,9 @@ export function ChatRoomPage() {
             (Array.isArray(meta.files)
               ? meta.files.find((f) => {
               const u =
-                typeof f === "string" ? f : f?.url || f?.path || f?.imageUrl || f?.thumbnailUrl || "";
+                typeof f === "string"
+                  ? f
+                  : f?.url || f?.path || f?.imageUrl || f?.thumbnailUrl || "";
               return /\.(jpe?g|png|gif|webp)$/i.test(u);
             }) || null
               : null),
@@ -522,7 +525,11 @@ export function ChatRoomPage() {
         nick: user?.nickName ?? user?.nickname ?? user?.name ?? user?.email ?? "나",
         avatar:
           withTokenIfSameOrigin(
-            user?.profileImageUrl || user?.avatarUrl || user?.imageUrl || user?.photoURL || defaultProfileImage,
+            user?.profileImageUrl ||
+            user?.avatarUrl ||
+            user?.imageUrl ||
+            user?.photoURL ||
+            defaultProfileImage,
             token
           ) || defaultProfileImage,
       });
@@ -544,11 +551,15 @@ export function ChatRoomPage() {
       ? user?.nickName ?? user?.nickname ?? user?.name ?? user?.email ?? "나"
       : m.senderNickName ?? m.senderName ?? m.senderEmail ?? m.senderId ?? "상대";
     const avatar = isMe
-        ? withTokenIfSameOrigin(
-                 user?.profileImageUrl || user?.avatarUrl || user?.imageUrl || user?.photoURL || defaultProfileImage,
-                token
-               ) || defaultProfileImage
-          : withTokenIfSameOrigin(m.senderProfileImageUrl, token) || defaultProfileImage;
+      ? withTokenIfSameOrigin(
+      user?.profileImageUrl ||
+      user?.avatarUrl ||
+      user?.imageUrl ||
+      user?.photoURL ||
+      defaultProfileImage,
+      token
+    ) || defaultProfileImage
+      : withTokenIfSameOrigin(m.senderProfileImageUrl, token) || defaultProfileImage;
 
     return { name, avatar };
   }
@@ -566,12 +577,21 @@ export function ChatRoomPage() {
   const regionText = [itemMeta?.regionSido, itemMeta?.regionSigungu].filter(Boolean).join(" ");
   const rawThumb = itemMeta?.thumb ?? pickThumb(itemMeta?.files || []);
   const thumb = withTokenIfSameOrigin(rawThumb, token);
-  const tradeBadge =
-    itemMeta?.tradeStatus === "SOLD_OUT" ? (
-      <Badge bg="secondary">판매완료</Badge>
-    ) : (
-      <Badge bg="success">판매중</Badge>
-    );
+
+  // ✅ BoardDetail과 동일한 status-chip 배지 사용
+  const tradeClass =
+    itemMeta?.tradeStatus === "SOLD_OUT"
+      ? "sold"
+      : itemMeta?.tradeStatus === "RESERVED"
+        ? "reserved"
+        : "onsale";
+  const tradeText =
+    itemMeta?.tradeStatus === "SOLD_OUT"
+      ? "판매완료"
+      : itemMeta?.tradeStatus === "RESERVED"
+        ? "예약중"
+        : "판매중";
+  const tradeBadge = <span className={`status-chip ${tradeClass}`}>{tradeText}</span>;
 
   return (
     <div className="p-3" style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -674,7 +694,7 @@ export function ChatRoomPage() {
 
       <div className="d-flex align-items-center justify-content-between mb-2">
         <h5 className="mb-0">{itemMeta?.title || `채팅방 #${roomId}`}</h5>
-        <div className="small text-muted">{connecting ? "연결 중..." : "연결됨"}</div>
+        <div className="small text-muted">{connecting ? "연결 중..." : ""}</div>
       </div>
 
       {/* 메시지 영역 */}
@@ -767,15 +787,14 @@ export function ChatRoomPage() {
                           border: `1px solid ${isMe ? "#d6e9ff" : "#eee"}`,
                           padding: "8px 10px",
                           borderRadius: 12,
-                          boxShadow: "0 1px 0 rgba(0,0,0,0.03)",   // ← 여기 수정!
+                          boxShadow: "0 1px 0 rgba(0,0,0,0.03)",
                           color: "#222",
                           wordBreak: "break-word",
                           borderTopLeftRadius: isMe ? 12 : 6,
                           borderTopRightRadius: isMe ? 6 : 12,
                         }}
                       >
-
-                      <div
+                        <div
                           style={{
                             display: "flex",
                             alignItems: "baseline",

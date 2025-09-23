@@ -67,24 +67,35 @@
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http.csrf(csrf -> csrf.disable());
+            http
+                    .csrf(csrf -> csrf.disable())
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                    .authorizeHttpRequests(auth -> auth
+                            // ✅ 웹소켓/핸드셰이크 허용
+                            .requestMatchers("/ws/**", "/api/ws/**").permitAll()
 
-            // ✨ CORS 설정을 Spring Security에 직접 통합
-            http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                            // ✅ 이메일 인증 API 허용 (send-code, verify)
+                            .requestMatchers("/api/auth/email/**").permitAll()
 
-            http.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-            http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                            // ✅ 회원가입은 비로그인 공개(프론트에서 인증 전 호출)
+                            .requestMatchers("/api/member/add").permitAll()
 
-            http.authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/ws/**", "/api/ws/**").permitAll() // ✅ 명시
-                    .requestMatchers(
-                            "/api/review/add", "/api/review/update/**", "/api/review/delete/**"
-                    ).authenticated()
-                    .anyRequest().permitAll()
-            );
+                            // (필요 시) 정적 파일 공개
+                            .requestMatchers("/files/**", "/assets/**").permitAll()
+
+                            // ✅ 리뷰 쓰기/수정/삭제는 로그인 필요(네가 이미 지정한 라인 유지)
+                            .requestMatchers("/api/review/add",
+                                    "/api/review/update/**",
+                                    "/api/review/delete/**").authenticated()
+
+                            // 그 외 전부 허용(프로젝트 정책에 맞게 조정 가능)
+                            .anyRequest().permitAll()
+                    );
+
             return http.build();
         }
-
         // ✨ CORS 설정을 위한 Bean을 여기에 정의
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {

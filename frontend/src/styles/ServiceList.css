@@ -1,54 +1,230 @@
-/* ServiceList.css */
+/* =====================================================
+   ServiceList.css — Bunjang (번개장터) 느낌 고정
+   - Drop-in for <table class="service-list-table">
+   - Mobile card-table, crisp contrast, soft shadows
+   ===================================================== */
 
-.service-list-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+/* ============ Base tokens (Bunjang) ============ */
+:root {
+    --bg: #ffffff;
+    --bg-soft: #fff6f7;           /* very light red wash */
+    --text-strong: #212529;
+    --text: #343a40;
+    --text-weak: #6c757d;
+    --line: #eceff1;
+    --shadow: 0 6px 18px rgba(0,0,0,0.06);
+
+    --radius: 16px;
+    --radius-sm: 12px;
+    --radius-xs: 10px;
+    --pad-y: 14px;
+    --pad-x: 18px;
+
+    --font: 'Pretendard','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;
+
+    /* Accent (Bunjang red) */
+    --accent: #ff2c55;
+    --accent-weak: #ffe1e8;
+    --accent-weak-2: #fff0f3;
+    --accent-ink: #b01733;
+
+    /* State */
+    --ok-bg: #e8f8ef;  --ok-ink: #206a3a;
+    --warn-bg: #fff1f3;--warn-ink:#b01733;
+    --muted-bg:#f1f3f5;--muted-ink:#495057;
 }
 
+/* ============ Wrapper ============ */
+.service-list-wrapper {
+    max-width: 1040px;
+    margin: 40px auto;
+    padding: 0 16px;
+    font-family: var(--font);
+    color: var(--text);
+}
+
+/* ============ Table ============ */
+.service-list-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+/* Header background: bunjang-ish gradient */
 .service-list-table thead {
-    background-color: #f8f9fa;
+    background: linear-gradient(90deg, var(--accent-weak-2) 0%, #fff 100%);
 }
 
 .service-list-table th {
-    font-weight: 600;
-    padding: 1rem 1.5rem;
-    background-color: #fdf7f7;
-    color: #000000;
-    border-bottom: 2px solid #e9ecef;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: var(--text-strong);
+    border-bottom: 2px solid var(--line);
+    font-size: 15px;
 }
 
+/* Body */
 .service-list-table td {
-    padding: 1rem 1.5rem;
+    padding: var(--pad-y) var(--pad-x);
     vertical-align: middle;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
+    font-size: 14px;
+    background: var(--bg);
 }
 
 .service-list-table tbody tr {
-    transition: background-color 0.2s ease;
+    transition: background .18s ease, transform .12s ease, box-shadow .12s ease;
 }
-
 .service-list-table tbody tr:hover {
-    background-color: #f1f3f5;
+    background: var(--bg-soft);
+    box-shadow: 0 2px 0 0 var(--accent-weak);
+}
+.service-list-table tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--bg) 92%, var(--accent-weak-2) 8%);
 }
 
+/* Email highlight (ellipsis) */
 .service-list-table .service-email-cell {
-    max-width: 250px;
+    max-width: 260px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--accent);
+    font-weight: 600;
 }
 
+/* Long content */
 .service-list-table .content-cell {
-    max-width: 400px;
+    max-width: 520px;
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
 }
 
-.text-hover:hover {
-    transition: none;
-    box-shadow: none;
+/* Links / inline actions */
+.service-list-table a,
+.service-list-table .link-like {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+.service-list-table a:hover,
+.service-list-table .link-like:hover {
+    text-decoration: underline;
+}
+
+/* ============ Pills / Badges ============ */
+.badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-pill--primary { background: var(--accent-weak); color: var(--accent); }
+.badge-pill--muted   { background: var(--muted-bg);  color: var(--muted-ink); }
+.badge-pill--ok      { background: var(--ok-bg);     color: var(--ok-ink); }
+.badge-pill--warn    { background: var(--warn-bg);   color: var(--warn-ink); }
+
+/* 가격/상태 칩 (선택) */
+.chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px; border-radius:12px; font-weight:700; font-size:12px;
+    border:1px solid color-mix(in srgb, var(--accent) 24%, #fff 76%);
+    background: color-mix(in srgb, var(--accent-weak) 60%, #fff 40%);
+    color: var(--accent-ink);
+}
+
+/* ============ Soft Buttons ============ */
+.btn-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, var(--accent-weak) 60%, #fff 40%);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, #fff 75%);
+    font-weight: 700;
+    font-size: 13px;
+    transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
+}
+.btn-soft:hover { background: color-mix(in srgb, var(--accent-weak) 75%, #fff 25%); }
+.btn-soft:active { transform: translateY(1px); }
+
+/* ============ Focus A11y ============ */
+.service-list-table a:focus-visible,
+.btn-soft:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent 65%);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* ============ Density (desktop) ============ */
+@media (min-width: 769px) {
+    .service-list-table td { padding: 16px 20px; }
+}
+
+/* ============ Mobile Card Table ============ */
+@media (max-width: 768px) {
+    .service-list-table thead { display: none; }
+
+    .service-list-table,
+    .service-list-table tbody,
+    .service-list-table tr,
+    .service-list-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .service-list-table tr {
+        margin: 12px 0;
+        padding: 14px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+    }
+
+    .service-list-table td {
+        border: none;
+        padding: 8px 0;
+        position: relative;
+    }
+
+    .service-list-table td + td {
+        border-top: 1px dashed #f0f0f0;
+        padding-top: 10px;
+        margin-top: 8px;
+    }
+
+    .service-list-table td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 12px;
+        color: var(--text-weak);
+        margin-bottom: 6px;
+        letter-spacing: .2px;
+    }
+
+    .service-list-table .service-email-cell,
+    .service-list-table .content-cell { max-width: none; }
+}
+
+/* ============ Optional: sticky header ============ */
+.service-list-table.is-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }

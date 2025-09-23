@@ -1,42 +1,45 @@
 /* ========================================
-   MyReview.css
+   MyReview.css — Bunjang(번개장터) 느낌
    ======================================== */
+
+/* 리뷰 카드 */
 .review-card-custom {
-    background-color: #fffafa;
-    box-shadow: 5px 5px 1px 1px #212529;
-    border: 3px solid black;
-    border-radius: 0;
+    background-color: #fff;
+    border: 2px solid #eceff1;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .review-card-custom:hover {
-    border: 3px solid #D9534F;
-    box-shadow: 5px 5px 1px 1px #D9534F !important;
-    background-color: #fffafc;
+    border-color: #ff2c55; /* Bunjang red */
+    box-shadow: 0 6px 14px rgba(255,44,85,0.25);
+    transform: translateY(-2px);
+    background-color: #fff6f7;
 }
 
+/* 구분선 */
 .hr-color-hotpink {
-    border-top: 1px solid #D9534F;
+    border-top: 1px solid #ff2c55;
 }
 
-/* 리뷰 구분선 스타일 */
 .review-separator {
-    border-top-width: 5px; /* 더 두꺼운 선 */
-    /*margin-top: 3rem; !* 필요에 따라 간격 조절 *!*/
-    /*margin-bottom: 2rem; !* 필요에 따라 간격 조절 *!*/
+    border-top-width: 4px;
+    border-color: #ffe1e8;
 }
 
+/* 시설 링크 */
 .facility-link {
+    color: #343a40;
+    font-weight: 600;
     transition: color 0.2s ease, transform 0.2s ease;
 }
-
 .facility-link:hover {
-    color: #d2691e; /* 살짝 강조 */
+    color: #ff2c55; /* 강조 */
 }
-
 .facility-link svg {
     transition: transform 0.2s ease;
 }
-
 .facility-link:hover svg {
-    transform: translateX(3px); /* 오른쪽으로 살짝 이동 */
+    transform: translateX(3px);
 }

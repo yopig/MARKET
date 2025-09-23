@@ -1,41 +1,60 @@
+/* ========================================
+   MemberList.css — Bunjang(번개장터) 느낌
+   ======================================== */
 .member-list-table {
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    font-family: 'Pretendard','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;
 }
 
+/* 헤더 */
 .member-list-table thead {
-    background-color: #f8f9fa;
+    background: linear-gradient(90deg, #fff0f3 0%, #ffffff 100%);
 }
-
 .member-list-table th {
-    font-weight: 600;
+    font-weight: 700;
     padding: 1rem 1.5rem;
-    background-color: #fdf7f7;
-    color: #000000;
+    font-size: 14px;
+    color: #212529;
+    background-color: #fff6f7;
     border-bottom: 2px solid #e9ecef;
+    letter-spacing: .2px;
 }
 
+/* 바디 */
 .member-list-table td {
     padding: 1rem 1.5rem;
     vertical-align: middle;
-    border-bottom: 1px solid #dee2e6;
-    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #343a40;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* 행 인터랙션 */
 .member-list-table tbody tr {
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .member-list-table tbody tr:hover td {
-    background-color: #f1f3f5;
+    background-color: #fff6f7;
+    color: #ff2c55;
 }
 
+/* 짝수행 은은한 구분 */
+.member-list-table tbody tr:nth-child(even) td {
+    background: #fffdfd;
+}
+
+/* 이메일 셀 강조 */
 .member-list-table .email-cell {
-    max-width: 200px;
+    max-width: 220px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #ff2c55;
+    font-weight: 600;
 }

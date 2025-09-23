@@ -429,3 +429,56 @@ CREATE TABLE board_report (
                                   FOREIGN KEY (reporter_id) REFERENCES member(id)
                                       ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE trade_review (
+                              id               INT AUTO_INCREMENT PRIMARY KEY,
+                              board_id         INT NOT NULL,                -- 어떤 거래글에 대한 후기인지
+                              reviewer_id      BIGINT NOT NULL,             -- 후기를 작성한 사람(회원)
+                              reviewee_id      BIGINT NOT NULL,             -- 후기를 받은 사람(회원) = 상대방
+                              rating           TINYINT NOT NULL,            -- 1~5 정수
+                              content          TEXT NOT NULL,               -- 후기 내용
+                              tags             VARCHAR(255) DEFAULT NULL,   -- 콤마구분 태그(ex: "친절해요,응답빨라요")
+                              reviewee_role    VARCHAR(10) NOT NULL,        -- "SELLER" | "BUYER" (문자열)
+                              is_public        TINYINT(1) NOT NULL DEFAULT 1,
+                              like_count       INT NOT NULL DEFAULT 0,
+                              inserted_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                              CONSTRAINT uq_review_once UNIQUE (board_id, reviewer_id),         -- 같은 거래글에 같은 작성자 1회만
+                              CONSTRAINT fk_tr_board   FOREIGN KEY (board_id)   REFERENCES board(id)   ON DELETE CASCADE,
+                              CONSTRAINT fk_tr_writer  FOREIGN KEY (reviewer_id) REFERENCES member(id) ON DELETE RESTRICT,
+                              CONSTRAINT fk_tr_target  FOREIGN KEY (reviewee_id) REFERENCES member(id) ON DELETE RESTRICT,
+
+                              INDEX ix_tr_board (board_id),
+                              INDEX ix_tr_reviewee (reviewee_id),
+                              INDEX ix_tr_reviewer (reviewer_id),
+                              INDEX ix_tr_role (reviewee_role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- (선택) 후기 이미지 테이블
+CREATE TABLE trade_review_file (
+                                   id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                   review_id    INT NOT NULL,
+                                   s3_key       VARCHAR(255) NOT NULL,
+                                   url          VARCHAR(500) NOT NULL,
+                                   sort_order   INT NOT NULL DEFAULT 0,
+                                   inserted_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_trf_review FOREIGN KEY (review_id) REFERENCES trade_review(id) ON DELETE CASCADE,
+                                   INDEX ix_trf_review (review_id),
+                                   INDEX ix_trf_sort (review_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- (선택) 집계 최적화용: 회원별 후기 통계(즉시 업데이트)
+CREATE TABLE member_review_stat (
+                                    member_id     BIGINT PRIMARY KEY,
+                                    review_count  INT NOT NULL DEFAULT 0,
+                                    rating_sum    INT NOT NULL DEFAULT 0,        -- 평균 = rating_sum / review_count
+                                    last_updated  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                                    CONSTRAINT fk_mrs_member FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE trade_review
+    MODIFY COLUMN rating INT NOT NULL;

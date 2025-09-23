@@ -3,6 +3,7 @@ package com.example.backend.member.controller;
 
 import com.example.backend.member.dto.*;
 import com.example.backend.member.service.MemberService;
+import com.example.backend.auth.EmailVerificationService; // ✅ 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class MemberController {
 
     private final MemberService memberService;
+    private final EmailVerificationService emailVerificationService; // ✅ 추가
 
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody MemberLoginForm loginForm) {
@@ -111,9 +113,18 @@ public class MemberController {
         return memberService.list();
     }
 
+    /**
+     * 회원가입
+     * 프론트(FormData): email, password, nickName, info, (files), emailVerificationId
+     *   -> 반드시 emailVerificationId 포함해서 호출
+     */
     @PostMapping("add")
-    public ResponseEntity<?> add(@ModelAttribute MemberForm memberForm) {
+    public ResponseEntity<?> add(@ModelAttribute MemberForm memberForm,
+                                 @RequestParam("emailVerificationId") String emailVerificationId) { // ✅ 추가: 인증 ID 별도 파라미터
         try {
+            // ✅ 이메일 인증 완료 여부 강제
+            emailVerificationService.assertVerified(emailVerificationId, memberForm.getEmail());
+
             memberService.add(memberForm);
             return ResponseEntity.ok(Map.of("message", Map.of("type", "success", "text", "회원 가입 되었습니다.")));
         } catch (Exception e) {

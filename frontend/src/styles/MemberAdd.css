@@ -1,7 +1,33 @@
 /* ========================================
-   회원가입 페이지 (MemberAdd) - ServicePage 스타일 적용
+   회원가입 페이지 (MemberAdd) — Bunjang 느낌 리디자인
+   - 레드 포인트(#ff2c55), 라운드 + 소프트 섀도
+   - 브루탈 3px 테두리 → 미니멀 라인 & 그림자
+   - 반응형 유지
    ======================================== */
 
+/* 테마 토큰 */
+:root {
+    --bunjang-red: #ff2c55;
+    --bunjang-red-strong: #e01e46;
+
+    --ink: #212529;
+    --ink-weak: #6c757d;
+
+    --bg-app: #f8f9fa;
+    --bg-soft: #fff6f7;          /* 연한 레드 배경 */
+    --paper: #ffffff;
+
+    --line: #e9ecef;
+    --shadow: 0 10px 24px rgba(0,0,0,0.08);
+    --shadow-sm: 0 6px 16px rgba(0,0,0,0.08);
+
+    --radius: 16px;
+    --radius-sm: 12px;
+
+    --focus-ring: rgba(255,44,85,.28);
+}
+
+/* 페이지 래퍼 */
 .signup-page-wrapper {
     width: 100%;
     min-height: 100vh;
@@ -9,256 +35,216 @@
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
-    font-family: 'Poppins', sans-serif;
-    background-color: #f8f9fa;
+    font-family: 'Pretendard','Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;
+    background-color: var(--bg-app);
 }
 
-/* 전체 컨테이너 */
+/* 컨테이너 */
 .signup-container-v2 {
     width: 100%;
     max-width: 1100px;
     margin: 0 auto;
-    background: var(--pure-white);
-    border: 3px solid #2C2D31FF;
-    box-shadow: 10px 10px 0 0 #2C2D31FF;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
 }
 
-/* 페이지 헤더 */
+/* 헤더 */
 .signup-page-header {
     text-align: center;
-    padding: 40px 40px 30px;
-    border-bottom: 3px solid #2C2D31FF;
-    background-color: var(--main-bg);
+    padding: 36px 40px 26px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(90deg, var(--bg-soft) 0%, #fff 100%);
 }
-
 .signup-page-header h1 {
     font-weight: 800;
-    font-size: 2.5rem;
-    color: #2C2D31FF;
+    font-size: clamp(26px, 3vw, 40px);
+    color: var(--ink);
     margin-bottom: 10px;
+    letter-spacing: -0.02em;
 }
-
 .signup-page-header p {
-    font-size: 1.1rem;
-    color: #6c757d;
+    font-size: 15px;
+    color: var(--ink-weak);
     margin: 0;
 }
+.signup-page-header .headline-underline,
+.signup-page-header::after {
+    content: "";
+    display: block;
+    width: 76px; height: 8px;
+    margin: 14px auto 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--bunjang-red), var(--bunjang-red-strong));
+}
 
-/* 2단 레이아웃 그리드 */
+/* 2단 그리드 */
 .signup-grid {
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 0; /* gap 제거하고 border로 구분 */
+    gap: 0;
 }
 
-/* 왼쪽 환영 패널 */
+/* 왼쪽: 환영 패널 */
 .signup-welcome-panel {
     padding: 40px;
-    background-color: #f6ece6; /* ServicePage와 동일한 베이지 배경 */
-    border-right: 3px solid #2C2D31FF;
+    background-color: var(--bg-soft);
+    border-right: 1px solid var(--line);
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
-
 .welcome-content h1.welcome-logo {
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 20px;
-    color: #D9534F;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 18px;
+    color: var(--bunjang-red);
     text-align: center;
+    letter-spacing: -0.02em;
 }
-
 .welcome-content h2 {
-    font-size: 2.4rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-    color: #2C2D31FF;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 14px;
+    color: var(--ink);
     line-height: 1.3;
 }
-
 .welcome-content > p {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 30px;
+    font-size: 1rem;
+    color: var(--ink-weak);
+    margin-bottom: 26px;
     line-height: 1.6;
 }
-
 .welcome-benefits {
     list-style: none;
-    padding: 0;
-    margin: 0;
+    padding: 0; margin: 0;
 }
-
 .welcome-benefits li {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    font-weight: 500;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+    font-weight: 600;
     color: #333;
-    font-size: 1rem;
+    font-size: 0.98rem;
 }
-
 .welcome-benefits li svg {
-    color: #D9534F;
+    color: var(--bunjang-red);
     flex-shrink: 0;
 }
 
-/* 오른쪽 가입 폼 패널 */
+/* 오른쪽: 가입 폼 패널 */
 .signup-form-panel {
     padding: 40px;
-    background-color: var(--pure-white);
+    background-color: var(--paper);
 }
 
 /* 프로필 업로더 */
 .profile-uploader-neo {
-    width: 120px;
-    height: 120px;
-    border: 3px solid #2C2D31FF;
-    box-shadow: 5px 5px 0px 0px #2C2D31FF;
-    background-color: #f0f0f0;
+    width: 120px; height: 120px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    background-color: #f5f6f7;
     cursor: pointer;
     display: inline-flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    transition: all 0.2s ease-in-out;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
     margin: 0 auto;
 }
-
 .profile-uploader-neo:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0px 0px #2C2D31FF;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255,44,85,0.18);
+    border-color: var(--bunjang-red);
 }
-
 .profile-uploader-neo .profile-preview-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 100%; height: 100%; object-fit: cover;
 }
 
+/* 라벨 */
 .form-label-neo {
-    font-weight: 600;
-    color: #2C2D31FF;
+    font-weight: 700;
+    color: var(--ink);
     margin-bottom: 8px;
+    font-size: 14px;
 }
 
-/* 폼 인풋 스타일 */
+/* 인풋 */
 .form-input-neo {
-    border: 3px solid #2C2D31FF;
-    border-radius: 0;
-    padding: 12px 15px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
     font-weight: 500;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 4px 4px 0px 0px #2C2D31FF;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+    box-shadow: none;
 }
-
 .form-input-neo:focus {
-    border-color: #D9534F;
-    box-shadow: 5px 5px 0px 0px #D9534F;
+    border-color: var(--bunjang-red);
+    box-shadow: 0 0 0 4px var(--focus-ring);
     outline: none;
-    transform: translate(-1px, -1px);
 }
-
-/* 에러 상태 */
 .form-input-neo:invalid,
 .form-input-neo.is-invalid {
     border-color: #dc3545;
 }
 
+/* 에러 텍스트 */
 .text-danger.fw-bold {
     color: #dc3545 !important;
     font-size: 0.875rem;
-    margin-top: 5px;
+    margin-top: 6px;
 }
 
-/* 가입하기 버튼 */
+/* 가입 버튼 */
 .btn-neo.btn-primary-neo {
-    background-color: #D9534F;
-    color: white;
-    border: 3px solid #2C2D31FF;
-    border-radius: 0;
+    background-color: var(--bunjang-red);
+    color: #fff;
+    border: 1px solid var(--bunjang-red);
+    border-radius: 12px;
     padding: 14px 20px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    box-shadow: 5px 5px 0px 0px #2C2D31FF;
-    transition: all 0.2s ease-in-out;
+    font-weight: 800;
+    font-size: 1.05rem;
+    box-shadow: 0 10px 20px rgba(255,44,85,0.18);
+    transition: transform .12s ease, box-shadow .15s ease, background-color .12s ease;
 }
-
 .btn-neo.btn-primary-neo:hover:not(:disabled) {
-    background-color: #c9302c;
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0px 0px #2C2D31FF;
+    background-color: var(--bunjang-red-strong);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px rgba(255,44,85,0.24);
 }
-
 .btn-neo.btn-primary-neo:active:not(:disabled) {
-    transform: translate(1px, 1px);
-    box-shadow: 3px 3px 0px 0px #2C2D31FF;
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(255,44,85,0.18);
 }
-
 .btn-neo.btn-primary-neo:disabled {
-    background-color: #6c757d;
-    opacity: 0.6;
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    opacity: .8;
     cursor: not-allowed;
-    transform: none;
 }
 
-/* 스피너 스타일 */
-.spinner-border-sm {
-    width: 1rem;
-    height: 1rem;
-}
+/* 스피너 크기 보정 */
+.spinner-border-sm { width: 1rem; height: 1rem; }
 
 /* 반응형 */
 @media (max-width: 992px) {
-    .signup-grid {
-        grid-template-columns: 1fr;
-    }
-
+    .signup-grid { grid-template-columns: 1fr; }
     .signup-welcome-panel {
         border-right: none;
-        border-bottom: 3px solid #2C2D31FF;
+        border-bottom: 1px solid var(--line);
         padding: 30px;
     }
-
-    .welcome-content h1.welcome-logo {
-        font-size: 1.8rem;
-    }
-
-    .welcome-content h2 {
-        font-size: 2rem;
-    }
-
-    .signup-form-panel {
-        padding: 30px;
-    }
+    .welcome-content h1.welcome-logo { font-size: 1.7rem; }
+    .welcome-content h2 { font-size: 1.8rem; }
+    .signup-form-panel { padding: 30px; }
 }
-
 @media (max-width: 768px) {
-    .signup-page-wrapper {
-        padding: 20px 10px;
-    }
-
-    .signup-page-header {
-        padding: 30px 20px 20px;
-    }
-
-    .signup-page-header h1 {
-        font-size: 2rem;
-    }
-
-    .welcome-content h2 {
-        font-size: 1.6rem;
-    }
-
-    .signup-welcome-panel,
-    .signup-form-panel {
-        padding: 20px;
-    }
-
-    .profile-uploader-neo {
-        width: 100px;
-        height: 100px;
-    }
+    .signup-page-wrapper { padding: 20px 10px; }
+    .signup-page-header { padding: 28px 20px 18px; }
+    .signup-page-header h1 { font-size: 1.8rem; }
+    .welcome-content h2 { font-size: 1.5rem; }
+    .signup-welcome-panel, .signup-form-panel { padding: 20px; }
+    .profile-uploader-neo { width: 100px; height: 100px; }
 }
