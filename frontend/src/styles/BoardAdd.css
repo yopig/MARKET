@@ -1,86 +1,155 @@
-/* ========================================
-   BoardAdd — 담백 화이트 & 블루 포인트
-   (중고나라 톤과 통일, 얇은 보더/둥근 모서리)
-   ======================================== */
+/* =====================================================
+   BoardAdd — Clean White & Blue (Joongna-ish)
+   FULL REPLACE (namespaced: .board-add)
+   ===================================================== */
 
+/* ===== Tokens ===== */
 :root {
     --ba-blue: #1778ff;
+    --ba-blue-600: #1569e6;
     --ba-blue-dark: #0f5fd1;
     --ba-blue-soft: #eef4ff;
+
     --ba-bg: #f7f9fc;
     --ba-white: #ffffff;
-    --ba-text-strong: #1f2937;
-    --ba-text: #374151;
+
+    --ba-ink-900: #0f172a;
+    --ba-ink-800: #1f2937;
+    --ba-ink-700: #374151;
+    --ba-ink-600: #475569;
+    --ba-ink-500: #64748b;
+    --ba-ink-400: #94a3b8;
+
     --ba-muted: #94a3b8;
+
     --ba-border: #e6e8ee;
     --ba-border-strong: #d2d6e0;
-    --ba-shadow: 0 2px 10px rgba(17, 24, 39, 0.06);
-    --ba-shadow-lg: 0 10px 24px rgba(17, 24, 39, 0.12);
+    --ba-border-soft: #eef1f6;
+
+    --ba-ok: #16a34a;
+    --ba-warn: #eab308;
+    --ba-bad: #ef4444;
+
     --ba-r-lg: 14px;
     --ba-r-md: 12px;
     --ba-r-sm: 10px;
     --ba-chip-bg: #f1f5f9;
+
+    --ba-shadow: 0 2px 10px rgba(17, 24, 39, 0.06);
+    --ba-shadow-lg: 0 10px 24px rgba(17, 24, 39, 0.12);
+
+    --ba-h-input: 44px;
+    --ba-h-chip: 34px;
 }
 
-/* 래퍼 여백 */
+/* ===== Page base ===== */
 .board-add {
-    color: var(--ba-text);
+    color: var(--ba-ink-700);
 }
-
-/* 카드 기본 톤 */
-.board-add .card {
+.board-add .page-wrap {
+    background: var(--ba-white);
     border: 1.5px solid var(--ba-border);
     border-radius: var(--ba-r-lg);
     box-shadow: var(--ba-shadow);
     overflow: hidden;
 }
 
-.board-add .card-body {
-    padding: 20px;
+/* ===== Head / Stepper ===== */
+.board-add .ba-head {
+    padding: 18px 20px;
+    border-bottom: 1.5px solid var(--ba-border);
+    background: linear-gradient(180deg, #fff 0%, var(--ba-blue-soft) 160%);
 }
+.board-add .ba-title {
+    font-weight: 800;
+    color: var(--ba-ink-800);
+    font-size: 1.15rem;
+}
+.board-add .ba-stepper {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.board-add .ba-step {
+    position: relative;
+    height: 6px;
+    flex: 1;
+    border-radius: 999px;
+    background: var(--ba-border-soft);
+    overflow: hidden;
+}
+.board-add .ba-step.is-done::after,
+.board-add .ba-step.is-active::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--ba-blue);
+}
+.board-add .ba-step.is-active::after { width: 65%; }
 
-/* 라벨/헬프텍스트 */
+/* ===== Cards / Sections ===== */
+.board-add .card {
+    border: 1.5px solid var(--ba-border);
+    border-radius: var(--ba-r-lg);
+    box-shadow: var(--ba-shadow);
+    overflow: hidden;
+    background: #fff;
+}
+.board-add .card + .card { margin-top: 14px; }
+.board-add .card-header {
+    background: #fff;
+    border-bottom: 1.5px solid var(--ba-border);
+    padding: 14px 16px;
+}
+.board-add .card-header h6 {
+    margin: 0; font-weight: 800; color: var(--ba-ink-800);
+}
+.board-add .card-body { padding: 18px; }
+
+/* ===== Labels / Help / Error ===== */
 .board-add .form-label {
-    font-weight: 700;
-    color: var(--ba-text-strong);
-    margin-bottom: .4rem;
+    font-weight: 800;
+    color: var(--ba-ink-800);
+    margin-bottom: .45rem;
 }
-
-.board-add .form-text,
-.board-add .text-muted {
+.board-add .form-text, .board-add .text-muted {
     color: var(--ba-muted) !important;
 }
+.board-add .ba-error {
+    margin-top: .4rem;
+    font-size: .92rem;
+    color: var(--ba-bad);
+    font-weight: 600;
+}
 
-/* 인풋/셀렉트 톤 (얇은 보더 & 부드러운 포커스) */
+/* ===== Inputs / Selects / Focus ===== */
 .board-add .form-control,
 .board-add .form-select {
+    height: var(--ba-h-input);
     border: 1.5px solid var(--ba-border);
     border-radius: 10px;
+    background: #fff;
+    color: var(--ba-ink-700);
     box-shadow: none;
     transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
-
 .board-add .form-control:focus,
 .board-add .form-select:focus,
 .board-add .form-control:focus-visible,
 .board-add .form-select:focus-visible {
     border-color: var(--ba-blue);
-    box-shadow: 0 0 0 3px rgba(23, 120, 255, .15);
+    box-shadow: 0 0 0 3px rgba(23,120,255,.15);
     outline: none;
     background: #fff;
 }
-
-/* 비활성화 */
-.board-add .form-control:disabled,
-.board-add .form-select:disabled {
-    background: #f8fafc;
-    color: #9aa3af;
-    border-color: var(--ba-border);
-    cursor: not-allowed;
+.board-add .form-control.is-invalid,
+.board-add .form-select.is-invalid {
+    border-color: var(--ba-bad);
+    box-shadow: 0 0 0 3px rgba(239,68,68,.12);
 }
 
-/* 제목 인풋 — 볼드 & 큰 텍스트 */
+/* Title input */
 .board-add .page-title-input {
+    height: auto;
     border: 1.5px solid var(--ba-border);
     border-radius: 12px;
     padding: .9rem 1rem;
@@ -88,152 +157,269 @@
     line-height: 1.35;
     background: #fff;
 }
-
-.board-add .page-title-input::placeholder {
-    color: #9aa3af;
-    font-weight: 500;
-}
-
+.board-add .page-title-input::placeholder { color: #9aa3af; font-weight: 500; }
 .board-add .page-title-input:focus {
     border-color: var(--ba-blue);
     box-shadow: 0 0 0 3px rgba(23, 120, 255, .15);
 }
 
-/* 텍스트에어리어 */
+/* Textarea */
 .board-add textarea.form-control {
+    min-height: 200px;
     padding: .9rem 1rem;
     border-radius: 12px;
-    min-height: 180px;
+    resize: vertical;
+}
+.board-add .ba-counter {
+    text-align: right;
+    font-size: .86rem;
+    color: var(--ba-ink-400);
+    margin-top: .35rem;
 }
 
-/* 파일 업로드 */
-.board-add input[type="file"].form-control {
-    padding: .6rem .8rem;
+/* ===== Affix Inputs (가격 등) ===== */
+.board-add .ba-affix-group {
+    position: relative;
+}
+.board-add .ba-affix {
+    position: absolute; top: 50%; left: 12px;
+    transform: translateY(-50%);
+    color: var(--ba-ink-500);
+    font-weight: 700;
+}
+.board-add .ba-affix--right {
+    left: auto; right: 12px;
+}
+.board-add .ba-affix-group .form-control {
+    padding-left: 40px;
+}
+.board-add .ba-affix-group .form-control.has-suffix {
+    padding-right: 40px;
 }
 
-/* 파일 리스트 아이템 */
+/* ===== Chips / Pills ===== */
+.board-add .ba-pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+}
+.board-add .ba-pill {
+    height: var(--ba-h-chip);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0 12px;
+    border: 1.5px solid var(--ba-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ba-ink-700);
+    font-weight: 700;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.board-add .ba-pill:hover {
+    border-color: var(--ba-blue);
+    background: var(--ba-blue-soft);
+    color: var(--ba-blue);
+}
+.board-add .ba-pill.is-selected {
+    border-color: var(--ba-blue);
+    background: var(--ba-blue);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(23,120,255,.25);
+}
+
+/* ===== Toggle (form-check 미니 스위치) ===== */
+.board-add .form-check.form-switch .form-check-input {
+    width: 44px; height: 24px; cursor: pointer;
+}
+.board-add .form-check-input:checked {
+    background-color: var(--ba-blue);
+    border-color: var(--ba-blue);
+}
+
+/* ===== Select placeholder ===== */
+.board-add select.form-select option[value=""] { color: #9aa3af; }
+
+/* ===== Row spacing ===== */
+.board-add .row.g-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
+
+/* ===== Drag & Drop Upload ===== */
+.board-add .ba-dropzone {
+    display: grid; place-items: center; text-align: center;
+    min-height: 160px;
+    border: 1.5px dashed var(--ba-border);
+    border-radius: 12px;
+    background: #fff;
+    padding: 18px;
+    color: var(--ba-ink-500);
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.board-add .ba-dropzone:hover {
+    border-color: var(--ba-blue);
+    background: var(--ba-blue-soft);
+    color: var(--ba-blue-600);
+    box-shadow: 0 8px 18px rgba(23,120,255,.12);
+}
+.board-add .ba-dropzone.is-dragover {
+    border-color: var(--ba-blue-dark);
+    background: #e6f0ff;
+    color: var(--ba-blue-dark);
+}
+
+/* ===== Media grid (previews) ===== */
+.board-add .ba-media-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+@media (max-width: 1200px) { .board-add .ba-media-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 992px)  { .board-add .ba-media-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px)  { .board-add .ba-media-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 520px)  { .board-add .ba-media-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.board-add .ba-media {
+    position: relative; overflow: hidden;
+    border: 1.5px solid var(--ba-border);
+    border-radius: 10px;
+    background: #f8fafc;
+    aspect-ratio: 1/1;
+}
+.board-add .ba-media img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.board-add .ba-media .ba-media-remove {
+    position: absolute; top: 6px; right: 6px;
+    background: #fff; color: #e11d48;
+    border: 1.5px solid #e11d48;
+    height: 30px; min-width: 30px;
+    border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 10px; font-weight: 800; font-size: 12px;
+}
+.board-add .ba-media .ba-media-remove:hover {
+    background: #e11d48; color: #fff;
+}
+
+/* ===== File list (fallback) ===== */
 .board-add .list-group-item {
     border: 1.5px dashed var(--ba-border);
     border-radius: 12px !important;
     margin-bottom: .5rem;
     background: #fff;
-    display: flex;
-    align-items: center;
-    gap: .75rem;
+    display: flex; align-items: center; gap: .75rem;
 }
-
 .board-add .list-group-item img {
-    border-radius: 8px;
-    border: 1px solid var(--ba-border);
-    background: #f8fafc;
+    border-radius: 8px; border: 1px solid var(--ba-border); background: #f8fafc;
+}
+.board-add .list-group-item .d-flex.align-items-center.gap-2 svg { flex-shrink: 0; }
+
+/* ===== Location chips ===== */
+.board-add .ba-location {
+    display: flex; flex-wrap: wrap; gap: 8px;
+}
+.board-add .ba-region-chip {
+    display: inline-flex; align-items: center;
+    height: var(--ba-h-chip); padding: 0 12px;
+    border-radius: 999px;
+    border: 1.5px solid var(--ba-border);
+    background: var(--ba-chip-bg);
+    color: var(--ba-ink-600); font-weight: 700; font-size: 13px;
+}
+.board-add .ba-region-chip .remove {
+    margin-left: 6px; color: #9aa3af; font-weight: 800; cursor: pointer;
+}
+.board-add .ba-region-chip .remove:hover { color: #ef4444; }
+
+/* ===== Tag input chips ===== */
+.board-add .ba-tags {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 8px; border: 1.5px solid var(--ba-border); border-radius: 10px;
+    background: #fff;
+}
+.board-add .ba-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: var(--ba-h-chip); padding: 0 10px;
+    border-radius: 999px; background: var(--ba-blue-soft);
+    color: var(--ba-blue-600); font-weight: 700;
+}
+.board-add .ba-tag .x { cursor: pointer; opacity: .7; }
+.board-add .ba-tag .x:hover { opacity: 1; }
+.board-add .ba-tags input {
+    flex: 1 0 120px; border: none; outline: none; min-width: 120px; height: var(--ba-h-input);
 }
 
-/* 아이콘 정렬 */
-.board-add .list-group-item .d-flex.align-items-center.gap-2 svg {
-    flex-shrink: 0;
-}
-
-/* 버튼 그룹 */
+/* ===== Buttons (page actions) ===== */
 .board-add .btn {
     border-radius: 999px;
     font-weight: 700;
     transition: transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; line-height: 1; gap: .5rem; padding: 0 16px;
 }
-
-/* 저장(Primary) — 블루 톤 */
 .board-add .btn.btn-primary {
     background: var(--ba-blue);
     border-color: var(--ba-blue);
     color: #fff;
     box-shadow: 0 2px 6px rgba(23, 120, 255, .25);
 }
-
 .board-add .btn.btn-primary:hover:not(:disabled) {
     background: var(--ba-blue-dark);
     border-color: var(--ba-blue-dark);
     box-shadow: 0 8px 16px rgba(23, 120, 255, .3);
     transform: translateY(1px);
 }
-
-/* 취소(Outline Secondary) — 은은한 톤 */
 .board-add .btn.btn-outline-secondary {
     background: #fff;
-    color: var(--ba-text-strong);
+    color: var(--ba-ink-800);
     border: 1.5px solid var(--ba-border);
 }
-
 .board-add .btn.btn-outline-secondary:hover:not(:disabled) {
     background: var(--ba-blue-soft);
     border-color: var(--ba-blue);
     color: var(--ba-blue);
     box-shadow: 0 6px 14px rgba(23, 120, 255, .15);
 }
-
-/* 파일 삭제 버튼 (outline-danger 기본을 살짝 미세조정) */
 .board-add .btn.btn-outline-danger {
     border: 1.5px solid #e11d48;
     color: #e11d48;
     background: #fff;
 }
-
 .board-add .btn.btn-outline-danger:hover:not(:disabled) {
     background: #e11d48;
     color: #fff;
     box-shadow: 0 6px 14px rgba(225, 29, 72, .2);
 }
 
-/* 스피너 좌우 간격 보정 */
-.board-add .btn .spinner-border {
-    margin-right: .25rem;
+/* ===== Sticky actions (bottom) ===== */
+.board-add .ba-sticky-bar {
+    position: sticky; bottom: 0; z-index: 10;
+    background: #fff;
+    border-top: 1.5px solid var(--ba-border);
+    padding: 12px 16px;
 }
 
-/* 행 간 간격 */
-.board-add .row.g-3 {
-    --bs-gutter-x: 1rem;
-    --bs-gutter-y: 1rem;
-}
-
-/* 셀렉트 place-holder 느낌 */
-.board-add select.form-select option[value=""] {
-    color: #9aa3af;
-}
-
-/* 접근성: 포커스 링 (컨테이너 범위) */
-.board-add :focus-visible {
-    outline: 2px solid var(--ba-blue);
-    outline-offset: 2px;
-    border-radius: 6px;
-}
-
-/* 모달 — 저장 확인 */
+/* ===== Modal (confirm save) ===== */
 .board-add .modal-content {
     background: #fff;
     border: 1.5px solid var(--ba-border);
     border-radius: 12px;
     box-shadow: var(--ba-shadow-lg);
 }
-
 .board-add .modal-header {
     background: var(--ba-blue-soft);
     border-bottom: 1.5px solid var(--ba-border);
 }
+.board-add .modal-title { font-weight: 800; color: var(--ba-ink-800); }
 
-.board-add .modal-title {
-    font-weight: 800;
-    color: var(--ba-text-strong);
+/* ===== Focus ring (scoped) ===== */
+.board-add :focus-visible {
+    outline: 2px solid var(--ba-blue);
+    outline-offset: 2px;
+    border-radius: 6px;
 }
 
-/* 반응형 */
+/* ===== Responsive ===== */
 @media (max-width: 576px) {
-    .board-add .card-body {
-        padding: 16px;
-    }
-    .board-add .page-title-input {
-        font-size: 1.05rem;
-        padding: .8rem .9rem;
-    }
+    .board-add .card-body { padding: 16px; }
+    .board-add .page-title-input { font-size: 1.05rem; padding: .8rem .9rem; }
 }
 
-/* 작은 유틸리티 */
+/* ===== Small utilities ===== */
 .board-add .fw-semibold { font-weight: 700 !important; }
-.board-add .text-dark { color: var(--ba-text-strong) !important; }
+.board-add .text-dark { color: var(--ba-ink-800) !important; }

@@ -1,0 +1,25 @@
+:root {
+    --bj-red: #ff4b4b;
+    --bj-red-dark: #e63a3a;
+    --ink: #1f2937;
+    --ink-weak: #6b7280;
+    --border: #eaecef;
+}
+
+.bj-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+}
+
+.bj-footer__top-border {
+    height: 3px;
+    background: linear-gradient(90deg, var(--bj-red), var(--bj-red-dark));
+}
+
+.text-brand {
+    color: var(--bj-red) !important;
+}
+
+.text-ink {
+    color: var(--ink) !important;
+}

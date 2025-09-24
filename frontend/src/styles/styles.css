@@ -1,117 +1,219 @@
-/* === Google Fonts Import === */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+/* =====================================================
+   Button System — Neutral / Brutalist
+   (Bootstrap-compatible · Vertical Centering Fixed)
+   FULL REPLACE
+   ===================================================== */
 
-/* ========================================
-   색상 팔레트 (코랄 제거 · 뉴트럴 톤)
-   ======================================== */
+/* ------- 변수 기본값 (테마 변수가 없어도 동작하도록) ------- */
 :root {
-    /* 변수명은 유지하지만 색상은 뉴트럴로 변경 */
-    --primary-coral: #111;     /* 사용처: 버튼/포커스 등 → 검정 */
-    --coral-light: #e6e6e6;    /* 연회색 */
-    --coral-dark: #000;        /* 진한 검정 */
+    --h-btn: 44px;
+    --h-input: 44px;
+    --btn-gap: .5rem;
+    --btn-radius: 999px;
+    --btn-padding-x: 18px;
+    --btn-padding-x-sm: 14px;
+    --btn-padding-x-lg: 22px;
 
-    --main-bg: #FFF8F2;        /* 기존 배경톤 유지(히어로와 어울림) */
-    --page-bg: #FFFFFF;
-    --border-color: #E6E6E6;
-    --border-dark: #D0D0D0;
-    --white: #FFFFFF;
-    --blue-accent: #6C8BFA;    /* 필요 시 사용 */
+    --btn-bg: var(--brand, #111);
+    --btn-bg-hover: var(--brand-strong, #000);
+    --btn-fg: #fff;
 
-    --text-strong: #2E2E2E;
-    --text-normal: #555555;
-    --text-muted: #888888;
+    --btn-outline-fg: var(--ink-800, #1f1f1f);
+    --btn-outline-border: var(--ink-800, #1f1f1f);
+    --btn-outline-bg-hover: var(--ink-800, #1f1f1f);
+    --btn-outline-fg-hover: #fff;
 
-    --shadow-brutal: 3px 3px 0px 0px #D0D0D0;
-    --shadow-brutal-hover: 5px 5px 0px 0px #B8B8B8;
+    --btn-ghost-fg: var(--ink-700, #2e2e2e);
+    --btn-ghost-border: var(--border-strong, #d0d0d0);
+    --btn-ghost-bg-hover: var(--ink-050, #f5f5f5);
 
-    --font-family: 'Poppins', sans-serif;
+    --btn-ok-bg: var(--ok, #16a34a);
+    --btn-warn-bg: var(--warn, #eab308);
+    --btn-bad-bg: var(--bad, #ef4444);
+
+    --focus-color: var(--brand, #111);
 }
 
-/* ========================================
-   로고 (코랄 → 검정)
-   ======================================== */
-.logo-image {
-    background-color: #111;
-    mask-image: url('/mark.png');
-    -webkit-mask-image: url('/mark.png');
-    mask-size: contain;
-    -webkit-mask-size: contain;
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-position: center;
-}
-
-/* ========================================
-   바탕화면 (기존 그radient 유지 가능)
-   ======================================== */
-body {
-    background: linear-gradient(180deg, #FFEFEF 0%, #FFFDF9 100%);
-    color: var(--text-strong);
-    font-family: var(--font-family);
-}
-
-/* ========================================
-   메인 컨테이너
-   ======================================== */
-.main-container {
-    background-color: var(--page-bg);
-    border: 3px solid var(--border-color);
-    box-shadow: 8px 8px 0px 0px #E6D5CA;
-    color: var(--text-strong);
-}
-
-/* ========================================
-   스크롤바 (뉴트럴)
-   ======================================== */
-::-webkit-scrollbar { width: 14px; height: 14px; }
-::-webkit-scrollbar-track { background: #FAFAFA; border: 2px solid #EDEDED; }
-::-webkit-scrollbar-thumb { background: #BDBDBD; border: 2px solid #EDEDED; }
-::-webkit-scrollbar-thumb:hover { background: #9E9E9E; }
-
-/* ========================================
-   커서
-   ======================================== */
-* { cursor: auto; }
-a, button, [role="button"], .btn { cursor: pointer; }
-input, textarea, [contenteditable="true"] { cursor: text; }
-
-/* ========================================
-   버튼/링크 (BoardLayout 스타일 · 코랄색 제거)
-   ======================================== */
-button, .btn {
-    border-radius: 999px;              /* 둥근 캡슐형 */
-    font-weight: 800;
-    padding: 10px 18px;
+/* ------- 기본 버튼 (세로 중앙정렬 + Flex) ------- */
+button,
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--btn-gap);
+    min-height: var(--h-btn);
+    height: auto;
+    line-height: 1;                 /* 폰트 라인박스 영향 최소화 */
+    padding: 0 var(--btn-padding-x);
+    border-radius: var(--btn-radius);
     border: none;
-    background: #111;                  /* 기본: 검정 */
-    color: #fff;                       /* 텍스트: 흰색 */
-    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-weight: 800;
+    text-decoration: none;
     box-shadow: 0 2px 4px rgba(0,0,0,.15);
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+    vertical-align: middle;
 }
 
-/* hover */
-button:hover, .btn:hover {
-    background: #000;                  /* 더 짙은 검정 */
+button:hover,
+.btn:hover {
+    background: var(--btn-bg-hover);
     box-shadow: 0 4px 8px rgba(0,0,0,.2);
 }
 
-/* active */
-button:active, .btn:active {
-    background: #333;                  /* 살짝 연한 톤 */
-    transform: scale(0.97);
+button:active,
+.btn:active {
+    transform: scale(.97);
 }
 
-/* ========================================
-   선택 영역 (코랄 제거 → 검정)
-   ======================================== */
-::selection { background: #111; color: #fff; }
-::-moz-selection { background: #111; color: #fff; }
-
-/* ========================================
-   포커스 (코랄 제거 → 검정 점선)
-   ======================================== */
-:focus-visible {
-    outline: 2px dashed #111;
+/* 포커스 */
+button:focus-visible,
+.btn:focus-visible {
+    outline: 2px dashed var(--focus-color);
     outline-offset: 2px;
+}
+
+/* 비활성화 */
+button:disabled,
+.btn:disabled,
+.disabled.btn {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ------- 아이콘 정렬 보정 ------- */
+.btn > svg,
+.btn .bi,
+.btn .fa {
+    vertical-align: middle;
+    transform: translateY(-.5px);   /* 0 ~ -1px 사이 취향 보정 */
+}
+
+/* ------- 사이즈 변형 ------- */
+.btn-sm {
+    min-height: 36px;
+    padding: 0 var(--btn-padding-x-sm);
+    font-weight: 700;
+}
+.btn-lg {
+    min-height: 52px;
+    padding: 0 var(--btn-padding-x-lg);
+    font-weight: 800;
+}
+
+/* ------- 스타일 변형 ------- */
+/* Outline */
+.btn-outline {
+    background: #fff;
+    color: var(--btn-outline-fg);
+    border: 2px solid var(--btn-outline-border);
+    box-shadow: none;
+}
+.btn-outline:hover {
+    background: var(--btn-outline-bg-hover);
+    color: var(--btn-outline-fg-hover);
+}
+
+/* Ghost */
+.btn-ghost {
+    background: transparent;
+    color: var(--btn-ghost-fg);
+    border: 2px dashed var(--btn-ghost-border);
+    box-shadow: none;
+}
+.btn-ghost:hover {
+    background: var(--btn-ghost-bg-hover);
+}
+
+/* 상태 버튼 */
+.btn-ok    { background: var(--btn-ok-bg); }
+.btn-warn  { background: var(--btn-warn-bg); color: #111; }
+.btn-bad   { background: var(--btn-bad-bg); }
+
+/* 링크 버튼 (텍스트 링크처럼) */
+.btn-linklike {
+    background: transparent;
+    color: var(--btn-outline-fg);
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    min-height: auto;
+    font-weight: 700;
+}
+.btn-linklike:hover {
+    text-decoration: underline;
+}
+
+/* 아이콘 전용(정사각) */
+.btn-icon {
+    width: var(--h-btn);
+    min-width: var(--h-btn);
+    padding: 0;
+}
+
+/* 꽉 차게 */
+.btn-block {
+    display: flex !important;
+    width: 100%;
+}
+
+/* ------- InputGroup 안 버튼 높이 동기화 ------- */
+.input-group .btn {
+    height: var(--h-input);
+    min-height: var(--h-input);
+    padding: 0 14px;
+    line-height: 1;
+    border-radius: 0 var(--btn-radius) var(--btn-radius) 0; /* 오른쪽 버튼일 때 */
+}
+.input-group .btn:first-child {
+    border-radius: var(--btn-radius) 0 0 var(--btn-radius); /* 왼쪽 버튼일 때 */
+}
+
+/* ------- 드롭다운 토글 케럿 정렬(Boostrap 호환) ------- */
+.dropdown-toggle::after {
+    margin-left: .35rem;
+    transform: translateY(1px);
+}
+
+/* ------- 로딩 상태 (스피너 내장) ------- */
+.btn.is-loading {
+    position: relative;
+    pointer-events: none;
+    color: transparent !important;      /* 텍스트 숨김 */
+}
+.btn.is-loading::after {
+    content: "";
+    position: absolute;
+    width: 18px; height: 18px;
+    border: 3px solid rgba(255,255,255,.35);
+    border-top-color: rgba(255,255,255,1);
+    border-radius: 50%;
+    animation: btnspin .8s linear infinite;
+}
+@keyframes btnspin { to { transform: rotate(360deg); } }
+
+/* ------- 네비게이션 배치용 버튼 높이(옵션) ------- */
+.bj-navbar .btn {
+    min-height: 40px;                   /* Nav 영역에 맞춤 */
+    padding: 0 .9rem;
+}
+
+/* ------- 리듀스드 모션 ------- */
+@media (prefers-reduced-motion: reduce){
+    * {
+        transition-duration: .001ms !important;
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ------- 다크모드(선호시) 대비 약간의 튜닝 ------- */
+@media (prefers-color-scheme: dark){
+    .btn-outline { background: transparent; }
+    .btn-outline:hover { background: var(--btn-outline-bg-hover); }
+    .btn-ghost:hover { background: rgba(255,255,255,.06); }
 }

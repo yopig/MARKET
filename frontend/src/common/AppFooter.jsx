@@ -1,30 +1,32 @@
 import React from "react";
 import { Container } from "react-bootstrap";
+import "../styles/AppFooter.css";
 
 export function AppFooter() {
   return (
-    <footer className="bg-dark py-3">
+    <footer className="bj-footer">
+      <div className="bj-footer__top-border" />
+
       <Container>
-        <div className="row align-items-center">
-          {/* 왼쪽: 프로젝트 정보 */}
-          <div className="col-md-6 text-center text-md-start mb-2 mb-md-0">
-            <div className="d-flex align-items-center justify-content-center justify-content-md-start">
-              <i className="bi bi-heart-fill text-warning me-2 fs-5"></i>
-              <span className="fw-bold text-light fs-6">안전마켓</span>
-            </div>
-            <div className="text-light ms-2" style={{ fontSize: "0.75rem" }}>
-              TEL:01-234-5678 / FAX:98-765-4322 / 중앙정보기술인재개발원
-            </div>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center py-3 gap-2">
+          {/* 좌측: 브랜드 */}
+          <div className="d-flex align-items-center">
+            <i
+              className="bi bi-shield-check text-brand me-2 fs-5"
+              aria-hidden="true"
+            />
+            <span className="fw-bold text-ink">안전마켓</span>
           </div>
 
-          {/* 오른쪽: 팀원 & 저작권 */}
-          <div className="col-md-6 text-center text-md-end">
-            <div className="mb-1">
-              <span className="text-light fw-semibold small">전석윤</span>
-            </div>
-            <div className="text-light" style={{ fontSize: "0.75rem" }}>
-              &copy; 2025 PRJ3. All rights reserved.
-            </div>
+          {/* 중앙: 제작자 */}
+          <div className="small text-muted text-center">
+            제작: <strong className="text-ink">전석윤</strong>
+          </div>
+
+          {/* 우측: 저작권 */}
+          <div className="small text-muted text-center text-md-end">
+            <i className="bi bi-c-circle me-1" aria-hidden="true" />
+            <span>2025 안전마켓</span>
           </div>
         </div>
       </Container>

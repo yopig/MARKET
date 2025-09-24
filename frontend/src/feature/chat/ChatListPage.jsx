@@ -1,4 +1,3 @@
-// src/feature/chat/ChatListPage.jsx (FULL REPLACE)
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, ListGroup, Spinner, Image } from "react-bootstrap";
@@ -14,8 +13,8 @@ const WS_URL =
   (typeof window !== "undefined" && window.__WS_URL) ||
   "http://localhost:8080/ws";
 
-const defaultThumb = "/no-image.png";   // 게시글 썸네일 기본
-const defaultAvatar = "/user.png";      // 사람 아바타 기본
+const defaultThumb = "/no-image.png";
+const defaultAvatar = "/user.png";
 
 function sanitizeToken(t) {
   if (!t) return null;
@@ -52,6 +51,20 @@ function pickThumb(files) {
   return null;
 }
 
+/** ChatList → 전역으로 미읽음 합계 전파 */
+function broadcastUnreadTotal(n) {
+  const safe = Math.max(0, Number(n || 0));
+  try {
+    localStorage.setItem("chat_unread_total", String(safe));
+  } catch {}
+  window.dispatchEvent(new CustomEvent("chat:unread", { detail: { n: safe } }));
+}
+function calcTotal(rooms) {
+  return Array.isArray(rooms)
+    ? rooms.reduce((a, r) => a + Number(r?.unreadCount || 0), 0)
+    : 0;
+}
+
 /** 게시글 메타 보강 */
 async function enrichRoomsWithBoard(rooms, bearer) {
   const out = [...rooms];
@@ -78,15 +91,13 @@ async function enrichRoomsWithBoard(rooms, bearer) {
           null,
       };
       out[i] = { ...r, ...boardMeta };
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   });
   await Promise.allSettled(tasks);
   return out;
 }
 
-/** 참여자(상대) 아바타 보강: /api/chat/rooms/{roomId} */
+/** 참여자(상대) 아바타 보강 */
 async function enrichRoomsWithParticipants(rooms, bearer) {
   const out = [...rooms];
   const tasks = out.map(async (r, i) => {
@@ -94,7 +105,6 @@ async function enrichRoomsWithParticipants(rooms, bearer) {
       const { data } = await axios.get(`/api/chat/rooms/${r.id}`, {
         headers: bearer ? { Authorization: bearer } : undefined,
       });
-      // otherMemberId가 seller/buyer 중 누구인지 확인해서 상대 프로필 URL 세팅
       let otherProfileImageUrl = null;
       if (r.otherMemberId != null) {
         if (String(r.otherMemberId) === String(data.sellerId)) {
@@ -104,25 +114,20 @@ async function enrichRoomsWithParticipants(rooms, bearer) {
         }
       }
       out[i] = { ...r, otherProfileImageUrl };
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   });
   await Promise.allSettled(tasks);
   return out;
 }
 
-/** -------------------- UI 조각: 상태 뱃지(마켓 카드와 동일 톤) -------------------- */
+/** -------------------- UI 조각: 상태 뱃지 -------------------- */
 function StatusPill({ status }) {
-  // ON_SALE / RESERVED / SOLD_OUT → 텍스트/클래스 매핑
   const map = {
     ON_SALE: { text: "판매중", cls: "onsale" },
     RESERVED: { text: "예약중", cls: "reserved" },
     SOLD_OUT: { text: "판매완료", cls: "sold" },
   };
   const picked = map[status] || map.ON_SALE;
-
-  // jn-badge 색감/패딩 그대로 사용하되 position만 static으로 교정
   return (
     <span
       className={`jn-badge ${picked.cls}`}
@@ -144,24 +149,26 @@ export function ChatListPage() {
   // STOMP
   const stompRef = useRef(/** @type {{ client: StompClient|null, subs: any[] }} */(null));
 
-  /** 1) 방 목록 + 게시글/참여자 메타 보강 */
+  /** 1) 방 목록 + 메타 보강 + 합계 전파 */
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const data = await chatApi.listMyRooms(); // [{id, otherMemberId, otherNickName, unreadCount, boardId, ...}]
+        const data = await chatApi.listMyRooms(); // [{id, unreadCount, ...}]
         let list = Array.isArray(data) ? data : [];
         list = await enrichRoomsWithBoard(list, bearer);
         list = await enrichRoomsWithParticipants(list, bearer);
         if (!alive) return;
         setRooms(list);
+        broadcastUnreadTotal(calcTotal(list));
       } catch {
-        if (alive) setRooms([]);
+        if (alive) {
+          setRooms([]);
+          broadcastUnreadTotal(0);
+        }
       }
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [bearer]);
 
   /** 2) STOMP 클라이언트 1회 초기화 */
@@ -194,7 +201,7 @@ export function ChatListPage() {
     };
   }, [token, bearer]);
 
-  /** 3) 방 목록 변경 시 구독 갱신 */
+  /** 3) 방 목록 변경 시 구독 갱신 + 수신 시 합계 전파 */
   useEffect(() => {
     if (!rooms) return;
     const holder = stompRef.current;
@@ -215,6 +222,7 @@ export function ChatListPage() {
           const copy = Array.isArray(prev) ? [...prev] : [];
           const idx = copy.findIndex((x) => x.id === r.id);
           if (idx >= 0) {
+            const nextUnread = (copy[idx].unreadCount ?? 0) + 1;
             copy[idx] = {
               ...copy[idx],
               lastMessage: {
@@ -225,9 +233,10 @@ export function ChatListPage() {
                 senderProfileImageUrl: msg.senderProfileImageUrl ?? copy[idx].lastMessage?.senderProfileImageUrl ?? null,
                 insertedAt: msg.insertedAt,
               },
-              unreadCount: (copy[idx].unreadCount ?? 0) + 1,
+              unreadCount: nextUnread,
             };
           }
+          broadcastUnreadTotal(calcTotal(copy));
           return copy;
         });
       })
@@ -243,15 +252,18 @@ export function ChatListPage() {
       await axios.delete(`/api/chat/rooms/${roomId}`, {
         headers: bearer ? { Authorization: bearer } : undefined,
       });
-      setRooms((prev) => (Array.isArray(prev) ? prev.filter((r) => r.id !== roomId) : prev));
-    } catch (e) {
+      setRooms((prev) => {
+        const next = Array.isArray(prev) ? prev.filter((r) => r.id !== roomId) : prev;
+        broadcastUnreadTotal(calcTotal(next));
+        return next;
+      });
+    } catch {
       alert("채팅방 삭제 중 오류가 발생했습니다.");
     } finally {
       setDeleting(null);
     }
   };
 
-  /** 마지막 발신자 이름/아바타 계산 */
   function lastSenderInfo(r) {
     const lm = r.lastMessage || {};
     const isOther = lm.senderId != null
@@ -264,7 +276,6 @@ export function ChatListPage() {
         ? (r.otherNickName ?? r.otherEmail ?? "상대")
         : "나";
 
-    // 아바타: 1) lastMessage.senderProfileImageUrl → 2) 상대가 보낸 경우 otherProfileImageUrl → 3) 기본
     const avatar = lm.senderProfileImageUrl
       || (isOther ? r.otherProfileImageUrl : null)
       || defaultAvatar;
@@ -272,13 +283,8 @@ export function ChatListPage() {
     return { name, isOther, avatar };
   }
 
-  /** -------------------- 렌더 -------------------- */
   if (!rooms) {
-    return (
-      <div className="d-flex justify-content-center my-5">
-        <Spinner />
-      </div>
-    );
+    return <div className="d-flex justify-content-center my-5"><Spinner /></div>;
   }
   if (rooms.length === 0) {
     return <div className="container py-4">채팅방이 없습니다.</div>;
@@ -290,12 +296,9 @@ export function ChatListPage() {
       <ListGroup>
         {rooms.map((r) => {
           const { name: senderName, avatar: senderAvatar } = lastSenderInfo(r);
-
-          const otherName = r.otherNickName ?? r.otherEmail ?? "상대방";
           const preview = r.lastMessage?.content ?? "";
           const unread = r.unreadCount ?? 0;
 
-          // 게시글 메타
           const title = r.boardTitle ?? "";
           const priceText = formatPrice(r.boardPrice);
           const regionText = [r.boardRegionSido, r.boardRegionSigungu].filter(Boolean).join(" ");
@@ -304,22 +307,10 @@ export function ChatListPage() {
           const thumb = r.boardThumb || defaultThumb;
 
           return (
-            <ListGroup.Item
-              key={r.id}
-              className="d-flex justify-content-between align-items-center"
-            >
-              {/* 왼쪽: 게시글 + 마지막 메시지 프리뷰 */}
+            <ListGroup.Item key={r.id} className="d-flex justify-content-between align-items-center">
+              {/* 왼쪽 */}
               <div className="d-flex align-items-center" style={{ gap: 10, maxWidth: "72%" }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    background: "#f4f4f4",
-                    flex: "0 0 auto",
-                  }}
-                >
+                <div style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", background: "#f4f4f4", flex: "0 0 auto" }}>
                   <Image
                     src={thumb}
                     alt="썸네일"
@@ -333,30 +324,16 @@ export function ChatListPage() {
                     <strong className="text-truncate" title={title} style={{ maxWidth: 320 }}>
                       {title || "(제목 없음)"}
                     </strong>
-
-                    {/* ✅ 마켓 카드와 동일한 색/톤의 상태 뱃지 */}
                     <StatusPill status={status} />
                   </div>
 
                   <div className="text-muted d-flex flex-wrap" style={{ gap: 10, fontSize: 13 }}>
-                    {priceText && (
-                      <span className="d-inline-flex align-items-center gap-1">
-                        <FaWonSign /> <strong>{priceText}</strong> 원
-                      </span>
-                    )}
-                    {regionText && (
-                      <span className="d-inline-flex align-items-center gap-1">
-                        <FaMapMarkerAlt /> {regionText}
-                      </span>
-                    )}
-                    {category && (
-                      <span className="d-inline-flex align-items-center gap-1">
-                        <FaTag /> {category}
-                      </span>
-                    )}
+                    {priceText && <span className="d-inline-flex align-items-center gap-1"><FaWonSign /> <strong>{priceText}</strong> 원</span>}
+                    {regionText && <span className="d-inline-flex align-items-center gap-1"><FaMapMarkerAlt /> {regionText}</span>}
+                    {category && <span className="d-inline-flex align-items-center gap-1"><FaTag /> {category}</span>}
                   </div>
 
-                  {/* ✅ 마지막 발신자 아바타 + 이름 + 메시지 */}
+                  {/* 마지막 발신자 */}
                   <div className="d-flex align-items-center" style={{ gap: 8, marginTop: 6, minWidth: 0 }}>
                     <Image
                       roundedCircle
@@ -366,38 +343,21 @@ export function ChatListPage() {
                       style={{ width: 20, height: 20, objectFit: "cover", flex: "0 0 auto" }}
                     />
                     <div className="text-muted text-truncate" title={preview} style={{ maxWidth: 520 }}>
-                      <strong>{senderName ?? otherName}</strong>: {preview}
+                      <strong>{senderName}</strong>: {preview}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 오른쪽: 뱃지/버튼들 */}
+              {/* 오른쪽 */}
               <div className="d-flex align-items-center gap-2">
                 {unread > 0 && <Badge bg="danger">{unread}</Badge>}
 
-                <Button
-                  variant="outline-secondary"
-                  onClick={() => {
-                    // 입장 시 낙관적으로 뱃지 0
-                    setRooms((prev) => {
-                      const copy = [...prev];
-                      const idx = copy.findIndex((x) => x.id === r.id);
-                      if (idx >= 0) copy[idx] = { ...copy[idx], unreadCount: 0 };
-                      return copy;
-                    });
-                    navigate(`/chat/rooms/${r.id}`);
-                  }}
-                >
+                <Button variant="outline-secondary" onClick={() => navigate(`/chat/rooms/${r.id}`)}>
                   열기
                 </Button>
 
-                <Button
-                  variant="outline-danger"
-                  onClick={() => deleteRoom(r.id)}
-                  disabled={deleting === r.id}
-                  title="채팅방 삭제"
-                >
+                <Button variant="outline-danger" onClick={() => deleteRoom(r.id)} disabled={deleting === r.id} title="채팅방 삭제">
                   {deleting === r.id ? <Spinner animation="border" size="sm" /> : "삭제"}
                 </Button>
               </div>
