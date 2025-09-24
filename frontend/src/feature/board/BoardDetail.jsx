@@ -1,495 +1,512 @@
-  import { useContext, useEffect, useMemo, useState } from "react";
-  import { useNavigate, useParams } from "react-router-dom";
-  import axios from "axios";
-  import { toast } from "react-toastify";
-  import { Button, Image, Modal, Spinner, Form } from "react-bootstrap";
-  import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
-  import { CommentContainer } from "../comment/CommentContainer.jsx";
-  import { chatApi } from "../chat/chatApi";
-  import {
-    FaClock,
-    FaEdit,
-    FaMapMarkerAlt,
-    FaTag,
-    FaTrashAlt,
-    FaWonSign,
-    FaComments,
-    FaFlag,
-  } from "react-icons/fa";
-  import "../../styles/BoardDetail.css";
+// src/feature/board/BoardDetail.jsx (FULL REPLACE)
+import { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { Button, Image, Modal, Spinner, Form } from "react-bootstrap";
+import { AuthenticationContext } from "../../common/AuthenticationContextProvider.jsx";
+import { CommentContainer } from "../comment/CommentContainer.jsx";
+import { chatApi } from "../chat/chatApi";
+import {
+  FaClock,
+  FaEdit,
+  FaMapMarkerAlt,
+  FaTag,
+  FaTrashAlt,
+  FaWonSign,
+  FaComments,
+  FaFlag,
+} from "react-icons/fa";
+import "../../styles/BoardDetail.css";
 
-  /** 전역 in-flight 캐시 */
-  const inFlightById = new Map();
+/** 전역 in-flight 캐시 */
+const inFlightById = new Map();
 
-  /** 숫자 가격 포맷 */
-  const formatPrice = (v) => {
-    if (v === null || v === undefined || v === "") return null;
-    const num = Number(String(v).replace(/[^\d.-]/g, ""));
-    if (Number.isNaN(num)) return null;
-    return num.toLocaleString();
-  };
+/** 숫자 가격 포맷 */
+const formatPrice = (v) => {
+  if (v === null || v === undefined || v === "") return null;
+  const num = Number(String(v).replace(/[^\d.-]/g, ""));
+  if (Number.isNaN(num)) return null;
+  return num.toLocaleString();
+};
 
-  /** 대표 이미지 추출 */
-  const pickThumb = (files) => {
-    if (!Array.isArray(files)) return null;
-    // 문자열/객체 혼재 대응
-    const urlOf = (f) =>
-      typeof f === "string" ? f : f?.url || f?.path || f?.imageUrl || f?.thumbnailUrl || f?.name || "";
-    for (const f of files) {
-      const u = urlOf(f);
-      if (u && /\.(jpe?g|png|gif|webp)$/i.test(u)) return u;
+/** 대표 이미지 추출 */
+const pickThumb = (files) => {
+  if (!Array.isArray(files)) return null;
+  // 문자열/객체 혼재 대응
+  const urlOf = (f) =>
+    typeof f === "string"
+      ? f
+      : f?.url || f?.path || f?.imageUrl || f?.thumbnailUrl || f?.name || "";
+  for (const f of files) {
+    const u = urlOf(f);
+    if (u && /\.(jpe?g|png|gif|webp)$/i.test(u)) return u;
+  }
+  return urlOf(files[0]) || null;
+};
+
+// 서버 허용 사유 문자열
+const REPORT_REASONS = [
+  { value: "SPAM", label: "스팸/도배" },
+  { value: "SCAM", label: "사기/선입금 유도" },
+  { value: "ILLEGAL", label: "불법/위법" },
+  { value: "OFFENSIVE", label: "욕설/혐오/선정성" },
+  { value: "OTHER", label: "기타" },
+];
+
+// 상태 normalize
+const normalizeTradeStatus = (raw) => {
+  const s = String(raw || "").trim().toUpperCase();
+  if (["SOLD_OUT", "SOLD", "SOLDOUT", "COMPLETED", "COMPLETE", "DONE"].includes(s))
+    return "SOLD_OUT";
+  if (["RESERVED", "RESERVE", "HOLD"].includes(s)) return "RESERVED";
+  if (["ON_SALE", "SALE", "SELLING", "AVAILABLE"].includes(s)) return "ON_SALE";
+  return "";
+};
+
+export default function BoardDetail() {
+  const [board, setBoard] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [modalShow, setModalShow] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+
+  // 신고 모달 상태
+  const [reportShow, setReportShow] = useState(false);
+  const [reportReason, setReportReason] = useState("SPAM");
+  const [reportDetail, setReportDetail] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+
+  const auth = useContext(AuthenticationContext) || {};
+  const hasAccess = auth.hasAccess ?? (() => false);
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const defaultProfileImage = "/user.png";
+
+  const statusNorm = normalizeTradeStatus(board?.tradeStatus);
+  const isSold = statusNorm === "SOLD_OUT";
+  const isOwner = hasAccess(board?.authorEmail);
+
+  const tradeBadge = useMemo(() => {
+    const cls =
+      statusNorm === "SOLD_OUT"
+        ? "sold"
+        : statusNorm === "RESERVED"
+          ? "reserved"
+          : statusNorm === "ON_SALE"
+            ? "onsale"
+            : null;
+    const txt =
+      statusNorm === "SOLD_OUT"
+        ? "판매완료"
+        : statusNorm === "RESERVED"
+          ? "예약중"
+          : statusNorm === "ON_SALE"
+            ? "판매중"
+            : null;
+    return cls && txt ? <span className={`status-chip ${cls}`}>{txt}</span> : null;
+  }, [statusNorm]);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    let p = inFlightById.get(id);
+    if (!p) {
+      p = axios.get(`/api/board/${encodeURIComponent(id)}`);
+      inFlightById.set(id, p);
     }
-    return urlOf(files[0]) || null;
-  };
 
-  // 서버 허용 사유 문자열
-  const REPORT_REASONS = [
-    { value: "SPAM", label: "스팸/도배" },
-    { value: "SCAM", label: "사기/선입금 유도" },
-    { value: "ILLEGAL", label: "불법/위법" },
-    { value: "OFFENSIVE", label: "욕설/혐오/선정성" },
-    { value: "OTHER", label: "기타" },
-  ];
-
-  // 상태 normalize
-  const normalizeTradeStatus = (raw) => {
-    const s = String(raw || "").trim().toUpperCase();
-    if (["SOLD_OUT", "SOLD", "SOLDOUT", "COMPLETED", "COMPLETE", "DONE"].includes(s))
-      return "SOLD_OUT";
-    if (["RESERVED", "RESERVE", "HOLD"].includes(s)) return "RESERVED";
-    if (["ON_SALE", "SALE", "SELLING", "AVAILABLE"].includes(s)) return "ON_SALE";
-    return "";
-  };
-
-  export default function BoardDetail() {
-    const [board, setBoard] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    const [modalShow, setModalShow] = useState(false);
-    const [chatLoading, setChatLoading] = useState(false);
-
-    // 신고 모달 상태
-    const [reportShow, setReportShow] = useState(false);
-    const [reportReason, setReportReason] = useState("SPAM");
-    const [reportDetail, setReportDetail] = useState("");
-    const [reportSubmitting, setReportSubmitting] = useState(false);
-
-    const auth = useContext(AuthenticationContext) || {};
-    const hasAccess = auth.hasAccess ?? (() => false);
-
-    const { id } = useParams();
-    const navigate = useNavigate();
-
-    const defaultProfileImage = "/user.png";
-
-    const statusNorm = normalizeTradeStatus(board?.tradeStatus);
-    const isSold = statusNorm === "SOLD_OUT";
-    const isOwner = hasAccess(board?.authorEmail);
-
-    const tradeBadge = useMemo(() => {
-      const cls =
-        statusNorm === "SOLD_OUT"
-          ? "sold"
-          : statusNorm === "RESERVED"
-            ? "reserved"
-            : statusNorm === "ON_SALE"
-              ? "onsale"
-              : null;
-      const txt =
-        statusNorm === "SOLD_OUT"
-          ? "판매완료"
-          : statusNorm === "RESERVED"
-            ? "예약중"
-            : statusNorm === "ON_SALE"
-              ? "판매중"
-              : null;
-      return cls && txt ? <span className={`status-chip ${cls}`}>{txt}</span> : null;
-    }, [statusNorm]);
-
-    useEffect(() => {
-      if (!id) return;
-      let cancelled = false;
-      let p = inFlightById.get(id);
-      if (!p) {
-        p = axios.get(`/api/board/${encodeURIComponent(id)}`);
-        inFlightById.set(id, p);
-      }
-
-      p.then((res) => {
+    p.then((res) => {
+      if (cancelled) return;
+      setBoard(res?.data ?? null);
+    })
+      .catch((err) => {
         if (cancelled) return;
-        setBoard(res?.data ?? null);
-      })
-        .catch((err) => {
-          if (cancelled) return;
-          inFlightById.delete(id);
-          const status = err?.response?.status;
-          if (status === 404) {
-            toast.warning("해당 게시물이 없습니다.");
-            navigate("/");
-          } else {
-            toast.error("게시글을 불러오는 중 오류가 발생했습니다.");
-          }
-        })
-        .finally(() => {
-          inFlightById.delete(id);
-          setLoading(false);
-        });
-      return () => {
-        cancelled = true;
-      };
-    }, [id, navigate]);
-
-    function handleDeleteButtonClick() {
-      if (isSold) {
-        toast.info("판매완료된 게시물은 삭제할 수 없습니다.");
-        return;
-      }
-      axios
-        .delete(`/api/board/${board?.id ?? id}`)
-        .then((res) => {
-          const message = res.data?.message;
-          if (message) toast(message.text, { type: message.type });
-          navigate("/board/list");
-        })
-        .catch(() => {
-          toast.warning("게시물이 삭제되지 않았습니다.");
-        });
-    }
-
-    async function handleChatButtonClick() {
-      if (!board) return;
-      if (isSold) {
-        toast.info("판매완료된 게시물은 채팅을 시작할 수 없습니다.");
-        return;
-      }
-      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
-      if (!token) {
-        toast.info("채팅은 로그인 후 이용할 수 있습니다.");
-        return;
-      }
-      setChatLoading(true);
-      try {
-        const data = await chatApi.openRoomByBoard(board.id);
-        const roomId = data?.id ?? data?.roomId;
-        if (!roomId) throw new Error("roomId not found");
-        navigate(`/chat/rooms/${roomId}`);
-      } catch {
-        toast.error("채팅방을 생성/이동하는 중 오류가 발생했습니다.");
-      } finally {
-        setChatLoading(false);
-      }
-    }
-
-    function handleOpenReport() {
-      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
-      if (!token) {
-        toast.info("신고는 로그인 후 이용할 수 있습니다.");
-        return;
-      }
-      if (isOwner) {
-        toast.info("본인 게시물은 신고할 수 없습니다.");
-        return;
-      }
-      setReportShow(true);
-    }
-
-    async function handleSubmitReport(e) {
-      e?.preventDefault?.();
-      if (!board) return;
-      const body = {
-        boardId: board.id,
-        reason: (reportReason || "").toUpperCase().trim(),
-        detail: reportDetail || "",
-      };
-      if (!REPORT_REASONS.some((r) => r.value === body.reason)) {
-        toast.error("신고 사유를 선택해 주세요.");
-        return;
-      }
-      setReportSubmitting(true);
-      try {
-        const res = await axios.post("/api/board-report", body);
-        const msg = res.data?.message;
-        if (msg?.text) toast(msg.text, { type: msg.type || "success" });
-        else toast.success("신고가 접수되었습니다.");
-        setReportShow(false);
-        setReportReason("SPAM");
-        setReportDetail("");
-      } catch (err) {
+        inFlightById.delete(id);
         const status = err?.response?.status;
-        const msg = err?.response?.data?.message;
-        if (msg?.text) {
-          toast(msg.text, { type: msg.type || (status === 409 ? "warning" : "error") });
+        if (status === 404) {
+          toast.warning("해당 게시물이 없습니다.");
+          navigate("/");
         } else {
-          if (status === 401) toast.info("로그인 후 이용 가능합니다.");
-          else if (status === 409) toast.warning("이미 신고한 게시글입니다.");
-          else if (status === 400) toast.error("입력값이 유효하지 않습니다.");
-          else toast.error("신고 접수 중 오류가 발생했습니다.");
+          toast.error("게시글을 불러오는 중 오류가 발생했습니다.");
         }
-      } finally {
-        setReportSubmitting(false);
+      })
+      .finally(() => {
+        inFlightById.delete(id);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id, navigate]);
+
+  function handleDeleteButtonClick() {
+    if (isSold) {
+      toast.info("판매완료된 게시물은 삭제할 수 없습니다.");
+      return;
+    }
+    axios
+      .delete(`/api/board/${board?.id ?? id}`)
+      .then((res) => {
+        const message = res.data?.message;
+        if (message) toast(message.text, { type: message.type });
+        navigate("/board/list");
+      })
+      .catch(() => {
+        toast.warning("게시물이 삭제되지 않았습니다.");
+      });
+  }
+
+  async function handleChatButtonClick() {
+    if (!board) return;
+    if (isSold) {
+      toast.info("판매완료된 게시물은 채팅을 시작할 수 없습니다.");
+      return;
+    }
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+      toast.info("채팅은 로그인 후 이용할 수 있습니다.");
+      return;
+    }
+    setChatLoading(true);
+    try {
+      const data = await chatApi.openRoomByBoard(board.id);
+      const roomId = data?.id ?? data?.roomId;
+      if (!roomId) throw new Error("roomId not found");
+      navigate(`/chat/rooms/${roomId}`);
+    } catch {
+      toast.error("채팅방을 생성/이동하는 중 오류가 발생했습니다.");
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
+  function handleOpenReport() {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    if (!token) {
+      toast.info("신고는 로그인 후 이용할 수 있습니다.");
+      return;
+    }
+    if (isOwner) {
+      toast.info("본인 게시물은 신고할 수 없습니다.");
+      return;
+    }
+    setReportShow(true);
+  }
+
+  async function handleSubmitReport(e) {
+    e?.preventDefault?.();
+    if (!board) return;
+    const body = {
+      boardId: board.id,
+      reason: (reportReason || "").toUpperCase().trim(),
+      detail: reportDetail || "",
+    };
+    if (!REPORT_REASONS.some((r) => r.value === body.reason)) {
+      toast.error("신고 사유를 선택해 주세요.");
+      return;
+    }
+    setReportSubmitting(true);
+    try {
+      const res = await axios.post("/api/board-report", body);
+      const msg = res.data?.message;
+      if (msg?.text) toast(msg.text, { type: msg.type || "success" });
+      else toast.success("신고가 접수되었습니다.");
+      setReportShow(false);
+      setReportReason("SPAM");
+      setReportDetail("");
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message;
+      if (msg?.text) {
+        toast(msg.text, { type: msg.type || (status === 409 ? "warning" : "error") });
+      } else {
+        if (status === 401) toast.info("로그인 후 이용 가능합니다.");
+        else if (status === 409) toast.warning("이미 신고한 게시글입니다.");
+        else if (status === 400) toast.error("입력값이 유효하지 않습니다.");
+        else toast.error("신고 접수 중 오류가 발생했습니다.");
       }
+    } finally {
+      setReportSubmitting(false);
     }
+  }
 
-    /* ====== 로딩 상태 ====== */
-    if (loading) {
-      return (
-        <div className="board-view-wrapper">
-          <div className="board-view-header" style={{ marginBottom: 16 }}>
-            <div className="board-top">
-              <div className="board-title-wrap">
-                <h1 style={{ opacity: .6 }}>로딩 중…</h1>
-              </div>
-            </div>
-          </div>
-          <div className="board-skel">
-            <div className="skel"></div>
-            <div className="skel right"></div>
-          </div>
-        </div>
-      );
-    }
-
-    if (!board) {
-      return (
-        <div className="d-flex justify-content-center my-5">
-          <Spinner animation="border" role="status" />
-        </div>
-      );
-    }
-
-    const formattedInsertedAt = board.insertedAt ? String(board.insertedAt).substring(0, 16) : "";
-    const priceText = formatPrice(board.price);
-    const regionText = [board.regionSido, board.regionSigungu].filter(Boolean).join(" ");
-    const thumb = pickThumb(board.files);
-
+  /* ====== 로딩 상태 ====== */
+  if (loading) {
     return (
       <div className="board-view-wrapper">
-        {/* 헤더 */}
-        <div className="board-view-header">
+        <div className="board-view-header" style={{ marginBottom: 16 }}>
           <div className="board-top">
             <div className="board-title-wrap">
-              <h1>
-                {board.title}
-                {tradeBadge}
-              </h1>
-
-              <div className="d-flex flex-wrap gap-2 mt-2 text-muted">
-                <span className="meta-chip">
-                  <FaClock /> {formattedInsertedAt || "-"}
-                </span>
-                {priceText && (
-                  <span className="price-chip">
-                    <FaWonSign /> <strong>{priceText}</strong> 원
-                  </span>
-                )}
-                {regionText && (
-                  <span className="meta-chip">
-                    <FaMapMarkerAlt /> {regionText}
-                  </span>
-                )}
-                {board.category && (
-                  <span className="cat-chip">
-                    <FaTag /> {board.category}
-                  </span>
-                )}
-              </div>
-
-              <div className="header-meta mt-3">
-                <div className="meta-item">
-                  <Image
-                    roundedCircle
-                    src={board.profileImageUrl || defaultProfileImage}
-                    alt={`${board.authorNickName ?? "익명"} 프로필`}
-                    className="meta-icon"
-                  />
-                  {board.authorNickName}
-                </div>
-              </div>
-            </div>
-
-            <div className="board-action-bar">
-              {!isOwner && (
-                <>
-                  <Button
-                    className="btn-neo btn-outline-danger-neo"
-                    onClick={handleOpenReport}
-                    title="이 게시물 신고하기"
-                  >
-                    <FaFlag /> <span className="btn-text d-none d-sm-inline">신고</span>
-                  </Button>
-                  {!isSold && (
-                    <Button
-                      className="btn-neo btn-primary-neo"
-                      onClick={handleChatButtonClick}
-                      disabled={chatLoading}
-                      title="판매자와 채팅하기"
-                    >
-                      {chatLoading ? <Spinner size="sm" animation="border" /> : <FaComments />}
-                      <span className="btn-text d-none d-sm-inline">채팅하기</span>
-                    </Button>
-                  )}
-                </>
-              )}
+              <h1 style={{ opacity: 0.6 }}>로딩 중…</h1>
             </div>
           </div>
         </div>
-
-        {/* 본문 2단 그리드 */}
-        <div className="board-view-body">
-          <div className="board-body-grid">
-            <div>
-              {thumb && (
-                <div className="board-hero-image">
-                  <img src={thumb} alt="대표 이미지" />
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="board-content-card">
-                <p className="board-content">{board.content}</p>
-              </div>
-
-              {/* 첨부가 텍스트형태로도 내려올 경우 대비 */}
-              {Array.isArray(board.files) && board.files.length > 0 && (
-                <div className="board-view-attachments">
-                  <h3 className="attachments-title">첨부파일</h3>
-                  <div className="file-list">
-                    {board.files.map((f, i) => {
-                      const name =
-                        typeof f === "string"
-                          ? f.split("/").pop()
-                          : f?.originalName || f?.name || f?.url || `file-${i+1}`;
-                      const url =
-                        typeof f === "string" ? f : f?.url || f?.path || f?.imageUrl || null;
-                      return (
-                        <div className="file-item" key={i}>
-                          <span title={name}>{name}</span>
-                          {url && (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn btn-sm btn-download"
-                            >
-                              다운로드
-                            </a>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="board-skel">
+          <div className="skel"></div>
+          <div className="skel right"></div>
         </div>
-
-        {/* 하단 버튼 (소유자 전용) */}
-        <div className="board-view-footer">
-          {isOwner && (
-            <div className="d-flex flex-wrap gap-2">
-              {!isSold ? (
-                <>
-                  <Button
-                    onClick={() => navigate(`/board/edit?id=${board.id}`)}
-                    className="btn-neo btn-info-neo"
-                    title="수정"
-                  >
-                    <FaEdit />
-                    <span>수정</span>
-                  </Button>
-                  <Button
-                    onClick={() => setModalShow(true)}
-                    className="btn-neo btn-danger-neo"
-                    title="삭제"
-                  >
-                    <FaTrashAlt />
-                    <span>삭제</span>
-                  </Button>
-                </>
-              ) : (
-                <span className="text-muted align-self-center">
-                  판매완료된 게시물은 수정/삭제할 수 없습니다.
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* 댓글 */}
-        <div className="comment-section-wrapper">
-          <CommentContainer boardId={board.id} />
-        </div>
-
-        {/* 삭제 모달 */}
-        <Modal show={modalShow} onHide={() => setModalShow(false)} centered className="modal-neo">
-          <Modal.Header closeButton>
-            <Modal.Title>게시물 삭제 확인</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>이 게시물을 삭제하시겠습니까?</Modal.Body>
-          <Modal.Footer>
-            <Button variant="outline-secondary" onClick={() => setModalShow(false)}>
-              취소
-            </Button>
-            <Button variant="danger" onClick={handleDeleteButtonClick}>
-              삭제
-            </Button>
-          </Modal.Footer>
-        </Modal>
-
-        {/* 신고 모달 */}
-        <Modal show={reportShow} onHide={() => setReportShow(false)} centered className="modal-neo">
-          <Form onSubmit={handleSubmitReport}>
-            <Modal.Header closeButton>
-              <Modal.Title>
-                <FaFlag className="me-2" />
-                게시물 신고
-              </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <div className="mb-3 small text-muted">{board.title}</div>
-              <Form.Group className="mb-3">
-                <Form.Label>신고 사유</Form.Label>
-                <Form.Select
-                  value={reportReason}
-                  onChange={(e) => setReportReason(e.target.value)}
-                  required
-                >
-                  {REPORT_REASONS.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>상세 내용 (선택)</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  placeholder="세부 상황이나 증빙(링크 등)을 적어주세요."
-                  value={reportDetail}
-                  onChange={(e) => setReportDetail(e.target.value)}
-                  maxLength={2000}
-                />
-                <div className="text-end text-muted mt-1">{reportDetail.length}/2000</div>
-              </Form.Group>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button
-                variant="outline-secondary"
-                onClick={() => setReportShow(false)}
-                disabled={reportSubmitting}
-              >
-                취소
-              </Button>
-              <Button type="submit" variant="danger" disabled={reportSubmitting}>
-                {reportSubmitting ? <Spinner size="sm" animation="border" /> : <FaFlag />} 신고 제출
-              </Button>
-            </Modal.Footer>
-          </Form>
-        </Modal>
       </div>
     );
   }
+
+  if (!board) {
+    return (
+      <div className="d-flex justify-content-center my-5">
+        <Spinner animation="border" role="status" />
+      </div>
+    );
+  }
+
+  const formattedInsertedAt = board.insertedAt ? String(board.insertedAt).substring(0, 16) : "";
+  const priceText = formatPrice(board.price);
+  const regionText = [board.regionSido, board.regionSigungu].filter(Boolean).join(" ");
+  const thumb = pickThumb(board.files);
+
+  return (
+    <div className="board-view-wrapper">
+      {/* 헤더 */}
+      <div className="board-view-header">
+        <div className="board-top">
+          <div className="board-title-wrap">
+            <h1>
+              {board.title}
+              {tradeBadge}
+            </h1>
+
+            <div className="d-flex flex-wrap gap-2 mt-2 text-muted">
+              <span className="meta-chip">
+                <FaClock /> {formattedInsertedAt || "-"}
+              </span>
+              {priceText && (
+                <span className="price-chip">
+                  <FaWonSign /> <strong>{priceText}</strong> 원
+                </span>
+              )}
+              {regionText && (
+                <span className="meta-chip">
+                  <FaMapMarkerAlt /> {regionText}
+                </span>
+              )}
+              {board.category && (
+                <span className="cat-chip">
+                  <FaTag /> {board.category}
+                </span>
+              )}
+            </div>
+
+            <div className="header-meta mt-3">
+              <div className="meta-item">
+                <Image
+                  roundedCircle
+                  src={board.profileImageUrl || defaultProfileImage}
+                  alt={`${board.authorNickName ?? "익명"} 프로필`}
+                  className="meta-icon"
+                />
+                {board.authorNickName}
+              </div>
+            </div>
+          </div>
+
+          <div className="board-action-bar">
+            {!isOwner && (
+              <>
+                <Button
+                  className="btn-neo btn-outline-danger-neo"
+                  onClick={handleOpenReport}
+                  title="이 게시물 신고하기"
+                >
+                  <FaFlag /> <span className="btn-text d-none d-sm-inline">신고</span>
+                </Button>
+                {!isSold && (
+                  <Button
+                    className="btn-neo btn-primary-neo"
+                    onClick={handleChatButtonClick}
+                    disabled={chatLoading}
+                    title="판매자와 채팅하기"
+                  >
+                    {chatLoading ? <Spinner size="sm" animation="border" /> : <FaComments />}
+                    <span className="btn-text d-none d-sm-inline">채팅하기</span>
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 본문 2단 그리드 */}
+      <div className="board-view-body">
+        <div className="board-body-grid">
+          <div>
+            {thumb && (
+              <div className="board-hero-image">
+                <img src={thumb} alt="대표 이미지" />
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="board-content-card">
+              <p className="board-content">{board.content}</p>
+            </div>
+
+            {/* 첨부(다운로드/파일명 비노출) */}
+            {Array.isArray(board.files) && board.files.length > 0 && (() => {
+              const toUrl = (f) =>
+                typeof f === "string"
+                  ? f
+                  : f?.url || f?.path || f?.imageUrl || f?.thumbnailUrl || null;
+
+              const files = board.files.map((f) => toUrl(f)).filter(Boolean);
+              if (files.length === 0) return null;
+
+              // 대표 썸네일(본문 상단)에 이미 노출된 항목 제외
+              const stripQ = (u) => (u ? String(u).split("?")[0] : "");
+              const mainThumb = stripQ(thumb);
+              const unique = files
+                .map(String)
+                .filter((u) => stripQ(u) !== mainThumb);
+
+              const isImg = (u) => /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(stripQ(u));
+              const imgs = unique.filter(isImg);
+              const otherCount = unique.length - imgs.length;
+
+              if (imgs.length === 0 && otherCount === 0) return null;
+
+              return (
+                <div className="board-view-attachments">
+                  <h3 className="attachments-title">첨부</h3>
+
+                  {/* 이미지 썸네일만 노출 (클릭/링크/파일명 없음) */}
+                  {imgs.length > 0 && (
+                    <div className="image-grid">
+                      {imgs.map((u, i) => (
+                        <div className="img-thumb" key={i}>
+                          <img src={u} alt={`첨부 이미지 ${i + 1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 비이미지 파일: 개수만 안내 */}
+                  {otherCount > 0 && (
+                    <div className="text-muted small mt-2">기타 첨부 {otherCount}개</div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </div>
+
+      {/* 하단 버튼 (소유자 전용) */}
+      <div className="board-view-footer">
+        {isOwner && (
+          <div className="d-flex flex-wrap gap-2">
+            {!isSold ? (
+              <>
+                <Button
+                  onClick={() => navigate(`/board/edit?id=${board.id}`)}
+                  className="btn-neo btn-info-neo"
+                  title="수정"
+                >
+                  <FaEdit />
+                  <span>수정</span>
+                </Button>
+                <Button
+                  onClick={() => setModalShow(true)}
+                  className="btn-neo btn-danger-neo"
+                  title="삭제"
+                >
+                  <FaTrashAlt />
+                  <span>삭제</span>
+                </Button>
+              </>
+            ) : (
+              <span className="text-muted align-self-center">
+                판매완료된 게시물은 수정/삭제할 수 없습니다.
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 댓글 */}
+      <div className="comment-section-wrapper">
+        <CommentContainer boardId={board.id} />
+      </div>
+
+      {/* 삭제 모달 */}
+      <Modal show={modalShow} onHide={() => setModalShow(false)} centered className="modal-neo">
+        <Modal.Header closeButton>
+          <Modal.Title>게시물 삭제 확인</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>이 게시물을 삭제하시겠습니까?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" onClick={() => setModalShow(false)}>
+            취소
+          </Button>
+          <Button variant="danger" onClick={handleDeleteButtonClick}>
+            삭제
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* 신고 모달 */}
+      <Modal show={reportShow} onHide={() => setReportShow(false)} centered className="modal-neo">
+        <Form onSubmit={handleSubmitReport}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <FaFlag className="me-2" />
+              게시물 신고
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="mb-3 small text-muted">{board.title}</div>
+            <Form.Group className="mb-3">
+              <Form.Label>신고 사유</Form.Label>
+              <Form.Select
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                required
+              >
+                {REPORT_REASONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>상세 내용 (선택)</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={4}
+                placeholder="세부 상황이나 증빙(링크 등)을 적어주세요."
+                value={reportDetail}
+                onChange={(e) => setReportDetail(e.target.value)}
+                maxLength={2000}
+              />
+              <div className="text-end text-muted mt-1">{reportDetail.length}/2000</div>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setReportShow(false)}
+              disabled={reportSubmitting}
+            >
+              취소
+            </Button>
+            <Button type="submit" variant="danger" disabled={reportSubmitting}>
+              {reportSubmitting ? <Spinner size="sm" animation="border" /> : <FaFlag />} 신고 제출
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+    </div>
+  );
+}

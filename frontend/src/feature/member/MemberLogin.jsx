@@ -15,9 +15,7 @@ export function MemberLogin({ onLoginSuccess, onNavigateToSignup, isModal }) {
   const navigate = useNavigate();
 
   const handleSignupClick = () => {
-    if (onNavigateToSignup) {
-      onNavigateToSignup();
-    }
+    if (onNavigateToSignup) onNavigateToSignup();
   };
 
   async function handleLogInButtonClick() {
@@ -48,9 +46,7 @@ export function MemberLogin({ onLoginSuccess, onNavigateToSignup, isModal }) {
       login(token);
       toast.success("로그인 되었습니다.");
 
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
+      if (onLoginSuccess) onLoginSuccess();
 
       navigate("/");
     } catch (err) {
@@ -162,7 +158,8 @@ export function MemberLogin({ onLoginSuccess, onNavigateToSignup, isModal }) {
       <div className="login-card">
         {/* 헤더 섹션 */}
         <div className="login-header">
-          <h1 className="login-title">🐾 PETOPIA</h1>
+          <h1 className="login-title">🛡️ 안전마켓</h1>
+          <p className="login-subtitle">중고장터 안전한 거래의 시작</p>
         </div>
 
         {/* 에러 메시지 */}
